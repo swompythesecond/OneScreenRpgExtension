@@ -461,12 +461,18 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-document.addEventListener('click', function (event) {
-    // Helper function to check if an element is visible
-    function isVisible(element) {
-        return element && getComputedStyle(element).display !== 'none';
-    }
+// Helper function to check if an element is visible
+function isElementVisible(element) {
+    return element && getComputedStyle(element).display !== 'none';
+}
 
+document.addEventListener('contextmenu', function(event) {
+    if (!event.target.closest('.inventory-item') || event.target.closest('#selectedInventory')) {
+        $('.context-menu-list').trigger('contextmenu:hide');
+    }
+});
+
+document.addEventListener('click', function (event) { 
     // Array of selectors to check
     var selectors = ['#fullInventory', '#craftInventory', '#craftPreview', '#selectedInventory', '.context-menu-list', '#stashInventory'];
 
@@ -474,9 +480,9 @@ document.addEventListener('click', function (event) {
     let isContextMenu = event.target.closest('.context-menu-list');
     for (var selector of selectors) {
         var closestElement = event.target.closest(selector);
-        if (closestElement && isVisible(closestElement)) {
+        if (closestElement && isElementVisible(closestElement)) {
             if (closestElement != isContextMenu){
-                $('.context-menu-list').trigger('contextmenu:hide')
+                $('.context-menu-list').trigger('contextmenu:hide');
             }
             return; // Exit the function if click is inside specified and visible elements
         }
