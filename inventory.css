@@ -1,0 +1,662 @@
+@font-face {
+  font-family: arcade;
+  src: url('images/arcade.TTF');
+}
+
+
+
+/* width */
+::-webkit-scrollbar {
+  width: 0.6vw;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px gray;
+  border-radius: 0.6vw;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #8f563b;
+  border-radius: 0.6vw;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #d27d2c;
+}
+
+
+html {
+  box-sizing: border-box;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
+body {
+  color: white;
+  font-family: arcade;
+}
+
+#fullInventory {
+  position: absolute;
+  top: 50%;
+  left: 1%;
+  display: block;
+}
+
+#selectedInventory {
+  margin-top: 1vw;
+  position: absolute;
+  top: 100%;
+  left: 1%;
+  display: block;
+}
+
+#craftInventory {
+  margin-top: 1vw;
+  position: absolute;
+  left: 11%;
+  top: 51%;
+  display: block;
+}
+
+#stashInventory {
+  margin-top: 1vw;
+  position: absolute;
+  left: 11%;
+  top: 48%;
+}
+
+
+#craftPreview {
+  position: absolute;
+  left: 16.5%;
+  top: 53%;
+  width: 5.6vw;
+  height: 5.6vw;
+  background-image: url('images/inventory_background/craftPreview.png');
+  background-size: cover;
+  display: flex;
+  /* Use flexbox for centering */
+  justify-content: center;
+  /* Center horizontally */
+  align-items: center;
+  /* Center vertically */
+  font-size: 0.5vw;
+}
+
+#craftImage {
+  position: absolute;
+  left: 18.3%;
+  top: 55%;
+  width: 2vw;
+  height: 2vw;
+  background-image: url('');
+  background-size: cover;
+  display: block;
+  cursor: pointer;
+  font-size: 0.5vw;
+  z-index: 100;
+}
+
+#craftButton {
+  position: absolute;
+  left: 17.3%;
+  top: 59.3%;
+  width: 4.1vw;
+  height: 2vw;
+  background-image: url('images/inventory_background/craftButton.png');
+  background-size: cover;
+  display: block;
+  cursor: pointer;
+  font-size: 0.5vw;
+  z-index: 100;
+}
+
+
+div {
+  font-family: arcade;
+}
+
+.item-amount {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  color: white;
+  padding: 0.1vw 0.3vw;
+  font-size: 0.5vw;
+  text-align: left;
+  line-height: 0.5vw;
+  white-space: pre;
+}
+
+#statsBars {
+  position: absolute;
+  top: 6%;
+  left: 1%;
+  width: 10vw;
+  height: 4vw;
+  background-image: url('images/inventory_background/stats_bars_area.png');
+  background-size: cover;
+  text-align: center;
+  font-size: 0.5vw;
+  padding: 0.35vw;
+  box-sizing: border-box;
+  /* Ensures padding is included in the width/height */
+}
+
+.statBar {
+  position: relative;
+  width: calc(100% - 1vw);
+  height: 30%;
+  margin: 5% auto;
+  border: 0.15vw solid #000000;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-family: 'Press Start 2P';
+  font-size: 1em;
+  overflow: hidden;
+  background-color: #808080;
+  /* Ensures the fill does not overlap the border */
+}
+
+.barFill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+}
+
+#hpBar .barFill {
+  background-color: #FF4136;
+  /* Red for HP */
+}
+
+#manaBar .barFill {
+  background-color: #0074D9;
+  /* Blue for Mana */
+}
+
+.statBar>span {
+  position: relative;
+  /* Ensures text is positioned above the fill */
+  z-index: 2;
+  /* Keeps text visible on top of the fill */
+}
+
+
+#stats {
+  position: absolute;
+  top: 16%;
+  width: 10vw;
+  height: 4vw;
+  background-image: url('images/inventory_background/stats_area.png');
+  background-size: cover;
+  text-align: center;
+  font-size: 0.5vw;
+  padding-top: 0.35vw;
+  width: 10vw;
+  height: 4vw;
+  left: 1%;
+}
+
+#blessings {
+  position: absolute;
+  top: 40%;
+  left: 1%;
+  width: 10vw;
+  height: 4vw;
+  background-image: url('images/inventory_background/stats_area.png');
+  background-size: cover;
+  text-align: center;
+  font-size: 0.5vw;
+  padding-top: 0.35vw;
+}
+
+#blessBlessings {
+  position: absolute;
+  top: 40.3%;
+  left: 11%;
+}
+
+.blessButton {
+  background-image: url('images/inventory_background/upgrade.png');
+  background-size: cover;
+  width: 1vw;
+  height: 0.7vw;
+  margin-right: 5px;
+  /* Adding transition for a smooth border appearance */
+  transition: border 0.3s ease-in-out;
+  cursor: pointer;
+}
+
+.blessButton:hover {
+  border: 0.1vw solid green;
+}
+
+#mission {
+  position: absolute;
+  top: 25%;
+  width: 10vw;
+  height: 6.6vw;
+  background-image: url('images/inventory_background/text_area.png');
+  background-size: cover;
+  text-align: center;
+  font-size: 0.5vw;
+  padding-top: 0.5vw;
+  padding-left: 0.4vw;
+  padding-right: 0.4vw;
+  overflow-wrap: break-word;
+  overflow: auto;
+  left: 1%;
+}
+
+
+#missionText {
+  padding-top: 0.2vw;
+}
+
+#missionProgress {
+  padding-top: 0.4vw;
+}
+
+
+#heal {
+  position: absolute;
+  top: 95%;
+  left: 8.3%;
+  width: 2vw;
+  height: 2vw;
+  background-image: url('images/inventory_background/heal.png');
+  background-size: cover;
+  display: block;
+  cursor: pointer;
+  font-size: 0.5vw;
+}
+
+#hideInventory {
+  position: absolute;
+  top: 95%;
+  left: 4.6%;
+  width: 2vw;
+  height: 2vw;
+  background-image: url('images/inventory_background/toggle_vision.png');
+  background-size: cover;
+  display: block;
+  cursor: pointer;
+  font-size: 0.5vw;
+}
+
+#quit {
+  position: absolute;
+  top: 95%;
+  left: 1%;
+  width: 2vw;
+  height: 2vw;
+  background-image: url('images/inventory_background/quit.png');
+  background-size: cover;
+  display: block;
+  cursor: pointer;
+  font-size: 0.5vw;
+}
+
+#craft {
+  position: absolute;
+  top: 95%;
+  left: 12%;
+  width: 2vw;
+  height: 2vw;
+  background-image: url('images/inventory_background/craft.png');
+  background-size: cover;
+  display: block;
+  cursor: pointer;
+  font-size: 0.5vw;
+}
+
+#stash {
+  position: absolute;
+  top: 95%;
+  left: 16%;
+  width: 2vw;
+  height: 2vw;
+  background-image: url('images/inventory_background/stash.png');
+  background-size: cover;
+  display: block;
+  cursor: pointer;
+  font-size: 0.5vw;
+}
+
+#loggedOut {
+  position: absolute;
+  color: white;
+  top: 2%;
+  left: 1%;
+  width: 15vw;
+  font-size: 1vw;
+  background-color: #595652;
+  border-color: #8f563b;
+  border-style: solid;
+  text-align: center;
+}
+
+#disconnectedMessage {
+  position: absolute;
+  color: red;
+  top: 50%;
+  left: 20%;
+  z-index: 1000;
+  font-size: 3vw;
+  font-family: arcade;
+  text-align: center;
+  display: none;
+}
+
+#loggedOut {
+  position: absolute;
+  color: white;
+  top: 2%;
+  left: 1%;
+  width: 15vw;
+  font-size: 1vw;
+  background-color: #595652;
+  border-color: red;
+  border-style: solid;
+  text-align: center;
+}
+
+#share {
+  width: 5vw;
+  height: 2vw;
+  font-size: 0.5vw;
+  color: white;
+  background-color: red;
+  cursor: pointer;
+  margin-bottom: 0.5vw;
+  font-family: arcade;
+}
+
+.spawned-text {
+  font-size: 1vw;
+  font-family: arcade;
+  color: red;
+}
+
+a,
+a:link,
+a:visited {
+  color: #c00;
+  text-decoration: none;
+
+  -webkit-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+a:hover {
+  color: #ff5c19;
+  text-decoration: underline;
+}
+
+a:active {
+  color: #6aff19;
+}
+
+input[type="range"] {
+  width: 20vw;
+}
+
+.inventory-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-start;
+  align-content: flex-start;
+}
+
+.inventory-cell {
+  width: 1.8vw;
+  height: 1.8vw;
+
+  flex-shrink: 0;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-image: url('images/inventory_background/middle_middle.png');
+
+  color: white;
+  text-shadow:
+    -0.05vw -0.05vw 0 #000,
+    0.05vw -0.05vw 0 #000,
+    -0.05vw 0.05vw 0 #000,
+    0.05vw 0.05vw 0 #000;
+
+}
+
+.inventory-cell:first-child {
+  width: 1.9vw;
+  padding-left: 0.1vw;
+
+  background-image: url('images/inventory_background/middle_left.png');
+
+}
+
+.inventory-cell:last-child {
+  width: 1.9vw;
+  padding-right: 0.1vw;
+
+  background-image: url('images/inventory_background/middle_right.png');
+}
+
+.inventory-row:first-child .inventory-cell {
+  height: 1.9vw;
+  padding-top: 0.1vw;
+
+  background-image: url('images/inventory_background/top_middle.png');
+}
+
+.inventory-row:last-child .inventory-cell {
+  height: 1.9vw;
+  padding-bottom: 0.1vw;
+
+  background-image: url('images/inventory_background/bottom_middle.png');
+}
+
+.inventory-row:first-child .inventory-cell:first-child {
+  width: 1.9vw;
+  height: 1.9vw;
+
+  background-image: url('images/inventory_background/top_left.png');
+}
+
+.inventory-row:first-child .inventory-cell:last-child {
+  width: 1.9vw;
+  height: 1.9vw;
+
+  background-image: url('images/inventory_background/top_right.png');
+}
+
+.inventory-row:last-child .inventory-cell:first-child {
+  width: 1.9vw;
+  height: 1.9vw;
+
+  background-image: url('images/inventory_background/bottom_left.png');
+}
+
+.inventory-row:last-child .inventory-cell:last-child {
+  width: 1.9vw;
+  height: 1.9vw;
+
+  background-image: url('images/inventory_background/bottom_right.png');
+}
+
+.inventory-row:only-child .inventory-cell {
+  height: 2vw;
+}
+
+.inventory-row:only-child .inventory-cell:first-child {
+  width: 1.9vw;
+  height: 2vw;
+
+  background-position: -574px -286px;
+}
+
+.inventory-row:only-child .inventory-cell:last-child {
+  width: 1.9vw;
+  height: 2vw;
+
+  background-position: -650px -286px;
+}
+
+.inventory-row .inventory-cell:only-child {
+  width: 2vw;
+
+  background-position: -563px -463px;
+}
+
+.inventory-row:first-child .inventory-cell:only-child {
+  width: 2vw;
+  height: 1.9vw;
+
+  background-position: -563px -424px;
+}
+
+.inventory-row:last-child .inventory-cell:only-child {
+  width: 2vw;
+  height: 1.9vw;
+
+  background-position: -563px -500px;
+}
+
+.inventory-row:only-child .inventory-cell:only-child {
+  width: 2vw;
+  height: 2vw;
+
+  background-position: -30px -288px;
+}
+
+.inventory-item {
+  position: relative;
+  width: 1.7vw;
+  height: 1.7vw;
+  background-repeat: no-repeat;
+
+  cursor: hand;
+  cursor: pointer;
+
+  -webkit-transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease;
+  background-size: cover;
+  background-repeat: no-repeat;
+
+  background-position: center center, center center;
+}
+
+.inventory-item-sortable-placeholder {
+  display: none;
+}
+
+.inventory-item.ui-sortable-helper,
+.inventory-item.ui-draggable-dragging {
+  opacity: .6;
+}
+
+
+#select-helmet {
+  background-image: url('images/inventory_background/top_left_helmet.png');
+}
+
+#select-plating {
+  background-image: url('images/inventory_background/top_middle_plating.png');
+}
+
+#select-fabric {
+  background-image: url('images/inventory_background/top_middle_cloth.png');
+}
+
+#select-chest {
+  background-image: url('images/inventory_background/top_middle_chest.png');
+}
+
+#select-pants {
+  background-image: url('images/inventory_background/top_middle_shoes.png');
+}
+
+#select-weapon {
+  background-image: url('images/inventory_background/top_middle_sword.png');
+}
+
+#select-fishingRod {
+  background-image: url('images/inventory_background/top_middle_fishing_rod.png');
+}
+
+#delete-item {
+  background-image: url('images/inventory_background/delete.png');
+}
+
+#remove-gem {
+  background-image: url('images/inventory_background/bottom_middle_gem_remove.png');
+}
+
+.context-menu-list.context-menu-root {
+  font-size: 0.7vw;
+  font-family: Arcade;
+}
+
+#context-menu-layer {
+    display: none !important;
+}
+
+.context-menu-list {
+  background: url('images/inventory_background/text_area.png') no-repeat !important;
+  background-size: 100% 100% !important;
+  background-position: center center !important;
+  border: 0px !important;
+  padding: 10px 0px 10px 0px !important;
+}
+.context-menu-item {
+  cursor: pointer;
+  color: white !important;
+  text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
+  background-color: transparent !important;   
+}
+
+.context-menu-item:hover:not(.context-menu-disabled) {
+  text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
+  color: #C0C146 !important;
+}
+
+.context-menu-item.context-menu-disabled {
+  cursor: not-allowed !important;
+  color: #cccccc !important;
+  text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+}
+
+.context-menu-item.context-menu-not-selectable {
+  border-bottom: 1px solid black;
+  margin-left: 5px !important;
+  margin-right: 5px !important;
+  cursor: default !important;
+}
+
+.context-menu-icon.context-menu-icon--fa::before {
+  color: white !important;
+}
+
+.context-menu-icon::before {
+  color: white !important;
+}

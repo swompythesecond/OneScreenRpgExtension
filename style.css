@@ -1,0 +1,30 @@
+body {
+    font-size: 30px;
+    font-family: Verdana;
+    background: transparent;
+}
+body.twitch_dark {
+    color: #EEEEEE;
+    background: transparent;
+}
+
+
+th, td {
+    font-size: 15px;
+    padding: 2px 3px;
+    border-right: 1px solid #000000;
+    border-bottom: 1px solid #000000;
+}
+
+.hud{
+    display: none;
+}
+
+#marker {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -70%);
+    width: 2vw;
+    display: none;
+}

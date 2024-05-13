@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
+
+    <link rel="stylesheet" href="style.css" />
+    <title>Profile Test Extension</title>
+    <link rel="stylesheet" type="text/css" href="inventory.css">
+    <script src="jquery.min.js"></script>
+    <script src="jquery-ui.min.js"></script>
+    <script src="jquery.contextMenu.min.js"></script>
+    <link rel="stylesheet" href="jquery.contextMenu.min.css" />
+
+</head>
+
+<body>
+    <div id="loggedOut">
+        <p>You need to share your TwitchID to continue</p>
+        <button id="share">Share ID</button>
+    </div>
+
+    <div id="disconnectedMessage">
+        Extension Disconnected Refresh page to reload.
+    </div>
+
+    <img src="images/marker.gif" alt="marker" id="marker">
+
+
+    <div id="fullInventory" class="hud">
+        <div class="inventory-background">
+            <div class="inventory-table" id="personal-inventory">
+                <div class="inventory-row">
+                    <div class="inventory-cell">
+                    </div>
+                    <div class="inventory-cell">
+                    </div>
+                    <div class="inventory-cell">
+                    </div>
+                    <div class="inventory-cell">
+                    </div>
+                    <div class="inventory-cell">
+                    </div>
+                </div>
+                <div class="inventory-row">
+                    <div class="inventory-cell">
+                    </div>
+                    <div class="inventory-cell">
+                    </div>
+                    <div class="inventory-cell">
+                    </div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                </div>
+                <div class="inventory-row">
+                    <div class="inventory-cell">
+                    </div>
+                    <div class="inventory-cell">
+                    </div>
+                    <div class="inventory-cell">
+                    </div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                </div>
+                <div class="inventory-row">
+                    <div class="inventory-cell">
+                    </div>
+                    <div class="inventory-cell">
+                    </div>
+                    <div class="inventory-cell">
+                    </div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                </div>
+                <div class="inventory-row">
+                    <div class="inventory-cell">
+                    </div>
+                    <div class="inventory-cell">
+                    </div>
+                    <div class="inventory-cell">
+                    </div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                </div>
+            </div>
+
+            <div id="selectedInventory">
+                <div class="inventory-table" id="select-inventory">
+                    <div class="inventory-row">
+                        <div class="inventory-cell" id="select-helmet"></div>
+                        <div class="inventory-cell" id="select-plating"></div>
+                        <div class="inventory-cell" id="select-chest"></div>
+                        <div class="inventory-cell" id="select-fabric"></div>
+                        <div class="inventory-cell" id="select-pants"></div>
+                    </div>
+                    <div class="inventory-row">
+                        <div class="inventory-cell" id="select-weapon"></div>
+                        <div class="inventory-cell" id="select-fishingRod"></div>
+                        <div class="inventory-cell" id="remove-gem"></div>
+                        <div class="inventory-cell"></div>
+                        <div class="inventory-cell" id="delete-item"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="craftInventory" class="hud crafting">
+        <div class="inventory-table" id="craft-inventory">
+            <div class="inventory-row">
+                <div class="inventory-cell"></div>
+                <div class="inventory-cell"></div>
+                <div class="inventory-cell"></div>
+            </div>
+            <div class="inventory-row">
+                <div class="inventory-cell"></div>
+                <div class="inventory-cell"></div>
+                <div class="inventory-cell"></div>
+            </div>
+            <div class="inventory-row">
+                <div class="inventory-cell"></div>
+                <div class="inventory-cell"></div>
+                <div class="inventory-cell"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="craftPreview" class="hud crafting" style="display: block;"></div>
+    <div id="craftImage" class="hud crafting" style="display: block;"></div>
+    <span id="craftButton" class="hud crafting" style="display: block;"></span>
+
+    <div id="stashInventory" class="hud">
+        <div class="inventory-background">
+            <div class="inventory-table" id="stash-inventory">
+                <div class="inventory-row">
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                </div>
+                <div class="inventory-row">
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                </div>
+                <div class="inventory-row">
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                </div>
+                <div class="inventory-row">
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                </div>
+                <div class="inventory-row">
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                    <div class="inventory-cell"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="statsBars" class="hud">
+        <div id="hpBar" class="statBar">
+            <div class="barFill"></div>
+            <span id="hpText">100/100</span>
+        </div>
+        <div id="manaBar" class="statBar">
+            <div class="barFill"></div>
+            <span id="manaText">50/50</span>
+        </div>
+    </div>
+
+    <div id="stats" class="hud">
+        <div id="statsLvl"></div>
+        <div id="statsXp"></div>
+        <div id="statsGold"></div>
+        <div id="statsArmor"></div>
+        <div id="statsDamage"></div>
+    </div>
+
+    <div id="mission" class="hud">
+        <div id="missionTitle" style="display: none">Mission:</div>
+        <div id="missionProgress"></div>
+        <div id="missionText">You are not in the Game write !play to see your stats in the Twitch Chat</div>
+    </div>
+
+    <div id="blessings" class="hud">
+        <div id="blessingDamage"></div>
+        <div id="blessingAfkGain"></div>
+        <div id="blessingArmor"></div>
+        <div id="blessingGoldGain"></div>
+        <div id="blessingXpGain"></div>
+    </div>
+
+    <div id="blessBlessings" class="hud">
+        <div class="blessButton" data-blessing="damage"></div>
+        <div class="blessButton" data-blessing="afkGain"></div>
+        <div class="blessButton" data-blessing="armor"></div>
+        <div class="blessButton" data-blessing="xpGain"></div>
+        <div class="blessButton" data-blessing="luck"></div>
+    </div>
+
+
+
+    <div id="heal" class="hud"></div>
+
+
+    <div id="hideInventory"></div>
+
+
+    <div id="quit" class="hud"></div>
+
+    <div id="craft" class="hud"></div>
+
+    <div id="stash" class="hud"></div>
+
+
+
+
+    <script src="script.js"></script>
+    <script src="inventory.js"></script>
+    <script src="config.js"></script>
+
+</body>
+
+</html>
