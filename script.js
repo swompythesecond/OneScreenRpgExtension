@@ -1471,8 +1471,20 @@ $.contextMenu({
     selector: '.inventory-item',
     build: function($trigger, e) {
         var fullItem = $trigger.data('fullitem');
+
+        // Retrieving data attributes
         var inventoryPosition = $trigger.data('inventory-position');
         var stashPosition = $trigger.data('stashposition');
+    
+        var isStash;
+        if (inventoryPosition !== undefined && inventoryPosition > -1){
+            position = inventoryPosition;
+            isStash = false;
+        } else {
+            position = stashPosition;
+            isStash = true;
+        }
+        
         var isInsideSelectedInventory = $trigger.closest('#selectedInventory').length > 0;
 
         // Prevent showing the menu if inside #selectedInventory
@@ -1508,7 +1520,7 @@ $.contextMenu({
             },
             "sep4": "---------",
             "swap": {
-                name: stashPosition ? "Send to Inventory" : "Send to Stash",
+                name: isStash ? "Send to Inventory" : "Send to Stash",
                 //icon: "fa-solid fa-right-left"
             },
             "sep5": "---------",
