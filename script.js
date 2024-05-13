@@ -996,11 +996,9 @@ function getStashInventoryArray() {
                 if (stashInventoryItem.dataset.fullitem !== undefined) {
                     let item = JSON.parse(stashInventoryItem.dataset.fullitem);
                     if (stashInventoryItem.dataset.equipped && document.getElementById("select-" + item.kind).innerHTML == '') {
-                        let equipEmptyTimer;
-                        clearTimeout(equipEmptyTimer);
                         const _loop = loop;
                         allowSetStash = false;
-                        equipEmptyTimer = setTimeout(() => equipEmpty(item.kind, position-1, true), 200);
+                        equipEmpty(item.kind, position-1, true);
                         return;
                     }
                     if (stashInventoryItem.dataset.stashposition === undefined) {
@@ -1244,6 +1242,10 @@ function equipEmpty(_kind, _slot, _fromStash = false) {
         .catch(error => {
             console.error(error);
             reject(error); // Reject the promise when there's an error
+        }).finally(() => {
+            // Restart the inventory check interval 2 seconds after stashPut completes
+            settingInventory = false;
+            setTimeout(restartInventoryCheck, 2000);
         });
     }));
 }
