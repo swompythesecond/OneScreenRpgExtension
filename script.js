@@ -475,7 +475,7 @@ document.addEventListener('contextmenu', function(event) {
 
 document.addEventListener('click', function (event) { 
     // Array of selectors to check
-    var selectors = ['#fullInventory', '#craftInventory', '#craftPreview', '#selectedInventory', '.context-menu-list', '#stashInventory'];
+    var selectors = ['#fullInventory', '#craftInventory', '#craftPreview', '#selectedInventory', '.context-menu-list', '#stashInventory', '#statsBars', '#stats', '#mission', '#blessings', '#blessBlessings'];
 
     // Check if click is inside any specified and visible elements
     let isContextMenu = event.target.closest('.context-menu-list');
