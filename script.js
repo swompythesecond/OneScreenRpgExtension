@@ -15,6 +15,8 @@ let mouseReleaseTimer;
 let isLeftMouseButtonPressed = false;
 let autoSellList = [];
 let stashPutTracker = { from: null, to: null };
+var lastUser = null;
+let unequiped = false;
 
 class RequestQueue {
     constructor() {
@@ -929,6 +931,22 @@ function getCraftInventoryArray() {
     return craftInventoryArray;
 }
 
+function swapSelectedItem(kind, slot, isStash = false) {
+    // Determine the target array based on isStash
+    let targetArray = isStash ? lastUser.stash : lastUser.inventory;
+
+    // Check if the kind exists in selectedItems and the slot is within the target array range
+    if (lastUser.selectedItems.hasOwnProperty(kind) && slot >= 0 && slot < targetArray.length) {
+        // Swap the items
+        let tempItem = lastUser.selectedItems[kind];
+        lastUser.selectedItems[kind] = targetArray[slot];
+        targetArray[slot] = tempItem;
+        unequiped = true;
+    } else {
+        console.error("Invalid kind or slot index.");
+    }
+}
+
 function getInventoryArray() {
     const inventoryArray = [];
     const inventoryRows = document.querySelectorAll('#personal-inventory .inventory-row');
@@ -950,18 +968,16 @@ function getInventoryArray() {
                         if (stashPutTracker.from instanceof String || stashPutTracker.from === null) {
                             stashPut(fromPos, toPos);
                             stashPutTracker = { from: fromPos, to: toPos };
-                            console.log('stashPut From Inventory');
                         }
                         allowSetInventory = false;
                         return { inventoryArray, allowSetInventory };
                     }
                     // We do this so we can unequip items
-                    if (inventoryItem.dataset.inventoryPosition === undefined && document.getElementById("select-" + item.kind).innerHTML == '' && inventoryItem.dataset.moving === undefined) {
-                        let equipEmptyTimer;
-                        clearTimeout(equipEmptyTimer);
+                    if (inventoryItem.dataset.inventoryPosition === undefined && document.getElementById("select-" + item.kind).innerHTML == '') {
                         const _loop = loop;
                         allowSetInventory = false;
-                        equipEmpty(item.kind, _loop, false);                        
+                        equipEmpty(item.kind, _loop, false);
+                        swapSelectedItem(item.kind, _loop, false);
                         return;
                     }
                     inventoryArray.push(item);
@@ -996,11 +1012,10 @@ function getStashInventoryArray() {
                 if (stashInventoryItem.dataset.fullitem !== undefined) {
                     let item = JSON.parse(stashInventoryItem.dataset.fullitem);
                     if (stashInventoryItem.dataset.equipped && document.getElementById("select-" + item.kind).innerHTML == '') {
-                        let equipEmptyTimer;
-                        clearTimeout(equipEmptyTimer);
                         const _loop = loop;
                         allowSetStash = false;
-                        equipEmptyTimer = setTimeout(() => equipEmpty(item.kind, position-1, true), 200);
+                        equipEmpty(item.kind, position-1, true);
+                        swapSelectedItem(item.kind, position-1, true);
                         return;
                     }
                     if (stashInventoryItem.dataset.stashposition === undefined) {
@@ -1009,7 +1024,6 @@ function getStashInventoryArray() {
                         if (stashPutTracker.to instanceof String || stashPutTracker.to === null) {
                             stashPut(fromPos, toPos);
                             stashPutTracker = { from: fromPos, to: toPos };
-                            console.log('stashPut From Stash');
                         }
                         allowSetStash = false;
                         return { stashInventoryArray, allowSetStash };
@@ -1021,6 +1035,7 @@ function getStashInventoryArray() {
             } else {
                 stashInventoryArray.push(emptyItem);
             }
+            loop++;
         });
     });
 
@@ -1055,6 +1070,12 @@ function saveInventory() {
     const selectInventoryArray = getSelectInventoryArray();
     let { stashInventoryArray, allowSetStash } = getStashInventoryArray();
 
+    if (unequiped){
+        loadInventory(lastUser, true);
+        unequiped = false;
+        settingInventory = false;
+    }
+
     if (allowSetInventory == true && allowSetStash == true) {
         setInventory(inventoryArray, selectInventoryArray, stashInventoryArray);
     }
@@ -1087,6 +1108,7 @@ function getInventory() {
                 }
             })
             .then(data => {
+                lastUser = data.user;
                 document.getElementById('disconnectedMessage').style.display = 'none';
                 autoSellList = data.user.autoSell;
                 if (!settingInventory) {
@@ -1244,6 +1266,10 @@ function equipEmpty(_kind, _slot, _fromStash = false) {
         .catch(error => {
             console.error(error);
             reject(error); // Reject the promise when there's an error
+        }).finally(() => {
+            // Restart the inventory check interval 2 seconds after stashPut completes
+            settingInventory = false;
+            setTimeout(restartInventoryCheck, 2000);
         });
     }));
 }
