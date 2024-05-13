@@ -467,6 +467,7 @@ function isElementVisible(element) {
 }
 
 document.addEventListener('contextmenu', function(event) {
+    event.preventDefault();
     if (!event.target.closest('.inventory-item') || event.target.closest('#selectedInventory')) {
         $('.context-menu-list').trigger('contextmenu:hide');
     }
@@ -1319,6 +1320,7 @@ function spawnTextAtPosition(text, xPercent, yPercent) {
 
 //inventory context menu
 function lock(slotNumber, isStash) {
+    console.log('lock: ' + slotNumber + ' - isStash: ' + isStash);
     event.stopPropagation();
     jwt = window.Twitch.ext.viewer.sessionToken;
     fetch(myServer + '/lock', {
@@ -1523,20 +1525,26 @@ $.contextMenu({
                 isLeftMouseButtonPressed = false;
                 // Accessing the triggering element
                 var $trigger = options.$trigger;
-
+        
                 // Retrieving data attributes
                 var inventoryPosition = $trigger.data('inventory-position');
                 var stashPosition = $trigger.data('stashposition');
-                var fullItem = $trigger.data('fullitem');
 
+                var isStash;
+                if (inventoryPosition !== undefined && inventoryPosition > -1){
+                    position = inventoryPosition;
+                    isStash = false;
+                } else {
+                    position = stashPosition;
+                    isStash = true;
+                }
+                
+                var fullItem = $trigger.data('fullitem');
+        
                 // Additional logic based on the clicked menu item
                 switch(key) {
                     case "lock":
-                        if (inventoryPosition) {
-                            lock(inventoryPosition, false);
-                        } else if (stashPosition) {
-                            lock(stashPosition, true);
-                        }
+                        lock(position, isStash);
                         break;
                     case "autosell":
                         if (autoSellList.includes(fullItem.name)){//remove from autosell
@@ -1546,25 +1554,13 @@ $.contextMenu({
                         }
                         break;
                     case "gem":
-                        if (inventoryPosition) {
-                            removeGem(inventoryPosition, false);
-                        } else if (stashPosition) {
-                            removeGem(stashPosition, true);
-                        }
+                        removeGem(position, isStash);
                         break;
                     case "sell":
-                        if (inventoryPosition) {
-                            sellItem(inventoryPosition, false, fullItem);
-                        } else if (stashPosition) {
-                            sellItem(stashPosition, true, fullItem);
-                        }
+                        sellItem(position, isStash, fullItem);
                         break;
                     case "swap":
-                        if (inventoryPosition) {
-                            swapItem(inventoryPosition, false);
-                        } else if (stashPosition) {
-                            swapItem(stashPosition, true);
-                        }
+                        swapItem(position, isStash);
                         break;
                     case "cancel":
                         console.log("Action canceled.");
