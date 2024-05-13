@@ -613,7 +613,7 @@ input[type="range"] {
 }
 
 .context-menu-list.context-menu-root {
-  font-size: 0.7vw;
+  font-size: 0.5vw;
   font-family: Arcade;
 }
 
@@ -627,6 +627,7 @@ input[type="range"] {
   background-position: center center !important;
   border: 0px !important;
   padding: 10px 0px 10px 0px !important;
+  z-index: 200;
 }
 .context-menu-item {
   cursor: pointer;
@@ -648,8 +649,8 @@ input[type="range"] {
 
 .context-menu-item.context-menu-not-selectable {
   border-bottom: 1px solid black;
-  margin-left: 5px !important;
-  margin-right: 5px !important;
+  margin-left: 7px !important;
+  margin-right: 7px !important;
   cursor: default !important;
 }
 
