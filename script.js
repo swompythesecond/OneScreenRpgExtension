@@ -14,6 +14,7 @@ let loadLoop;
 let mouseReleaseTimer;
 let isLeftMouseButtonPressed = false;
 let autoSellList = [];
+let stashPutTracker = { from: null, to: null };
 
 class RequestQueue {
     constructor() {
@@ -493,7 +494,6 @@ document.addEventListener('click', function (event) {
     marker.style.left = percentX + "%";
     marker.style.top = percentY + "%";
     jwt = window.Twitch.ext.viewer.sessionToken;
-    console.log(accessToken)
     fetch(myServer + '/setPosition', {
         method: 'POST',
         headers: {
@@ -615,7 +615,7 @@ function loadInventory(user, force = false) {
     document.getElementById("craftImage").setAttribute('title', "");
 
     if (isLeftMouseButtonPressed && !force) {
-        console.log("cant load inventory")
+        //console.log("cant load inventory")
         return;
     }
     let inv = user.inventory;
@@ -945,7 +945,13 @@ function getInventoryArray() {
                 if (inventoryItem.dataset.fullitem !== undefined) {
                     let item = JSON.parse(inventoryItem.dataset.fullitem);
                     if (inventoryItem.dataset.stashposition !== undefined) {
-                        stashPut(position - 1, inventoryItem.dataset.stashposition);
+                        const fromPos = position - 1;
+                        const toPos = inventoryItem.dataset.stashposition;
+                        if (stashPutTracker.from instanceof String || stashPutTracker.from === null) {
+                            stashPut(fromPos, toPos);
+                            stashPutTracker = { from: fromPos, to: toPos };
+                            console.log('stashPut From Inventory');
+                        }
                         allowSetInventory = false;
                         return { inventoryArray, allowSetInventory };
                     }
@@ -955,7 +961,6 @@ function getInventoryArray() {
                         clearTimeout(equipEmptyTimer);
                         const _loop = loop;
                         allowSetInventory = false;
-                        inventoryItem.dataset.moving = true;
                         equipEmpty(item.kind, _loop, false);                        
                         return;
                     }
@@ -999,9 +1004,13 @@ function getStashInventoryArray() {
                         return;
                     }
                     if (stashInventoryItem.dataset.stashposition === undefined) {
-                        stashPut(stashInventoryItem.dataset.inventoryPosition, position - 1);
-                        console.log(position);
-                        console.log(item);
+                        const fromPos = stashInventoryItem.dataset.inventoryPosition;
+                        const toPos = position - 1;
+                        if (stashPutTracker.to instanceof String || stashPutTracker.to === null) {
+                            stashPut(fromPos, toPos);
+                            stashPutTracker = { from: fromPos, to: toPos };
+                            console.log('stashPut From Stash');
+                        }
                         allowSetStash = false;
                         return { stashInventoryArray, allowSetStash };
                     }
@@ -1046,11 +1055,12 @@ function saveInventory() {
     const selectInventoryArray = getSelectInventoryArray();
     let { stashInventoryArray, allowSetStash } = getStashInventoryArray();
 
-    console.log(allowSetStash);
-    console.log(allowSetInventory);
     if (allowSetInventory == true && allowSetStash == true) {
         setInventory(inventoryArray, selectInventoryArray, stashInventoryArray);
     }
+
+    // Clear the stashPutTracker
+    stashPutTracker = { from: null, to: null };
 }
 
 function getInventory() {
@@ -1346,7 +1356,7 @@ function toggleAutoSell(itemName, type) {
     })
         .then(response => {
             if (response.ok) {
-                console.log(itemName + ' used /autosell' + type + ' endpoint successfully!');
+                //console.log(itemName + ' used /autosell' + type + ' endpoint successfully!');
             } else {
                 throw new Error(response.statusText);
             }
