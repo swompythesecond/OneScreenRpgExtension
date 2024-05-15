@@ -669,12 +669,9 @@ input[type="range"] {
   width: 54px;
   height: 54px;
   background-size: cover;
-  border: 1px solid #343535;
+  border: 1px solid #351100;
   background-color: linear-gradient(145deg, #7A7875, #595652); /* Light gradient for depth */
   border-radius: 10px; /* Rounded corners for a smoother effect */
-  box-shadow: 
-    inset 2px 2px 5px rgba(0, 0, 0, 0.3), /* Inner shadow for pressed effect */
-    inset -2px -2px 5px rgba(255, 255, 255, 0.5);
 }
 
 .ui-tooltip {  
