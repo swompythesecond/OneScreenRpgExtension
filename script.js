@@ -1,6 +1,6 @@
 let onAuth = {}; loggedOut
 let inventory = [];
-const myServer = "https://germany.pauledevelopment.com:8052";
+const myServer = "https://germany.pauledevelopment.com:8051";
 let hideMarkerTimer;
 let emptyItem = {
     name: "empty",
@@ -300,27 +300,32 @@ function initExtension() {
                 type = 'selectedItems';
                 position = $(this).data('itemType');
             }
-            console.log(position);
             // Fetch the tooltip content from the global tooltips object
             return tooltips[type][position] || '';
         },
         open: function(event, ui) {
-          // Get the new tooltip text
-          var newTooltipText = $(event.target).data('ui-tooltip-content') || $(event.target).attr('title');
-    
-          // Compare with the current tooltip text
-          if (newTooltipText === currentTooltipText) {
-            // Prevent the new tooltip from opening if the text is the same
-            event.preventDefault();
-          } else {
-            // Update the current tooltip text
-            currentTooltipText = newTooltipText;
-            $('.ui-tooltip').not(ui.tooltip).remove();
-          }
+            // Get the new tooltip text
+            var newTooltipText = $(event.target).data('ui-tooltip-content') || $(event.target).attr('title');
+            
+            // Compare with the current tooltip text
+            if (newTooltipText === currentTooltipText) {
+                // Prevent the new tooltip from opening if the text is the same
+                event.preventDefault();
+                //$('.ui-tooltip').not(ui.tooltip).remove();
+            } else {
+                // Update the current tooltip text
+                currentTooltipText = newTooltipText;
+                $('.ui-tooltip').not(ui.tooltip).remove();
+            }
+            contextMenu = $('.context-menu-list').length > 0;
+            if (contextMenu){
+                event.preventDefault();
+                $('.ui-tooltip').remove();
+            }
         },
         close: function(event, ui) {
-          // Clear the current tooltip text on close
-          currentTooltipText = "";
+            // Clear the current tooltip text on close
+            currentTooltipText = "";
         }
     });
     getInventory().then(() => {
@@ -580,12 +585,14 @@ function isElementVisible(element) {
 
 document.addEventListener('contextmenu', function(event) {
     event.preventDefault();
+    $('.ui-tooltip').remove();
     if (!event.target.closest('.inventory-item') || event.target.closest('#selectedInventory')) {
         $('.context-menu-list').trigger('contextmenu:hide');
     }
 });
 
-document.addEventListener('click', function (event) { 
+document.addEventListener('click', function (event) {
+    $('.ui-tooltip').remove();
     // Array of selectors to check
     var selectors = ['#fullInventory', '#craftInventory', '#craftPreview', '#selectedInventory', '.context-menu-list', '#stashInventory', '#statsBars', '#stats', '#mission', '#blessings', '#blessBlessings'];
 
