@@ -392,9 +392,17 @@ catch (error) {
     console.log("Share button not found")
 }
 
+let tooltipTimeout;
 
+$(document).on('mouseover', '.inventory-item', function() {
+  clearTimeout(tooltipTimeout);
+});
 
-
+$(document).on('mouseout', '.inventory-item', function() {
+  tooltipTimeout = setTimeout(() => {
+    $('.ui-tooltip').remove();
+  }, 2000);
+});
 
 document.addEventListener('mousedown', function (event) {
     // Check if the left mouse button is pressed
