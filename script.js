@@ -180,14 +180,26 @@ function formatNumber(number){
 }
 
 function formatDescription(text) {
-  // Define the words and their corresponding colors, ensuring longer phrases come first
-  const wordsToColor = [
-    { word: 'extraordinary damage', color: 'gold' }, // darkyellow can be replaced with darkgoldenrod
-    { word: 'extraordinary armor', color: 'gold' },  // darkyellow can be replaced with darkgoldenrod
-    { word: 'mana', color: 'lightblue' },
-    { word: 'health', color: 'red' },
-    { word: 'armor', color: 'darkgreen' }
-  ];
+    const wordsToNewLine = [
+        'extraordinary damage',
+        'extraordinary armor'
+    ];
+    
+    wordsToNewLine.forEach((word) => {
+        const regex = new RegExp(word, 'gi'); // Create a case-insensitive regex
+        text = text.replace(regex, match => `<br>${match}`);
+    });
+    
+    // Define the words and their corresponding colors, ensuring longer phrases come first
+    const wordsToColor = [
+        { word: 'extraordinary damage', color: 'gold' }, // darkyellow can be replaced with darkgoldenrod
+        { word: 'extraordinary armor', color: 'gold' },  // darkyellow can be replaced with darkgoldenrod
+        { word: 'mana', color: 'lightblue' },
+        { word: 'health', color: 'red' },
+        { word: 'damage', color: 'darkred' },
+        { word: 'armor', color: 'darkgreen' },
+        { word: 'one-hit', color: '#5C4033' }
+    ];
 
   // Iterate over the words to color and replace them in the text
   wordsToColor.forEach(({ word, color }) => {
@@ -237,6 +249,18 @@ function generateItemTooltip(item, image){
         `${item.gem ? `Gem: ${formatGem(item.gem)}` : ''}`;
 
     return itemTooltip;
+}
+
+function highlightExtraordinaryItem(item, itemElement){
+    //add two stars if two extraordinaries properties on the item
+    if (item.description && item.description.toLowerCase().includes("extraordinary armor") && item.description && item.description.toLowerCase().includes("extraordinary damage")){
+        itemElement.style.backgroundImage = "url('images/inventory_background/extraordinarydouble.png'), " + itemElement.style.backgroundImage;
+    } else {
+        //add a star if one extraordinary property
+        if (item.description && item.description.toLowerCase().includes("extraordinary armor") || item.description && item.description.toLowerCase().includes("extraordinary damage")){
+            itemElement.style.backgroundImage = "url('images/inventory_background/extraordinary.png'), " + itemElement.style.backgroundImage;
+        }
+    }
 }
 
 function connectToExtension() {
@@ -863,6 +887,7 @@ function loadInventory(user, force = false) {
                 }
             });
 
+            highlightExtraordinaryItem(currentItem.stats, newInventoryItem);
 
             newInventoryItem.style.backgroundPosition = "center center, center center"; // Positions for each image
             newInventoryItem.style.backgroundRepeat = "no-repeat, repeat"; // Repeat settings for each image
@@ -948,7 +973,7 @@ function loadInventory(user, force = false) {
 
             stashTooltipImage = newStashItem.style.backgroundImage;
             if (_fullItem.lock == true) {
-                newStashItem.style.backgroundImage = "url('images/inventory_background/lock.png'), " + newStashItem.style.backgroundImage;
+                newStashItem.style.backgroundImage = "url('https://bot.onestreamrpg.com/images/lock.png'), " + newStashItem.style.backgroundImage;
             }
 
             checkImageExists(_itemImagePath).then((exists) => {
@@ -970,6 +995,8 @@ function loadInventory(user, force = false) {
                 amountDisplay.innerHTML = formatItemAmount(_fullItem.amount);
                 newStashItem.appendChild(amountDisplay);
             }
+
+            highlightExtraordinaryItem(currentItem.stats, newStashItem);
 
             // Add tooltip with item stats         
             tooltips['stash'][currentItem.stashPosition] = generateItemTooltip(currentItem.stats, stashTooltipImage);
@@ -1014,6 +1041,8 @@ function loadInventory(user, force = false) {
                         inventoryItem.style.backgroundImage = `url('${_itemImagePath}')`;
                     }
                     selectedItemsTooltipImage = inventoryItem.style.backgroundImage;
+
+                    highlightExtraordinaryItem(currentItem, inventoryItem);
 
                     // Set tooltip text        
                     tooltips['selectedItems'][currentItem.kind] = generateItemTooltip(currentItem, selectedItemsTooltipImage);
@@ -1438,7 +1467,6 @@ function spawnTextAtPosition(text, xPercent, yPercent) {
 
 //inventory context menu
 function lock(slotNumber, isStash) {
-    console.log('lock: ' + slotNumber + ' - isStash: ' + isStash);
     event.stopPropagation();
     jwt = window.Twitch.ext.viewer.sessionToken;
     fetch(myServer + '/lock', {
