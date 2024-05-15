@@ -1668,9 +1668,18 @@ $.contextMenu({
                         type: "html",
                         html: `
                             <div class="custom-amount-menu">
-                                <label><span>Custom Amount</span><input type="number" value="1" min="1" max="${fullItem.amount}" name="context-menu-input-sellx" id="customAmountInput"></label>
-                                <button id="customAmountSell" style="margin-left: 5px;" data-position="${position}" data-isstash="${isStash}" data-fullitem='${JSON.stringify(fullItem)}'>Sell</button>
-                            </div>                            
+                              <label>
+                                <span>Custom Amount</span>
+                                <div style="display: flex;">
+                                    <input type="number" value="1" min="1" max="${fullItem.amount}" name="context-menu-input-sellx" id="customAmountInput">
+                                    <div class="spin-buttons">
+                                      <button class="spin-button up">▲</button>
+                                      <button class="spin-button down">▼</button>
+                                    </div>
+                                </div>
+                              </label>
+                              <button id="customAmountSell" style="margin-left: 5px;" data-position="${position}" data-isstash="${isStash}" data-fullitem='${JSON.stringify(fullItem)}'>Sell</button>
+                            </div>                          
                         `
                     }
                 }
@@ -1778,4 +1787,14 @@ $(document).on('click', '#customAmountSell', function() {
     var isStash = $(this).data('isstash');
     var fullItem = $(this).data('fullitem');
     sellItem(position, isStash, fullItem, $('#customAmountInput').val());
+});
+
+$(document).on('click', '.spin-button.up', function() {
+  const $input = $('#customAmountInput');
+  $input.val(parseInt($input.val()) + 1); // Increment the input value
+});
+
+$(document).on('click', '.spin-button.down', function() {
+  const $input = $('#customAmountInput');
+  $input.val(Math.max(parseInt($input.val()) - 1, $input.attr('min'))); // Decrement the input value, ensuring it doesn't go below the minimum value
 });
