@@ -661,3 +661,65 @@ input[type="range"] {
 .context-menu-icon::before {
   color: white !important;
 }
+
+.item-image {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 54px;
+  height: 54px;
+  background-size: cover;
+  border: 1px solid #343535;
+  background-color: linear-gradient(145deg, #7A7875, #595652); /* Light gradient for depth */
+  border-radius: 10px; /* Rounded corners for a smoother effect */
+  box-shadow: 
+    inset 2px 2px 5px rgba(0, 0, 0, 0.3), /* Inner shadow for pressed effect */
+    inset -2px -2px 5px rgba(255, 255, 255, 0.5);
+}
+
+.ui-tooltip {  
+  background-color: #595652;
+  border: 8px solid #ae6834;
+  border-radius: 10px;
+  background-size: 100% 100% !important;
+  background-position: center center !important;
+  color: white; /* Text color */
+  width: 350px;
+  padding: 5px 64px 5px 10px;
+}
+
+.ui-tooltip::before,
+.ui-tooltip::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 10px; /* Match the main element's corners */
+}
+
+.ui-tooltip::before {
+  border: 2px solid black !important; /* Inner black border */
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  z-index: 100;
+}
+
+.ui-tooltip::after {
+  border: 2px solid black; /* Outer black border */
+}
+
+.ui-tooltip-content {
+  font-size: 0.4vw;
+  font-family: arcade;
+  line-height: 0.7vw;
+  color: white; /* Ensure text color is consistent */
+  text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+}
+
+.ui-helper-hidden-accessible{
+    display:none;
+}
