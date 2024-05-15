@@ -963,7 +963,7 @@ function loadInventory(user, force = false) {
                 `Description: ${formatDescription(currentItem.stats?.description || "nothing")}<br>` +
                 `${currentItem.stats?.gem ? `Gem: ${formatGem(currentItem.stats.gem)}` : ''}`;
 
-            tooltips['stash'][currentItem.stashposition] = stashTooltip;
+            tooltips['stash'][currentItem.stashPosition] = stashTooltip;
 
             newStashItem.setAttribute('title', '');
 
