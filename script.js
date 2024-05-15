@@ -1,6 +1,6 @@
 let onAuth = {}; loggedOut
 let inventory = [];
-const myServer = "https://germany.pauledevelopment.com:8052";
+const myServer = "https://germany.pauledevelopment.com:8051";
 let hideMarkerTimer;
 let emptyItem = {
     name: "empty",
@@ -15,6 +15,12 @@ let mouseReleaseTimer;
 let isLeftMouseButtonPressed = false;
 let autoSellList = [];
 let stashPutTracker = { from: null, to: null };
+let currentTooltipText = "";
+var tooltips = {
+  inventory: {},
+  stash: {},
+  selectedItems: {}
+};
 
 class RequestQueue {
     constructor() {
@@ -165,6 +171,41 @@ function formatItemAmount(amount) {
     }
 }
 
+function formatMoney(number){
+    return String(new Intl.NumberFormat( 'en-US', { maximumFractionDigits: 1,notation: "compact" , compactDisplay: "short" }).format(number));
+}
+
+function formatNumber(number){
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function formatDescription(text) {
+  // Define the words and their corresponding colors, ensuring longer phrases come first
+  const wordsToColor = [
+    { word: 'extraordinary damage', color: 'gold' }, // darkyellow can be replaced with darkgoldenrod
+    { word: 'extraordinary armor', color: 'gold' },  // darkyellow can be replaced with darkgoldenrod
+    { word: 'mana', color: 'lightblue' },
+    { word: 'health', color: 'red' },
+    { word: 'armor', color: 'darkgreen' }
+  ];
+
+  // Iterate over the words to color and replace them in the text
+  wordsToColor.forEach(({ word, color }) => {
+    const regex = new RegExp(word, 'gi'); // Create a case-insensitive regex
+    text = text.replace(regex, match => `<span style="color: ${color};">${match}</span>`);
+  });
+
+  return text;
+}
+
+function formatGem(gem){
+    if (gem !== undefined){
+        const gemPercentage = parseInt(gem.description.match(/\d+/)[0]);
+        return gem.name + " (+" + gemPercentage + "%)";
+    } else {
+        return "";
+    }
+}
 
 function connectToExtension() {
     window.Twitch.ext.onAuthorized(function (auth) {
@@ -211,6 +252,44 @@ function abbreviateNumber(value) {
 }
 
 function initExtension() {
+    $(document).tooltip({
+        track: true,
+        content: function() {
+            // Get location and position from data attributes
+            if ($(this).data('inventoryPosition')){
+                type = 'inventory';
+                position = $(this).data('inventoryPosition');
+            }
+            else if ($(this).data('stashposition')){
+                type = 'stash';
+                position = $(this).data('stashposition');
+            }
+            else {
+                type = 'selectedItems';
+                position = $(this).data('itemType');
+            }
+            // Fetch the tooltip content from the global tooltips object
+            return tooltips[type][position] || '';
+        },
+        open: function(event, ui) {
+          // Get the new tooltip text
+          var newTooltipText = $(event.target).data('ui-tooltip-content') || $(event.target).attr('title');
+    
+          // Compare with the current tooltip text
+          if (newTooltipText === currentTooltipText) {
+            // Prevent the new tooltip from opening if the text is the same
+            event.preventDefault();
+          } else {
+            // Update the current tooltip text
+            currentTooltipText = newTooltipText;
+            $('.ui-tooltip').not(ui.tooltip).remove();
+          }
+        },
+        close: function(event, ui) {
+          // Clear the current tooltip text on close
+          currentTooltipText = "";
+        }
+    });
     getInventory().then(() => {
         loadLoop = setInterval(() => {
             getInventory().catch(err => console.error('Failed to get inventory:', err));
@@ -727,6 +806,7 @@ function loadInventory(user, force = false) {
 
             }
 
+            inventoryTooltipImage = newInventoryItem.style.backgroundImage;
             if (_fullItem.lock == true) {
                 newInventoryItem.style.backgroundImage = "url('images/inventory_background/lock.png'), " + newInventoryItem.style.backgroundImage;
             }
@@ -734,8 +814,8 @@ function loadInventory(user, force = false) {
             checkImageExists(_itemImagePath).then((exists) => {
                 if (!exists) {
                     newInventoryItem.style.backgroundImage = "url('images/items/default.png')";
+                    inventoryTooltipImage = "url('images/items/default.png')";
                 }
-
             });
 
 
@@ -745,15 +825,27 @@ function loadInventory(user, force = false) {
             newInventoryItem.style.backgroundSize = "cover, contain";
 
             // Set tooltip text with stats
-            newInventoryItem.setAttribute('title',
-                `Name: ${currentItem.stats.name}\n` +
-                `Damage: ${Math.round(currentItem.stats.damage * (1 + (currentItem.stats.gem?.gemRank ?? 0) * 0.08))}\n` +
-                `Armor: ${Math.round(currentItem.stats.armor * (1 + (currentItem.stats.gem?.gemRank ?? 0) * 0.08))}\n` +
-                `Kind: ${currentItem.stats.kind}\n` +
-                `Gold Value: ${currentItem.stats.goldValue}\n` +
-                `Description: ${currentItem.stats?.description || "nothing"}\n` +
-                `Gem: ${currentItem.stats?.gem?.name || 'none'}`
-            );
+            inventoryTooltip =
+                `<div class="item-image" style='background-image: ${inventoryTooltipImage};'></div>` +
+                `<span style="font-size: 9px;">${currentItem.stats.name}</span><br>` +
+                `<div style="margin-top:5px;"/>`;
+
+            if (currentItem.stats.damage > 0) {
+                inventoryTooltip += `Base Damage/Damage: ${formatNumber(currentItem.stats.damage)}/${formatNumber(Math.round(currentItem.stats.damage * (1 + (currentItem.stats.gem?.gemRank ?? 0) * 0.08)))}<br>`;
+            }
+            if (currentItem.stats.armor > 0) {
+                inventoryTooltip += `Base Armor/Armor: ${formatNumber(currentItem.stats.armor)}/${formatNumber(Math.round(currentItem.stats.armor * (1 + (currentItem.stats.gem?.gemRank ?? 0) * 0.08)))}<br>`;
+            }
+
+            inventoryTooltip +=
+                `Kind: ${currentItem.stats.kind}<br>` +
+                `Gold Value: ${formatMoney(currentItem.stats.goldValue)}<br>` +
+                `Description: ${formatDescription(currentItem.stats?.description || "nothing")}<br>` +
+                `${currentItem.stats?.gem ? `Gem: ${formatGem(currentItem.stats.gem)}` : ''}`;
+
+            tooltips['inventory'][currentItem.invPosition] = inventoryTooltip;
+            
+            newInventoryItem.setAttribute('title', '');
 
             // If the corresponding div element is empty, append the new inventory item to it
             if (inventoryTable.children[Math.floor(i / 5)].children[i % 5].childElementCount === 0) {
@@ -827,6 +919,7 @@ function loadInventory(user, force = false) {
 
             }
 
+            stashTooltipImage = newStashItem.style.backgroundImage;
             if (_fullItem.lock == true) {
                 newStashItem.style.backgroundImage = "url('images/inventory_background/lock.png'), " + newStashItem.style.backgroundImage;
             }
@@ -834,8 +927,8 @@ function loadInventory(user, force = false) {
             checkImageExists(_itemImagePath).then((exists) => {
                 if (!exists) {
                     newStashItem.style.backgroundImage = "url('images/items/default.png')";
+                    stashTooltipImage = "url('images/items/default.png')";
                 }
-
             });
 
 
@@ -852,15 +945,27 @@ function loadInventory(user, force = false) {
             }
 
             // Add tooltip with item stats
-            newStashItem.setAttribute('title',
-                `Name: ${currentItem.stats.name}\n` +
-                `Damage: ${Math.round(currentItem.stats.damage * (1 + (currentItem.stats.gem?.gemRank ?? 0) * 0.08))}\n` +
-                `Armor: ${Math.round(currentItem.stats.armor * (1 + (currentItem.stats.gem?.gemRank ?? 0) * 0.08))}\n` +
-                `Kind: ${currentItem.stats.kind}\n` +
-                `Gold Value: ${currentItem.stats.goldValue}\n` +
-                `Description: ${currentItem.stats.description || "No description"}\n` +
-                `Gem: ${currentItem.stats?.gem?.name || 'No gem'}`
-            );
+            stashTooltip =
+                `<div class="item-image" style='background-image: ${stashTooltipImage};'></div>` +
+                `<span style="font-size: 9px;">${currentItem.stats.name}</span><br>` +
+                `<div style="margin-top:5px;"/>`;
+
+            if (currentItem.stats.damage > 0) {
+                stashTooltip += `Base Damage/Damage: ${formatNumber(currentItem.stats.damage)}/${formatNumber(Math.round(currentItem.stats.damage * (1 + (currentItem.stats.gem?.gemRank ?? 0) * 0.08)))}<br>`;
+            }
+            if (currentItem.stats.armor > 0) {
+                stashTooltip += `Base Armor/Armor: ${formatNumber(currentItem.stats.armor)}/${formatNumber(Math.round(currentItem.stats.armor * (1 + (currentItem.stats.gem?.gemRank ?? 0) * 0.08)))}<br>`;
+            }
+
+            stashTooltip +=
+                `Kind: ${currentItem.stats.kind}<br>` +
+                `Gold Value: ${formatMoney(currentItem.stats.goldValue)}<br>` +
+                `Description: ${formatDescription(currentItem.stats?.description || "nothing")}<br>` +
+                `${currentItem.stats?.gem ? `Gem: ${formatGem(currentItem.stats.gem)}` : ''}`;
+
+            tooltips['stash'][currentItem.stashposition] = stashTooltip;
+
+            newStashItem.setAttribute('title', '');
 
             // Position the item in the corresponding cell
             stashInventoryTable.children[Math.floor(i / 10)].children[i % 10].appendChild(newStashItem);
@@ -899,9 +1004,31 @@ function loadInventory(user, force = false) {
                         }
                         inventoryItem.style.backgroundImage = `url('${_itemImagePath}')`;
                     }
+                    selectedItemsTooltipImage = inventoryItem.style.backgroundImage;
 
-                    // Set tooltip text with stats
-                    inventoryItem.setAttribute('title', `Name: ${currentItem.name}\nDamage: ${currentItem.damage * (1 + (currentItem.gem?.gemRank ?? 0) * 0.08)}\nArmor: ${currentItem.armor * (1 + (currentItem.gem?.gemRank ?? 0) * 0.08)}\nKind: ${currentItem.kind}\nGold Value: ${currentItem.goldValue}\nDescription: ${currentItem?.description || "nothing"}\nGem: ${currentItem?.gem?.name || 'none'}`);
+                    // Set tooltip text
+                    selectedItemsTooltip =
+                        `<div class="item-image" style='background-image: ${selectedItemsTooltipImage};'></div>` +
+                        `<span style="font-size: 9px;">${currentItem.name}</span><br>` +
+                        `<div style="margin-top:5px;"/>`;
+        
+                    if (currentItem.damage > 0) {
+                        selectedItemsTooltip += `Base Damage/Damage: ${formatNumber(currentItem.damage)}/${formatNumber(Math.round(currentItem.damage * (1 + (currentItem.gem?.gemRank ?? 0) * 0.08)))}<br>`;
+                    }
+                    if (currentItem.armor > 0) {
+                        selectedItemsTooltip += `Base Armor/Armor: ${formatNumber(currentItem.armor)}/${formatNumber(Math.round(currentItem.armor * (1 + (currentItem.gem?.gemRank ?? 0) * 0.08)))}<br>`;
+                    }
+        
+                    selectedItemsTooltip +=
+                        `Kind: ${currentItem.kind}<br>` +
+                        `Gold Value: ${formatMoney(currentItem.goldValue)}<br>` +
+                        `Description: ${formatDescription(currentItem.description || "nothing")}<br>` +
+                        `${currentItem.gem ? `Gem: ${formatGem(currentItem.gem)}` : ''}`;
+        
+                    tooltips['selectedItems'][currentItem.kind] = selectedItemsTooltip;
+
+                    inventoryItem.setAttribute('title', '');
+                    
                     cell.appendChild(inventoryItem);
                 }
             }
