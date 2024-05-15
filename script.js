@@ -1,6 +1,6 @@
 let onAuth = {}; loggedOut
 let inventory = [];
-const myServer = "https://germany.pauledevelopment.com:8051";
+const myServer = "https://germany.pauledevelopment.com:8052";
 let hideMarkerTimer;
 let emptyItem = {
     name: "empty",
@@ -200,11 +200,43 @@ function formatDescription(text) {
 
 function formatGem(gem){
     if (gem !== undefined){
-        const gemPercentage = parseInt(gem.description.match(/\d+/)[0]);
-        return gem.name + " (+" + gemPercentage + "%)";
+        try {
+            const gemPercentage = parseInt(gem.description.match(/\d+/)[0]);
+            return gem.name + " (+" + gemPercentage + "%)";
+        } catch (error) {
+            return gem.description;
+        }
     } else {
         return "";
     }
+}
+
+function generateItemTooltip(item, image){
+    itemTooltip =
+        `<div class="item-image" style='background-image: ${image};'></div>` +
+        `<span style="font-size: 9px;">${item.name}</span><br>` +
+        `<div style="margin-top:5px;"/>`;
+
+    if (item.damage > 0) {
+        if (item.gem !== undefined)
+            itemTooltip += `Base Damage/Damage: ${formatNumber(item.damage)}/${formatNumber(Math.round(item.damage * (1 + (item.gem?.gemRank ?? 0) * 0.08)))}<br>`;
+        else
+            itemTooltip += `Damage: ${formatNumber(Math.round(item.damage * (1 + (item.gem?.gemRank ?? 0) * 0.08)))}<br>`;
+    }
+    if (item.armor > 0) {
+        if (item.gem !== undefined)
+            itemTooltip += `Base Armor/Armor: ${formatNumber(item.armor)}/${formatNumber(Math.round(item.armor * (1 + (item.gem?.gemRank ?? 0) * 0.08)))}<br>`;
+        else
+            itemTooltip += `Armor: ${formatNumber(Math.round(item.armor * (1 + (item.gem?.gemRank ?? 0) * 0.08)))}<br>`;
+    }
+
+    itemTooltip +=
+        `Kind: ${item.kind}<br>` +
+        `Gold Value: ${formatMoney(item.goldValue)}<br>` +
+        `Description: ${formatDescription(item.description || "nothing")}<br>` +
+        `${item.gem ? `Gem: ${formatGem(item.gem)}` : ''}`;
+
+    return itemTooltip;
 }
 
 function connectToExtension() {
@@ -256,11 +288,11 @@ function initExtension() {
         track: true,
         content: function() {
             // Get location and position from data attributes
-            if ($(this).data('inventoryPosition')){
+            if ($(this).data('inventoryPosition') !== undefined){
                 type = 'inventory';
                 position = $(this).data('inventoryPosition');
             }
-            else if ($(this).data('stashposition')){
+            else if ($(this).data('stashposition') !== undefined){
                 type = 'stash';
                 position = $(this).data('stashposition');
             }
@@ -268,6 +300,7 @@ function initExtension() {
                 type = 'selectedItems';
                 position = $(this).data('itemType');
             }
+            console.log(position);
             // Fetch the tooltip content from the global tooltips object
             return tooltips[type][position] || '';
         },
@@ -825,25 +858,7 @@ function loadInventory(user, force = false) {
             newInventoryItem.style.backgroundSize = "cover, contain";
 
             // Set tooltip text with stats
-            inventoryTooltip =
-                `<div class="item-image" style='background-image: ${inventoryTooltipImage};'></div>` +
-                `<span style="font-size: 9px;">${currentItem.stats.name}</span><br>` +
-                `<div style="margin-top:5px;"/>`;
-
-            if (currentItem.stats.damage > 0) {
-                inventoryTooltip += `Base Damage/Damage: ${formatNumber(currentItem.stats.damage)}/${formatNumber(Math.round(currentItem.stats.damage * (1 + (currentItem.stats.gem?.gemRank ?? 0) * 0.08)))}<br>`;
-            }
-            if (currentItem.stats.armor > 0) {
-                inventoryTooltip += `Base Armor/Armor: ${formatNumber(currentItem.stats.armor)}/${formatNumber(Math.round(currentItem.stats.armor * (1 + (currentItem.stats.gem?.gemRank ?? 0) * 0.08)))}<br>`;
-            }
-
-            inventoryTooltip +=
-                `Kind: ${currentItem.stats.kind}<br>` +
-                `Gold Value: ${formatMoney(currentItem.stats.goldValue)}<br>` +
-                `Description: ${formatDescription(currentItem.stats?.description || "nothing")}<br>` +
-                `${currentItem.stats?.gem ? `Gem: ${formatGem(currentItem.stats.gem)}` : ''}`;
-
-            tooltips['inventory'][currentItem.invPosition] = inventoryTooltip;
+            tooltips['inventory'][currentItem.invPosition] = generateItemTooltip(currentItem.stats, inventoryTooltipImage);
             
             newInventoryItem.setAttribute('title', '');
 
@@ -944,26 +959,8 @@ function loadInventory(user, force = false) {
                 newStashItem.appendChild(amountDisplay);
             }
 
-            // Add tooltip with item stats
-            stashTooltip =
-                `<div class="item-image" style='background-image: ${stashTooltipImage};'></div>` +
-                `<span style="font-size: 9px;">${currentItem.stats.name}</span><br>` +
-                `<div style="margin-top:5px;"/>`;
-
-            if (currentItem.stats.damage > 0) {
-                stashTooltip += `Base Damage/Damage: ${formatNumber(currentItem.stats.damage)}/${formatNumber(Math.round(currentItem.stats.damage * (1 + (currentItem.stats.gem?.gemRank ?? 0) * 0.08)))}<br>`;
-            }
-            if (currentItem.stats.armor > 0) {
-                stashTooltip += `Base Armor/Armor: ${formatNumber(currentItem.stats.armor)}/${formatNumber(Math.round(currentItem.stats.armor * (1 + (currentItem.stats.gem?.gemRank ?? 0) * 0.08)))}<br>`;
-            }
-
-            stashTooltip +=
-                `Kind: ${currentItem.stats.kind}<br>` +
-                `Gold Value: ${formatMoney(currentItem.stats.goldValue)}<br>` +
-                `Description: ${formatDescription(currentItem.stats?.description || "nothing")}<br>` +
-                `${currentItem.stats?.gem ? `Gem: ${formatGem(currentItem.stats.gem)}` : ''}`;
-
-            tooltips['stash'][currentItem.stashPosition] = stashTooltip;
+            // Add tooltip with item stats         
+            tooltips['stash'][currentItem.stashPosition] = generateItemTooltip(currentItem.stats, stashTooltipImage);
 
             newStashItem.setAttribute('title', '');
 
@@ -1006,26 +1003,8 @@ function loadInventory(user, force = false) {
                     }
                     selectedItemsTooltipImage = inventoryItem.style.backgroundImage;
 
-                    // Set tooltip text
-                    selectedItemsTooltip =
-                        `<div class="item-image" style='background-image: ${selectedItemsTooltipImage};'></div>` +
-                        `<span style="font-size: 9px;">${currentItem.name}</span><br>` +
-                        `<div style="margin-top:5px;"/>`;
-        
-                    if (currentItem.damage > 0) {
-                        selectedItemsTooltip += `Base Damage/Damage: ${formatNumber(currentItem.damage)}/${formatNumber(Math.round(currentItem.damage * (1 + (currentItem.gem?.gemRank ?? 0) * 0.08)))}<br>`;
-                    }
-                    if (currentItem.armor > 0) {
-                        selectedItemsTooltip += `Base Armor/Armor: ${formatNumber(currentItem.armor)}/${formatNumber(Math.round(currentItem.armor * (1 + (currentItem.gem?.gemRank ?? 0) * 0.08)))}<br>`;
-                    }
-        
-                    selectedItemsTooltip +=
-                        `Kind: ${currentItem.kind}<br>` +
-                        `Gold Value: ${formatMoney(currentItem.goldValue)}<br>` +
-                        `Description: ${formatDescription(currentItem.description || "nothing")}<br>` +
-                        `${currentItem.gem ? `Gem: ${formatGem(currentItem.gem)}` : ''}`;
-        
-                    tooltips['selectedItems'][currentItem.kind] = selectedItemsTooltip;
+                    // Set tooltip text        
+                    tooltips['selectedItems'][currentItem.kind] = generateItemTooltip(currentItem, selectedItemsTooltipImage);
 
                     inventoryItem.setAttribute('title', '');
                     
