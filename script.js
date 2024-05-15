@@ -318,9 +318,14 @@ function initExtension() {
                 $('.ui-tooltip').not(ui.tooltip).remove();
             }
             contextMenu = $('.context-menu-list').length > 0;
-            if (contextMenu){
+            beingMoved = $(event.target).attr('moving');
+            if (contextMenu || beingMoved){
                 event.preventDefault();
                 $('.ui-tooltip').remove();
+            }           
+            
+            if (beingMoved){
+                currentTooltipText = "";
             }
         },
         close: function(event, ui) {
