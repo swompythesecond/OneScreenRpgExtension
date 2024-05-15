@@ -629,11 +629,29 @@ input[type="range"] {
   padding: 10px 0px 10px 0px !important;
   z-index: 200 !important;
 }
+
+.context-menu-item.osrsubmenu > span:after {
+  content: "▶"; /* Unicode for right arrow */
+  float: right;
+  margin-left: 10px;
+  color: white;
+  text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
+}
+
+.context-menu-item.osrsubmenu.context-menu-disabled > span:after {
+  color: #cccccc; /* Change the color for disabled items */
+  content: "";
+}
+
 .context-menu-item {
   cursor: pointer;
   color: white !important;
   text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
   background-color: transparent !important;   
+}
+
+.context-menu-item.context-menu-input {
+    padding: .2em 2em;
 }
 
 .context-menu-item:hover:not(.context-menu-disabled) {
@@ -672,6 +690,55 @@ input[type="range"] {
   border: 1px solid #351100;
   background-color: linear-gradient(145deg, #7A7875, #595652); /* Light gradient for depth */
   border-radius: 10px; /* Rounded corners for a smoother effect */
+}
+
+.context-menu-item.context-menu-html.context-menu-not-selectable {
+  border-bottom: 0px !important;
+  margin-left: 0px !important;
+  margin-right: 0px !important;
+}
+
+.custom-amount-menu {
+  display: flex;
+}
+
+.custom-amount-menu label {
+  width: 140px;
+}
+
+.custom-amount-menu input {
+  width: 115px;
+  text-align: right;
+  height: 30px;
+  line-height: 30px;
+  font-size: 16px;
+
+}
+
+.custom-amount-menu input[type=number]::-webkit-inner-spin-button { 
+    padding-right: 10px;
+}
+
+.custom-amount-menu input::-webkit-outer-spin-button, 
+.custom-amount-menu input::-webkit-inner-spin-button { 
+  margin-left: 10px;
+  opacity: 1;
+} 
+
+.custom-amount-menu button {
+  cursor: pointer;
+}
+
+#customAmountSell {
+  background-color: #7E4C34;
+  color: white;
+  border: 1px #black;
+  font-family: arcade;
+}
+
+#customAmountSell:hover {
+  color: #C0C146;
+  text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
 }
 
 .ui-tooltip {  
