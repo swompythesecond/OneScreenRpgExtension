@@ -90,7 +90,15 @@ function refreshSortableInventoryList() {
     $('.inventory-cell').sortable({
         connectWith: '.inventory-cell',
         placeholder: 'inventory-item-sortable-placeholder',
-        receive: function (event, ui) {
+        sort: function(event, ui) {
+            $(this).attr('moving', 'true');
+            $('.ui-tooltip').remove();
+        },
+        stop: function(event, ui) {
+            $(this).removeAttr('moving');
+            $(ui.sender).removeAttr('moving');
+        },
+        receive: function (event, ui) {            
             var attrWhitelist = $(this).closest('.inventory-table').attr('data-item-filter-whitelist');
             var attrBlackList = $(this).closest('.inventory-table').attr('data-item-filter-blacklist');
             var itemFilterWhitelistArray = attrWhitelist ? attrWhitelist.split(/\s+/) : [];
