@@ -1,6 +1,6 @@
 let onAuth = {}; loggedOut
 let inventory = [];
-const myServer = "https://germany.pauledevelopment.com:8051";
+const myServer = "https://germany.pauledevelopment.com:8052";
 let hideMarkerTimer;
 let emptyItem = {
     name: "empty",
@@ -631,20 +631,22 @@ document.addEventListener('contextmenu', function(event) {
 document.addEventListener('click', function (event) {
     $('.ui-tooltip').remove();
     // Array of selectors to check
-    var selectors = ['#fullInventory', '#craftInventory', '#craftPreview', '#selectedInventory', '.context-menu-list', '#stashInventory', '#statsBars', '#stats', '#mission', '#blessings', '#blessBlessings'];
+    var selectors = ['#fullInventory', '#craftInventory', '#craftPreview', '#selectedInventory', '.context-menu-list', '#stashInventory', '#statsBars', '#stats', '#mission', '#blessings', '#blessBlessings', '.submenuSpan'];
 
     // Check if click is inside any specified and visible elements
     let isContextMenu = event.target.closest('.context-menu-list');
+    let isSubContextMenu = event.target.closest('.osrsubmenu');
     for (var selector of selectors) {
         var closestElement = event.target.closest(selector);
-        if (closestElement && isElementVisible(closestElement)) {
-            if (closestElement != isContextMenu){
+    if (closestElement && isElementVisible(closestElement)) {
+            if (closestElement != isContextMenu && closestElement != isSubContextMenu){
                 $('.context-menu-list').trigger('contextmenu:hide');
             }
             return; // Exit the function if click is inside specified and visible elements
         }
     }
 
+    console.log(event.target);
     $('.context-menu-list').trigger('contextmenu:hide');
 
     var percentX = (event.clientX / window.innerWidth) * 100;
@@ -1530,7 +1532,7 @@ function toggleAutoSell(itemName, type) {
         });
 }
 
-function sellItem(slotNumber, isStash, item) {
+function sellItem(slotNumber, isStash, item, amount=-1) {
     event.stopPropagation();
     jwt = window.Twitch.ext.viewer.sessionToken;
     fetch(myServer + '/sell', {
@@ -1543,7 +1545,8 @@ function sellItem(slotNumber, isStash, item) {
             accessToken: accessToken,
             slotNumber: slotNumber,
             fromStash: isStash,
-            item: item
+            item: item,
+            amount: amount
         }),
     })
         .then(response => {
@@ -1646,18 +1649,41 @@ $.contextMenu({
             return false;
         }
 
+        var sellMenu;
+        if (fullItem.amount !== undefined && fullItem.amount > 0) {
+            sellMenu = {
+                name: "Sell Item",
+                disabled: fullItem && fullItem.lock,
+                className: "osrsubmenu",
+                items: {
+                    "sellall": {
+                        name: `All ${fullItem.amount} Items`,
+                        className: "submenuSpan"
+                    },
+                    "sep6": {
+                        type: "cm_separator"
+                    },
+                    "sellx": {
+                        name: "Custom Amount",
+                        type: "html",
+                        html: `
+                            <div class="custom-amount-menu">
+                                <label><span>Custom Amount</span><input type="number" value="1" min="1" max="${fullItem.amount}" name="context-menu-input-sellx" id="customAmountInput"></label>
+                                <button id="customAmountSell" style="margin-left: 5px;" data-position="${position}" data-isstash="${isStash}" data-fullitem='${JSON.stringify(fullItem)}'>Sell</button>
+                            </div>                            
+                        `
+                    }
+                }
+            };
+        } else {
+            sellMenu = {
+                name: "Sell Item",
+                disabled: fullItem && fullItem.lock
+            };
+        }
+
         // Build the items object dynamically
         var items = {
-            "lock": {
-                name: fullItem && fullItem.lock ? "Unlock Item" : "Lock Item",
-                //icon: fullItem && fullItem.lock ? "fa-solid fa-unlock" : "fa-solid fa-lock"
-            },
-            "sep1": "---------",
-            "autosell": {
-                name: fullItem && autoSellList.includes(fullItem.name) ? "Remove from Autosell" : "Add to Autosell",
-                //icon: "fa-solid fa-money-bill"
-            },
-            "sep2": "---------",
             "gem": {
                 name: "Remove Gem",
                 //icon: "fa-solid fa-gem",
@@ -1667,10 +1693,16 @@ $.contextMenu({
                 type: "cm_separator",
                 visible: fullItem && fullItem.gem !== undefined && fullItem.gem !== "none"
             },
-            "sell": {
-                name: "Sell Item",
-                //icon: "fa-solid fa-coins",
-                disabled: fullItem && fullItem.lock
+            "lock": {
+                name: fullItem && fullItem.lock ? "Unlock Item" : "Lock Item",
+                //icon: fullItem && fullItem.lock ? "fa-solid fa-unlock" : "fa-solid fa-lock"
+            },
+            "sep2": "---------",
+            "sell": sellMenu,
+            "sep1": "---------",
+            "autosell": {
+                name: fullItem && autoSellList.includes(fullItem.name) ? "Remove from Autosell" : "Add to Autosell",
+                //icon: "fa-solid fa-money-bill"
             },
             "sep4": "---------",
             "swap": {
@@ -1723,6 +1755,7 @@ $.contextMenu({
                         removeGem(position, isStash);
                         break;
                     case "sell":
+                    case "sellall":
                         sellItem(position, isStash, fullItem);
                         break;
                     case "swap":
@@ -1737,4 +1770,12 @@ $.contextMenu({
             items: items
         };
     }
+});
+
+$(document).on('click', '#customAmountSell', function() {
+    $('.context-menu-list').trigger('contextmenu:hide');
+    var position = $(this).data('position');
+    var isStash = $(this).data('isstash');
+    var fullItem = $(this).data('fullitem');
+    sellItem(position, isStash, fullItem, $('#customAmountInput').val());
 });
