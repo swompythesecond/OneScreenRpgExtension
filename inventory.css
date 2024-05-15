@@ -48,6 +48,7 @@ body {
   top: 50%;
   left: 1%;
   display: block;
+  cursor: url('images/cursor/default.png'), auto;
 }
 
 #selectedInventory {
@@ -169,10 +170,6 @@ div {
   /* Ensures the fill does not overlap the border */
 }
 
-.hud div, .hud span {
-  cursor: url('images/cursor/select.png') 10 0, auto;
-}
-
 .barFill {
   position: absolute;
   left: 0;
@@ -263,6 +260,11 @@ div {
   overflow-wrap: break-word;
   overflow: auto;
   left: 1%;
+  cursor: url('images/cursor/select.png') 10 0, auto;
+}
+
+#mission div {
+  cursor: url('images/cursor/select.png') 10 0, auto;
 }
 
 
