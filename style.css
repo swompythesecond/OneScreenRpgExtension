@@ -1,5 +1,5 @@
 body {
-    font-size: 30px;
+    font-size: 1.56vw;
     font-family: Verdana;
     background: transparent;
 }
@@ -10,10 +10,10 @@ body.twitch_dark {
 
 
 th, td {
-    font-size: 15px;
-    padding: 2px 3px;
-    border-right: 1px solid #000000;
-    border-bottom: 1px solid #000000;
+    font-size: 0.78vw; /* 15px -> 0.78vw */
+    padding: 0.1vw 0.16vw; /* 2px 3px -> 0.1vw 0.16vw */
+    border-right: 0.052vw solid #000000; /* 1px -> 0.052vw */
+    border-bottom: 0.052vw solid #000000; /* 1px -> 0.052vw */
 }
 
 .hud{
