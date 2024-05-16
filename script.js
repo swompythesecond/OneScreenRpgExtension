@@ -196,8 +196,8 @@ function formatDescription(text) {
         { word: 'extraordinary armor', color: 'gold' },  // darkyellow can be replaced with darkgoldenrod
         { word: 'mana', color: 'lightblue' },
         { word: 'health', color: 'red' },
-        { word: 'damage', color: 'red' },
-        { word: 'armor', color: 'lightgreen' },
+        { word: 'damage', color: '#ec8d34' },
+        { word: 'armor', color: '#20985d' },
         { word: 'one-hit', color: '#5C4033' }
     ];
 
@@ -254,11 +254,14 @@ function generateItemTooltip(item, image) {
 function highlightExtraordinaryItem(item, itemElement) {
     //add two stars if two extraordinaries properties on the item
     if (item.description && item.description.toLowerCase().includes("extraordinary armor") && item.description && item.description.toLowerCase().includes("extraordinary damage")) {
-        itemElement.style.backgroundImage = "url('images/inventory_background/extraordinarydouble.png'), " + itemElement.style.backgroundImage;
+        itemElement.style.backgroundImage = "url('images/inventory_background/armordamage.png'), " + itemElement.style.backgroundImage;
     } else {
         //add a star if one extraordinary property
-        if (item.description && item.description.toLowerCase().includes("extraordinary armor") || item.description && item.description.toLowerCase().includes("extraordinary damage")) {
-            itemElement.style.backgroundImage = "url('images/inventory_background/extraordinary.png'), " + itemElement.style.backgroundImage;
+        if (item.description && item.description.toLowerCase().includes("extraordinary armor")) {
+            itemElement.style.backgroundImage = "url('images/inventory_background/armor.png'), " + itemElement.style.backgroundImage;
+        }
+        if (item.description && item.description.toLowerCase().includes("extraordinary damage")){
+            itemElement.style.backgroundImage = "url('images/inventory_background/damage.png'), " + itemElement.style.backgroundImage;
         }
     }
 }
