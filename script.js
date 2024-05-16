@@ -251,7 +251,19 @@ function generateItemTooltip(item, image) {
     return itemTooltip;
 }
 
-function highlightExtraordinaryItem(item, itemElement) {
+function addItemModifiers(item, itemElement) {
+
+    if (item.lock == true && item.tradable == false) {
+        itemElement.style.backgroundImage = "url('images/inventory_background/locknon-tradable.png'), " + itemElement.style.backgroundImage;
+    } else {
+        if (item.lock == true){
+            itemElement.style.backgroundImage = "url('images/inventory_background/lock.png'), " + itemElement.style.backgroundImage;
+        }
+        if (item.tradable == false){
+            itemElement.style.backgroundImage = "url('images/inventory_background/non-tradable.png'), " + itemElement.style.backgroundImage;
+        }
+    }
+    
     //add two stars if two extraordinaries properties on the item
     if (item.description && item.description.toLowerCase().includes("extraordinary armor") && item.description && item.description.toLowerCase().includes("extraordinary damage")) {
         itemElement.style.backgroundImage = "url('images/inventory_background/armordamage.png'), " + itemElement.style.backgroundImage;
@@ -889,9 +901,6 @@ function loadInventory(user, force = false) {
             }
 
             inventoryTooltipImage = newInventoryItem.style.backgroundImage;
-            if (_fullItem.lock == true) {
-                newInventoryItem.style.backgroundImage = "url('images/inventory_background/lock.png'), " + newInventoryItem.style.backgroundImage;
-            }
 
             checkImageExists(_itemImagePath).then((exists) => {
                 if (!exists) {
@@ -900,7 +909,7 @@ function loadInventory(user, force = false) {
                 }
             });
 
-            highlightExtraordinaryItem(currentItem.stats, newInventoryItem);
+            addItemModifiers(currentItem.stats, newInventoryItem);
 
             newInventoryItem.style.backgroundPosition = "center center, center center"; // Positions for each image
             newInventoryItem.style.backgroundRepeat = "no-repeat, repeat"; // Repeat settings for each image
@@ -985,9 +994,6 @@ function loadInventory(user, force = false) {
             }
 
             stashTooltipImage = newStashItem.style.backgroundImage;
-            if (_fullItem.lock == true) {
-                newStashItem.style.backgroundImage = "url('https://bot.onestreamrpg.com/images/lock.png'), " + newStashItem.style.backgroundImage;
-            }
 
             checkImageExists(_itemImagePath).then((exists) => {
                 if (!exists) {
@@ -995,7 +1001,6 @@ function loadInventory(user, force = false) {
                     stashTooltipImage = "url('images/items/default.png')";
                 }
             });
-
 
             newStashItem.style.backgroundPosition = "center center, center center"; // Positions for each image
             newStashItem.style.backgroundRepeat = "no-repeat, repeat"; // Repeat settings for each image
@@ -1009,7 +1014,7 @@ function loadInventory(user, force = false) {
                 newStashItem.appendChild(amountDisplay);
             }
 
-            highlightExtraordinaryItem(currentItem.stats, newStashItem);
+            addItemModifiers(currentItem.stats, newStashItem);
 
             // Add tooltip with item stats         
             tooltips['stash'][currentItem.stashPosition] = generateItemTooltip(currentItem.stats, stashTooltipImage);
@@ -1055,7 +1060,7 @@ function loadInventory(user, force = false) {
                     }
                     selectedItemsTooltipImage = inventoryItem.style.backgroundImage;
 
-                    highlightExtraordinaryItem(currentItem, inventoryItem);
+                    addItemModifiers(currentItem, inventoryItem);
 
                     // Set tooltip text        
                     tooltips['selectedItems'][currentItem.kind] = generateItemTooltip(currentItem, selectedItemsTooltipImage);
