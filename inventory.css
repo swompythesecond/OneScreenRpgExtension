@@ -3,30 +3,23 @@
   src: url('images/arcade.TTF');
 }
 
-
-
-/* width */
 ::-webkit-scrollbar {
   width: 0.6vw;
 }
 
-/* Track */
 ::-webkit-scrollbar-track {
-  box-shadow: inset 0 0 5px gray;
+  box-shadow: inset 0 0 0.26vw gray; 
   border-radius: 0.6vw;
 }
 
-/* Handle */
 ::-webkit-scrollbar-thumb {
   background: #8f563b;
   border-radius: 0.6vw;
 }
 
-/* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
   background: #d27d2c;
 }
-
 
 html {
   box-sizing: border-box;
@@ -74,7 +67,6 @@ body {
   top: 48%;
 }
 
-
 #craftPreview {
   position: absolute;
   left: 16.5%;
@@ -84,11 +76,8 @@ body {
   background-image: url('images/inventory_background/craftPreview.png');
   background-size: cover;
   display: flex;
-  /* Use flexbox for centering */
-  justify-content: center;
-  /* Center horizontally */
-  align-items: center;
-  /* Center vertically */
+  justify-content: center; 
+  align-items: center; 
   font-size: 0.5vw;
 }
 
@@ -120,7 +109,6 @@ body {
   z-index: 100;
 }
 
-
 div {
   font-family: arcade;
 }
@@ -149,7 +137,6 @@ div {
   font-size: 0.5vw;
   padding: 0.35vw;
   box-sizing: border-box;
-  /* Ensures padding is included in the width/height */
 }
 
 .statBar {
@@ -167,7 +154,6 @@ div {
   font-size: 1em;
   overflow: hidden;
   background-color: #808080;
-  /* Ensures the fill does not overlap the border */
 }
 
 .barFill {
@@ -180,21 +166,16 @@ div {
 
 #hpBar .barFill {
   background-color: #FF4136;
-  /* Red for HP */
 }
 
 #manaBar .barFill {
   background-color: #0074D9;
-  /* Blue for Mana */
 }
 
 .statBar>span {
   position: relative;
-  /* Ensures text is positioned above the fill */
   z-index: 2;
-  /* Keeps text visible on top of the fill */
 }
-
 
 #stats {
   position: absolute;
@@ -206,8 +187,6 @@ div {
   text-align: center;
   font-size: 0.5vw;
   padding-top: 0.35vw;
-  width: 10vw;
-  height: 4vw;
   left: 1%;
 }
 
@@ -235,8 +214,7 @@ div {
   background-size: cover;
   width: 1vw;
   height: 0.7vw;
-  margin-right: 5px;
-  /* Adding transition for a smooth border appearance */
+  margin-right: 0.26vw; 
   transition: border 0.3s ease-in-out;
   cursor: url(images/cursor/point.png) 10 0, auto !important;
 }
@@ -255,8 +233,8 @@ div {
   text-align: center;
   font-size: 0.5vw;
   padding-top: 0.5vw;
-  padding-left: 0.4vw;
-  padding-right: 0.4vw;
+  padding-left: 0.21vw; 
+  padding-right: 0.21vw; 
   overflow-wrap: break-word;
   overflow: auto;
   left: 1%;
@@ -267,7 +245,6 @@ div {
   cursor: url('images/cursor/select.png') 10 0, auto;
 }
 
-
 #missionText {
   padding-top: 0.2vw;
 }
@@ -275,7 +252,6 @@ div {
 #missionProgress {
   padding-top: 0.4vw;
 }
-
 
 #heal {
   position: absolute;
@@ -387,7 +363,7 @@ div {
   color: white;
   background-color: red;
   cursor: url(images/cursor/point.png) 10 0, auto !important;
-  margin-bottom: 0.5vw;
+  margin-bottom: 0.26vw; 
   font-family: arcade;
 }
 
@@ -402,7 +378,6 @@ a:link,
 a:visited {
   color: #c00;
   text-decoration: none;
-
   -webkit-transition: all 0.3s ease;
   transition: all 0.3s ease;
 }
@@ -431,82 +406,68 @@ input[type="range"] {
 .inventory-cell {
   width: 1.8vw;
   height: 1.8vw;
-
   flex-shrink: 0;
-
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
   align-content: center;
-
   background-size: cover;
   background-repeat: no-repeat;
   background-image: url('images/inventory_background/middle_middle.png');
-
   color: white;
   text-shadow:
     -0.05vw -0.05vw 0 #000,
     0.05vw -0.05vw 0 #000,
     -0.05vw 0.05vw 0 #000,
     0.05vw 0.05vw 0 #000;
-
 }
 
 .inventory-cell:first-child {
   width: 1.9vw;
-  padding-left: 0.1vw;
-
+  padding-left: 0.052vw; 
   background-image: url('images/inventory_background/middle_left.png');
-
 }
 
 .inventory-cell:last-child {
   width: 1.9vw;
-  padding-right: 0.1vw;
-
+  padding-right: 0.052vw; 
   background-image: url('images/inventory_background/middle_right.png');
 }
 
 .inventory-row:first-child .inventory-cell {
   height: 1.9vw;
-  padding-top: 0.1vw;
-
+  padding-top: 0.052vw; 
   background-image: url('images/inventory_background/top_middle.png');
 }
 
 .inventory-row:last-child .inventory-cell {
   height: 1.9vw;
-  padding-bottom: 0.1vw;
-
+  padding-bottom: 0.052vw; 
   background-image: url('images/inventory_background/bottom_middle.png');
 }
 
 .inventory-row:first-child .inventory-cell:first-child {
   width: 1.9vw;
   height: 1.9vw;
-
   background-image: url('images/inventory_background/top_left.png');
 }
 
 .inventory-row:first-child .inventory-cell:last-child {
   width: 1.9vw;
   height: 1.9vw;
-
   background-image: url('images/inventory_background/top_right.png');
 }
 
 .inventory-row:last-child .inventory-cell:first-child {
   width: 1.9vw;
   height: 1.9vw;
-
   background-image: url('images/inventory_background/bottom_left.png');
 }
 
 .inventory-row:last-child .inventory-cell:last-child {
   width: 1.9vw;
   height: 1.9vw;
-
   background-image: url('images/inventory_background/bottom_right.png');
 }
 
@@ -517,42 +478,36 @@ input[type="range"] {
 .inventory-row:only-child .inventory-cell:first-child {
   width: 1.9vw;
   height: 2vw;
-
-  background-position: -574px -286px;
+  background-position: -29.85vw -14.87vw; 
 }
 
 .inventory-row:only-child .inventory-cell:last-child {
   width: 1.9vw;
   height: 2vw;
-
-  background-position: -650px -286px;
+  background-position: -33.8vw -14.87vw; 
 }
 
 .inventory-row .inventory-cell:only-child {
   width: 2vw;
-
-  background-position: -563px -463px;
+  background-position: -29.276vw -24.076vw; 
 }
 
 .inventory-row:first-child .inventory-cell:only-child {
   width: 2vw;
   height: 1.9vw;
-
-  background-position: -563px -424px;
+  background-position: -29.276vw -22.048vw; 
 }
 
 .inventory-row:last-child .inventory-cell:only-child {
   width: 2vw;
   height: 1.9vw;
-
-  background-position: -563px -500px;
+  background-position: -29.276vw -26vw; 
 }
 
 .inventory-row:only-child .inventory-cell:only-child {
   width: 2vw;
   height: 2vw;
-
-  background-position: -30px -288px;
+  background-position: -1.56vw -14.976vw; 
 }
 
 .inventory-item {
@@ -560,14 +515,11 @@ input[type="range"] {
   width: 1.7vw;
   height: 1.7vw;
   background-repeat: no-repeat;
-
   cursor: url(images/cursor/point.png) 10 0, auto !important;
-
   -webkit-transition: opacity 0.3s ease;
   transition: opacity 0.3s ease;
   background-size: cover;
   background-repeat: no-repeat;
-
   background-position: center center, center center;
 }
 
@@ -577,9 +529,8 @@ input[type="range"] {
 
 .inventory-item.ui-sortable-helper,
 .inventory-item.ui-draggable-dragging {
-  opacity: .6;
+  opacity: 0.6;
 }
-
 
 #select-helmet {
   background-image: url('images/inventory_background/top_left_helmet.png');
@@ -623,7 +574,7 @@ input[type="range"] {
 }
 
 #context-menu-layer {
-    display: none !important;
+  display: none !important;
 }
 
 .context-menu-list {
@@ -631,49 +582,49 @@ input[type="range"] {
   background-size: 100% 100% !important;
   background-position: center center !important;
   border: 0px !important;
-  padding: 10px 0px 10px 0px !important;
+  padding: 0.52vw 0px 0.52vw 0px !important; 
   z-index: 200 !important;
 }
 
 .context-menu-item.osrsubmenu > span:after {
-  content: "▶"; /* Unicode for right arrow */
+  content: "▶";
   float: right;
-  margin-left: 10px;
+  margin-left: 0.52vw; 
   color: white;
-  text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
+  text-shadow: -0.1vw 0 black, 0 0.1vw black, 0.1vw 0 black, 0 -0.1vw black; 
 }
 
 .context-menu-item.osrsubmenu.context-menu-disabled > span:after {
-  color: #cccccc; /* Change the color for disabled items */
+  color: #cccccc;
   content: "";
 }
 
 .context-menu-item {
   cursor: url(images/cursor/point.png) 10 0, auto !important;
   color: white !important;
-  text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
-  background-color: transparent !important;   
+  text-shadow: -0.1vw 0 black, 0 0.1vw black, 0.1vw 0 black, 0 -0.1vw black; 
+  background-color: transparent !important;
 }
 
 .context-menu-item.context-menu-input {
-    padding: .2em 2em;
+  padding: 0.1vw 1.04vw; 
 }
 
 .context-menu-item:hover:not(.context-menu-disabled) {
-  text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
+  text-shadow: -0.1vw 0 black, 0 0.1vw black, 0.1vw 0 black, 0 -0.1vw black; 
   color: #C0C146 !important;
 }
 
 .context-menu-item.context-menu-disabled {
   cursor: not-allowed !important;
   color: #cccccc !important;
-  text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+  text-shadow: -0.052vw 0 black, 0 0.052vw black, 0.052vw 0 black, 0 -0.052vw black; 
 }
 
 .context-menu-item.context-menu-not-selectable {
-  border-bottom: 1px solid black;
-  margin-left: 7px !important;
-  margin-right: 7px !important;
+  border-bottom: 0.052vw solid black; 
+  margin-left: 0.36vw !important; 
+  margin-right: 0.36vw !important; 
   cursor: url(images/cursor/point.png) 10 0, auto !important;
 }
 
@@ -687,14 +638,14 @@ input[type="range"] {
 
 .item-image {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 54px;
-  height: 54px;
+  top: 0.26vw; 
+  right: 0.26vw; 
+  width: 2.8vw; 
+  height: 2.8vw; 
   background-size: cover;
-  border: 1px solid #351100;
-  background-color: linear-gradient(145deg, #7A7875, #595652); /* Light gradient for depth */
-  border-radius: 10px; /* Rounded corners for a smoother effect */
+  border: 0.052vw solid #351100; 
+  background-color: linear-gradient(145deg, #7A7875, #595652);
+  border-radius: 0.52vw; 
 }
 
 .context-menu-item.context-menu-html.context-menu-not-selectable {
@@ -708,22 +659,22 @@ input[type="range"] {
 }
 
 .custom-amount-menu label {
-  width: 140px;
+  width: 7.28vw; 
   position: relative;
 }
 
 .custom-amount-menu input {
-  width: 95px;
+  width: 4.94vw; 
   text-align: right;
-  height: 30px;
-  line-height: 30px;
-  font-size: 16px;
+  height: 1.56vw; 
+  line-height: 1.56vw; 
+  font-size: 0.83vw; 
   font-family: arcade;
   background-color: #808080;
-  border: 1px solid black;
-  border-radius: 5px;
-  margin-top: 5px;
-  -moz-appearance: textfield; /* Hide default spin buttons on Firefox */
+  border: 0.052vw solid black; 
+  border-radius: 0.26vw; 
+  margin-top: 0.26vw; 
+  -moz-appearance: textfield;
   color: white;
 }
 
@@ -734,20 +685,27 @@ input[type="range"] {
 }
 
 .spin-buttons {
-  margin-top: 5px;
-  width: 25px;
+  margin-top: 0.26vw; 
+  width: 1vw;
 }
 
 .spin-button {
   background: #7E4C34;
   cursor: url(images/cursor/point.png) 10 0, auto !important;
   color: white;
-  font-size: 10px;
+  font-size: 0.52vw; 
+}
+
+#customAmountInput {
+  text-align: center; 
+  font-size: 0.55vw;
+  width: 3vw !important;
+  height: 1.5vw !important;
 }
 
 .spin-button:hover {
   color: #C0C146;
-  text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+  text-shadow: -0.052vw 0 black, 0 0.052vw black, 0.052vw 0 black, 0 -0.052vw black; 
 }
 
 .custom-amount-menu button {
@@ -758,61 +716,67 @@ input[type="range"] {
   background-color: #7E4C34;
   color: white;
   font-family: arcade;
+  font-size: 0.5vw;
+  width: 1.8vw;
+  height: 1.55vw;
+  position: absolute; 
+  bottom: 0;
+  right: -0.5vw;
 }
+
 
 #customAmountSell:hover {
   color: #C0C146;
-  text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+  text-shadow: -0.052vw 0 black, 0 0.052vw black, 0.052vw 0 black, 0 -0.052vw black; 
 }
 
-.ui-tooltip {  
+.ui-tooltip {
   background-color: #595652;
-  border: 8px solid #ae6834;
-  border-radius: 10px;
+  border: 0.42vw solid #ae6834; 
+  border-radius: 0.52vw; 
   background-size: 100% 100% !important;
   background-position: center center !important;
-  color: white; /* Text color */
-  width: 350px;
-  padding: 5px 64px 5px 10px;
+  color: white;
+  width: 18.2vw; 
+  padding: 0.26vw 3.33vw 0.26vw 0.52vw; 
   z-index: 101;
 }
 
-.ui-tooltip::before,
+ui-tooltip::before,
 .ui-tooltip::after {
   content: "";
   position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  border-radius: 10px; /* Match the main element's corners */
+  top: -0.1vw;
+  left: -0.1vw; 
+  right: -0.1vw; 
+  bottom: -0.1vw;
+  border-radius: 0.52vw;
 }
 
 .ui-tooltip::before {
-  border: 2px solid black !important; /* Inner black border */
-  top: -8px;
-  left: -8px;
-  right: -8px;
-  bottom: -8px;
+  border: 0.15vw solid black !important;
+  top: -0.42vw; 
+  left: -0.42vw; 
+  right: -0.42vw;
+  bottom: -0.42vw; 
 }
 
 .ui-tooltip::after {
-  border: 2px solid black; /* Outer black border */
+  border: 0.15vw solid black;
 }
 
 .ui-tooltip-content {
   font-size: 0.4vw;
   font-family: arcade;
   line-height: 0.7vw;
-  color: white; /* Ensure text color is consistent */
-  text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+  color: white;
+  text-shadow: -0.052vw 0 black, 0 0.052vw black, 0.052vw 0 black, 0 -0.052vw black; 
 }
 
-.ui-helper-hidden-accessible{
-    display:none;
+.ui-helper-hidden-accessible {
+  display: none;
 }
 
-/* NEW DEFAULT CURSOR */
 * {
-   cursor: url('images/cursor/default.png'), auto;
+  cursor: url('images/cursor/default.png'), auto;
 }

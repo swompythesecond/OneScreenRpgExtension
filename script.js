@@ -17,9 +17,9 @@ let autoSellList = [];
 let stashPutTracker = { from: null, to: null };
 let currentTooltipText = "";
 var tooltips = {
-  inventory: {},
-  stash: {},
-  selectedItems: {}
+    inventory: {},
+    stash: {},
+    selectedItems: {}
 };
 
 class RequestQueue {
@@ -171,11 +171,11 @@ function formatItemAmount(amount) {
     }
 }
 
-function formatMoney(number){
-    return String(new Intl.NumberFormat( 'en-US', { maximumFractionDigits: 1,notation: "compact" , compactDisplay: "short" }).format(number));
+function formatMoney(number) {
+    return String(new Intl.NumberFormat('en-US', { maximumFractionDigits: 1, notation: "compact", compactDisplay: "short" }).format(number));
 }
 
-function formatNumber(number){
+function formatNumber(number) {
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
@@ -184,12 +184,12 @@ function formatDescription(text) {
         'extraordinary damage',
         'extraordinary armor'
     ];
-    
+
     wordsToNewLine.forEach((word) => {
         const regex = new RegExp(word, 'gi'); // Create a case-insensitive regex
         text = text.replace(regex, match => `<br>${match}`);
     });
-    
+
     // Define the words and their corresponding colors, ensuring longer phrases come first
     const wordsToColor = [
         { word: 'extraordinary damage', color: 'gold' }, // darkyellow can be replaced with darkgoldenrod
@@ -201,17 +201,17 @@ function formatDescription(text) {
         { word: 'one-hit', color: '#5C4033' }
     ];
 
-  // Iterate over the words to color and replace them in the text
-  wordsToColor.forEach(({ word, color }) => {
-    const regex = new RegExp(word, 'gi'); // Create a case-insensitive regex
-    text = text.replace(regex, match => `<span style="color: ${color};">${match}</span>`);
-  });
+    // Iterate over the words to color and replace them in the text
+    wordsToColor.forEach(({ word, color }) => {
+        const regex = new RegExp(word, 'gi'); // Create a case-insensitive regex
+        text = text.replace(regex, match => `<span style="color: ${color};">${match}</span>`);
+    });
 
-  return text;
+    return text;
 }
 
-function formatGem(gem){
-    if (gem !== undefined){
+function formatGem(gem) {
+    if (gem !== undefined) {
         try {
             const gemPercentage = parseInt(gem.description.match(/\d+/)[0]);
             return gem.name + " (+" + gemPercentage + "%)";
@@ -223,11 +223,11 @@ function formatGem(gem){
     }
 }
 
-function generateItemTooltip(item, image){
+function generateItemTooltip(item, image) {
     itemTooltip =
         `<div class="item-image" style='background-image: ${image};'></div>` +
-        `<span style="font-size: 9px;">${item.name}</span><br>` +
-        `<div style="margin-top:5px;"/>`;
+        `<span style="font-size: 0.47vw;">${item.name}</span><br>` +
+        `<div style="margin-top:0.26vw;"/>`;
 
     if (item.damage > 0) {
         if (item.gem !== undefined)
@@ -251,13 +251,13 @@ function generateItemTooltip(item, image){
     return itemTooltip;
 }
 
-function highlightExtraordinaryItem(item, itemElement){
+function highlightExtraordinaryItem(item, itemElement) {
     //add two stars if two extraordinaries properties on the item
-    if (item.description && item.description.toLowerCase().includes("extraordinary armor") && item.description && item.description.toLowerCase().includes("extraordinary damage")){
+    if (item.description && item.description.toLowerCase().includes("extraordinary armor") && item.description && item.description.toLowerCase().includes("extraordinary damage")) {
         itemElement.style.backgroundImage = "url('images/inventory_background/extraordinarydouble.png'), " + itemElement.style.backgroundImage;
     } else {
         //add a star if one extraordinary property
-        if (item.description && item.description.toLowerCase().includes("extraordinary armor") || item.description && item.description.toLowerCase().includes("extraordinary damage")){
+        if (item.description && item.description.toLowerCase().includes("extraordinary armor") || item.description && item.description.toLowerCase().includes("extraordinary damage")) {
             itemElement.style.backgroundImage = "url('images/inventory_background/extraordinary.png'), " + itemElement.style.backgroundImage;
         }
     }
@@ -310,13 +310,13 @@ function abbreviateNumber(value) {
 function initExtension() {
     $(document).tooltip({
         track: true,
-        content: function() {
+        content: function () {
             // Get location and position from data attributes
-            if ($(this).data('inventoryPosition') !== undefined){
+            if ($(this).data('inventoryPosition') !== undefined) {
                 type = 'inventory';
                 position = $(this).data('inventoryPosition');
             }
-            else if ($(this).data('stashposition') !== undefined){
+            else if ($(this).data('stashposition') !== undefined) {
                 type = 'stash';
                 position = $(this).data('stashposition');
             }
@@ -327,10 +327,10 @@ function initExtension() {
             // Fetch the tooltip content from the global tooltips object
             return tooltips[type][position] || '';
         },
-        open: function(event, ui) {
+        open: function (event, ui) {
             // Get the new tooltip text
             var newTooltipText = $(event.target).data('ui-tooltip-content') || $(event.target).attr('title');
-            
+
             // Compare with the current tooltip text
             if (newTooltipText === currentTooltipText) {
                 // Prevent the new tooltip from opening if the text is the same
@@ -343,16 +343,16 @@ function initExtension() {
             }
             contextMenu = $('.context-menu-list').length > 0;
             beingMoved = $(event.target).attr('moving');
-            if (contextMenu || beingMoved){
+            if (contextMenu || beingMoved) {
                 event.preventDefault();
                 $('.ui-tooltip').remove();
-            }           
-            
-            if (beingMoved){
+            }
+
+            if (beingMoved) {
                 currentTooltipText = "";
             }
         },
-        close: function(event, ui) {
+        close: function (event, ui) {
             // Clear the current tooltip text on close
             currentTooltipText = "";
         }
@@ -394,14 +394,14 @@ catch (error) {
 
 let tooltipTimeout;
 
-$(document).on('mouseover', '.inventory-item', function() {
-  clearTimeout(tooltipTimeout);
+$(document).on('mouseover', '.inventory-item', function () {
+    clearTimeout(tooltipTimeout);
 });
 
-$(document).on('mouseout', '.inventory-item', function() {
-  tooltipTimeout = setTimeout(() => {
-    $('.ui-tooltip').remove();
-  }, 2000);
+$(document).on('mouseout', '.inventory-item', function () {
+    tooltipTimeout = setTimeout(() => {
+        $('.ui-tooltip').remove();
+    }, 2000);
 });
 
 document.addEventListener('mousedown', function (event) {
@@ -620,7 +620,7 @@ function isElementVisible(element) {
     return element && getComputedStyle(element).display !== 'none';
 }
 
-document.addEventListener('contextmenu', function(event) {
+document.addEventListener('contextmenu', function (event) {
     event.preventDefault();
     $('.ui-tooltip').remove();
     if (!event.target.closest('.inventory-item') || event.target.closest('#selectedInventory')) {
@@ -638,8 +638,8 @@ document.addEventListener('click', function (event) {
     let isSubContextMenu = event.target.closest('.osrsubmenu');
     for (var selector of selectors) {
         var closestElement = event.target.closest(selector);
-    if (closestElement && isElementVisible(closestElement)) {
-            if (closestElement != isContextMenu && closestElement != isSubContextMenu){
+        if (closestElement && isElementVisible(closestElement)) {
+            if (closestElement != isContextMenu && closestElement != isSubContextMenu) {
                 $('.context-menu-list').trigger('contextmenu:hide');
             }
             return; // Exit the function if click is inside specified and visible elements
@@ -906,7 +906,7 @@ function loadInventory(user, force = false) {
 
             // Set tooltip text with stats
             tooltips['inventory'][currentItem.invPosition] = generateItemTooltip(currentItem.stats, inventoryTooltipImage);
-            
+
             newInventoryItem.setAttribute('title', '');
 
             // If the corresponding div element is empty, append the new inventory item to it
@@ -1058,7 +1058,7 @@ function loadInventory(user, force = false) {
                     tooltips['selectedItems'][currentItem.kind] = generateItemTooltip(currentItem, selectedItemsTooltipImage);
 
                     inventoryItem.setAttribute('title', '');
-                    
+
                     cell.appendChild(inventoryItem);
                 }
             }
@@ -1125,7 +1125,7 @@ function getInventoryArray() {
                         clearTimeout(equipEmptyTimer);
                         const _loop = loop;
                         allowSetInventory = false;
-                        equipEmpty(item.kind, _loop, false);                        
+                        equipEmpty(item.kind, _loop, false);
                         return;
                     }
                     inventoryArray.push(item);
@@ -1162,7 +1162,7 @@ function getStashInventoryArray() {
                     if (stashInventoryItem.dataset.equipped && document.getElementById("select-" + item.kind).innerHTML == '') {
                         const _loop = loop;
                         allowSetStash = false;
-                        equipEmpty(item.kind, position-1, true);
+                        equipEmpty(item.kind, position - 1, true);
                         return;
                     }
                     if (stashInventoryItem.dataset.stashposition === undefined) {
@@ -1392,25 +1392,25 @@ function equipEmpty(_kind, _slot, _fromStash = false) {
                 accessToken: accessToken
             }),
         })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error(response.statusText);
-            }
-        })
-        .then(data => {
-            loadInventory(data.user);
-            resolve(data); // Resolve the promise with the data when everything is successful
-        })
-        .catch(error => {
-            console.error(error);
-            reject(error); // Reject the promise when there's an error
-        }).finally(() => {
-            // Restart the inventory check interval 2 seconds after stashPut completes
-            settingInventory = false;
-            setTimeout(restartInventoryCheck, 2000);
-        });
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error(response.statusText);
+                }
+            })
+            .then(data => {
+                loadInventory(data.user);
+                resolve(data); // Resolve the promise with the data when everything is successful
+            })
+            .catch(error => {
+                console.error(error);
+                reject(error); // Reject the promise when there's an error
+            }).finally(() => {
+                // Restart the inventory check interval 2 seconds after stashPut completes
+                settingInventory = false;
+                setTimeout(restartInventoryCheck, 2000);
+            });
     }));
 }
 
@@ -1532,7 +1532,7 @@ function toggleAutoSell(itemName, type) {
         });
 }
 
-function sellItem(slotNumber, isStash, item, amount=-1) {
+function sellItem(slotNumber, isStash, item, amount = -1) {
     event.stopPropagation();
     jwt = window.Twitch.ext.viewer.sessionToken;
     fetch(myServer + '/sell', {
@@ -1626,22 +1626,22 @@ function removeGem(slotNumber, isStash) {
 
 $.contextMenu({
     selector: '.inventory-item',
-    build: function($trigger, e) {
+    build: function ($trigger, e) {
         var fullItem = $trigger.data('fullitem');
 
         // Retrieving data attributes
         var inventoryPosition = $trigger.data('inventory-position');
         var stashPosition = $trigger.data('stashposition');
-    
+
         var isStash;
-        if (inventoryPosition !== undefined && inventoryPosition > -1){
+        if (inventoryPosition !== undefined && inventoryPosition > -1) {
             position = inventoryPosition;
             isStash = false;
         } else {
             position = stashPosition;
             isStash = true;
         }
-        
+
         var isInsideSelectedInventory = $trigger.closest('#selectedInventory').length > 0;
 
         // Prevent showing the menu if inside #selectedInventory
@@ -1667,19 +1667,19 @@ $.contextMenu({
                         name: "Custom Amount",
                         type: "html",
                         html: `
-                            <div class="custom-amount-menu">
-                              <label>
-                                <span>Custom Amount</span>
-                                <div style="display: flex;">
-                                    <input type="number" value="1" min="1" max="${fullItem.amount}" name="context-menu-input-sellx" id="customAmountInput">
-                                    <div class="spin-buttons">
-                                      <button class="spin-button up">▲</button>
-                                      <button class="spin-button down">▼</button>
-                                    </div>
-                                </div>
-                              </label>
-                              <button id="customAmountSell" style="margin-left: 5px;" data-position="${position}" data-isstash="${isStash}" data-fullitem='${JSON.stringify(fullItem)}'>Sell</button>
-                            </div>                          
+                        <div class="custom-amount-menu">
+                        <label>
+                          <span>Custom Amount</span>
+                          <div style="display: flex; align-items: center;">
+                            <input type="number" value="1" min="1" max="${fullItem.amount}" name="context-menu-input-sellx" id="customAmountInput">
+                            <div class="spin-buttons">
+                              <button class="spin-button up">▲</button>
+                              <button class="spin-button down">▼</button>
+                            </div>
+                            <button id="customAmountSell" style="margin-left: 0.26vw;" data-position="${position}" data-isstash="${isStash}" data-fullitem='${JSON.stringify(fullItem)}'>Sell</button>
+                          </div>
+                        </label>
+                      </div>                        
                         `
                     }
                 }
@@ -1728,33 +1728,33 @@ $.contextMenu({
         };
 
         return {
-            callback: function(key, options) {
+            callback: function (key, options) {
                 isLeftMouseButtonPressed = false;
                 // Accessing the triggering element
                 var $trigger = options.$trigger;
-        
+
                 // Retrieving data attributes
                 var inventoryPosition = $trigger.data('inventory-position');
                 var stashPosition = $trigger.data('stashposition');
 
                 var isStash;
-                if (inventoryPosition !== undefined && inventoryPosition > -1){
+                if (inventoryPosition !== undefined && inventoryPosition > -1) {
                     position = inventoryPosition;
                     isStash = false;
                 } else {
                     position = stashPosition;
                     isStash = true;
                 }
-                
+
                 var fullItem = $trigger.data('fullitem');
-        
+
                 // Additional logic based on the clicked menu item
-                switch(key) {
+                switch (key) {
                     case "lock":
                         lock(position, isStash);
                         break;
                     case "autosell":
-                        if (autoSellList.includes(fullItem.name)){//remove from autosell
+                        if (autoSellList.includes(fullItem.name)) {//remove from autosell
                             toggleAutoSell(fullItem.name, 'Remove');
                         } else {//add to autosell
                             toggleAutoSell(fullItem.name, 'Add');
@@ -1781,7 +1781,7 @@ $.contextMenu({
     }
 });
 
-$(document).on('click', '#customAmountSell', function() {
+$(document).on('click', '#customAmountSell', function () {
     $('.context-menu-list').trigger('contextmenu:hide');
     var position = $(this).data('position');
     var isStash = $(this).data('isstash');
@@ -1789,12 +1789,12 @@ $(document).on('click', '#customAmountSell', function() {
     sellItem(position, isStash, fullItem, $('#customAmountInput').val());
 });
 
-$(document).on('click', '.spin-button.up', function() {
-  const $input = $('#customAmountInput');
-  $input.val(parseInt($input.val()) + 1); // Increment the input value
+$(document).on('click', '.spin-button.up', function () {
+    const $input = $('#customAmountInput');
+    $input.val(parseInt($input.val()) + 1); // Increment the input value
 });
 
-$(document).on('click', '.spin-button.down', function() {
-  const $input = $('#customAmountInput');
-  $input.val(Math.max(parseInt($input.val()) - 1, $input.attr('min'))); // Decrement the input value, ensuring it doesn't go below the minimum value
+$(document).on('click', '.spin-button.down', function () {
+    const $input = $('#customAmountInput');
+    $input.val(Math.max(parseInt($input.val()) - 1, $input.attr('min'))); // Decrement the input value, ensuring it doesn't go below the minimum value
 });
