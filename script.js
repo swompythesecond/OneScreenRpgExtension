@@ -253,13 +253,13 @@ function generateItemTooltip(item, image) {
 
 function addItemModifiers(item, itemElement) {
 
-    if (item.lock == true && item.tradable == false) {
+    if (item.lock == true && (item.tradable == false || item.gem != undefined)) {
         itemElement.style.backgroundImage = "url('images/inventory_background/locknon-tradable.png'), " + itemElement.style.backgroundImage;
     } else {
         if (item.lock == true){
             itemElement.style.backgroundImage = "url('images/inventory_background/lock.png'), " + itemElement.style.backgroundImage;
         }
-        if (item.tradable == false){
+        if (item.tradable == false || item.gem != undefined){
             itemElement.style.backgroundImage = "url('images/inventory_background/non-tradable.png'), " + itemElement.style.backgroundImage;
         }
     }
