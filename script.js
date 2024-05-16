@@ -196,8 +196,8 @@ function formatDescription(text) {
         { word: 'extraordinary armor', color: 'gold' },  // darkyellow can be replaced with darkgoldenrod
         { word: 'mana', color: 'lightblue' },
         { word: 'health', color: 'red' },
-        { word: 'damage', color: 'red' },
-        { word: 'armor', color: 'lightgreen' },
+        { word: 'damage', color: '#ec8d34' },
+        { word: 'armor', color: '#20985d' },
         { word: 'one-hit', color: '#5C4033' }
     ];
 
