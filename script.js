@@ -1,6 +1,6 @@
 let onAuth = {}; loggedOut
 let inventory = [];
-const myServer = "https://germany.pauledevelopment.com:8052";
+const myServer = "https://germany.pauledevelopment.com:8051";
 let hideMarkerTimer;
 let emptyItem = {
     name: "empty",
