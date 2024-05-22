@@ -194,23 +194,23 @@ function descriptionWithStats(item){
   if (!reqLevel)
     statsDescription += '<br>';
 
-  if (item.bonusArmor >= 1.0){ //FORBIDDEN ARMOR
+  if (item.armorBonus >= 1.0){ //FORBIDDEN ARMOR
     statsDescription += '<br>FORBIDDEN ARMOR';
-  } else if (item.bonusArmor >= 0.8) { //LEGENDARY ARMOR
+  } else if (item.armorBonus >= 0.8) { //LEGENDARY ARMOR
     statsDescription += '<br>LEGENDARY ARMOR';
-  } else if (item.bonusArmor >= 0.6) { //EPIC ARMOR
+  } else if (item.armorBonus >= 0.6) { //EPIC ARMOR
     statsDescription += '<br>EPIC ARMOR';
-  } else if (item.bonusArmor >= 0.4) { //EXTRAORDINARY ARMOR
+  } else if (item.armorBonus >= 0.4) { //EXTRAORDINARY ARMOR
     statsDescription += '<br>EXTRAORDINARY ARMOR';
   }
 
-  if (item.bonusDamage >= 1.0){ //FORBIDDEN DAMAGE
+  if (item.damageBonus >= 1.0){ //FORBIDDEN DAMAGE
     statsDescription += '<br>FORBIDDEN DAMAGE';
-  } else if (item.bonusDamage >= 0.8) { //LEGENDARY DAMAGE
+  } else if (item.damageBonus >= 0.8) { //LEGENDARY DAMAGE
     statsDescription += '<br>LEGENDARY DAMAGE';
-  } else if (item.bonusDamage >= 0.6) { //EPIC DAMAGE
+  } else if (item.damageBonus >= 0.6) { //EPIC DAMAGE
     statsDescription += '<br>EPIC DAMAGE';
-  } else if (item.bonusDamage >= 0.4) { //EXTRAORDINARY DAMAGE
+  } else if (item.damageBonus >= 0.4) { //EXTRAORDINARY DAMAGE
     statsDescription += '<br>EXTRAORDINARY DAMAGE';
   }
 
@@ -297,23 +297,23 @@ function addItemModifiers(item, itemElement) {
         }
     }
 
-    if (item.bonusArmor >= 1.0){ //FORBIDDEN ARMOR
+    if (item.armorBonus >= 1.0){ //FORBIDDEN ARMOR
         itemElement.style.backgroundImage = "url('images/inventory_background/forbidden-armor.png'), " + itemElement.style.backgroundImage;
-    } else if (item.bonusArmor >= 0.8) { //LEGENDARY ARMOR
+    } else if (item.armorBonus >= 0.8) { //LEGENDARY ARMOR
         itemElement.style.backgroundImage = "url('images/inventory_background/legendary-armor.png'), " + itemElement.style.backgroundImage;
-    } else if (item.bonusArmor >= 0.6) { //EPIC ARMOR
+    } else if (item.armorBonus >= 0.6) { //EPIC ARMOR
         itemElement.style.backgroundImage = "url('images/inventory_background/epic-armor.png'), " + itemElement.style.backgroundImage;
-    } else if (item.bonusArmor >= 0.4) { //EXTRAORDINARY ARMOR
+    } else if (item.armorBonus >= 0.4) { //EXTRAORDINARY ARMOR
         itemElement.style.backgroundImage = "url('images/inventory_background/extraordinary-armor.png'), " + itemElement.style.backgroundImage;
     }
     
-    if (item.bonusDamage >= 1.0){ //FORBIDDEN DAMAGE
+    if (item.damageBonus >= 1.0){ //FORBIDDEN DAMAGE
         itemElement.style.backgroundImage = "url('images/inventory_background/forbidden-damage.png'), " + itemElement.style.backgroundImage;
-    } else if (item.bonusDamage >= 0.8) { //LEGENDARY DAMAGE
+    } else if (item.damageBonus >= 0.8) { //LEGENDARY DAMAGE
         itemElement.style.backgroundImage = "url('images/inventory_background/legendary-damage.png'), " + itemElement.style.backgroundImage;
-    } else if (item.bonusDamage >= 0.6) { //EPIC DAMAGE
+    } else if (item.damageBonus >= 0.6) { //EPIC DAMAGE
         itemElement.style.backgroundImage = "url('images/inventory_background/epic-damage.png'), " + itemElement.style.backgroundImage;
-    } else if (item.bonusDamage >= 0.4) { //EXTRAORDINARY DAMAGE
+    } else if (item.damageBonus >= 0.4) { //EXTRAORDINARY DAMAGE
         itemElement.style.backgroundImage = "url('images/inventory_background/extraordinary-damage.png'), " + itemElement.style.backgroundImage;
     }
     
