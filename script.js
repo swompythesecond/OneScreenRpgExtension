@@ -935,14 +935,14 @@ function loadInventory(user, force = false) {
             }
             if (_fullItem.gem != undefined) {
                 _gemImagePath = "images/items/" + _fullItem.gem.name.replace(/\s+/g, '') + ".gif";
-                newInventoryItem.style.backgroundImage = "url(" + _itemImagePath + "), url(" + _gemImagePath + ")";
+                newInventoryItem.style.backgroundImage = "url('" + _itemImagePath + "'), url('" + _gemImagePath + "')";
             } else {
                 if (_fullItem.kind == "gem") {
                     _itemImagePath = "images/items/" + _fullItem.name.replace(/\s+/g, '') + ".gif";
-                    newInventoryItem.style.backgroundImage = "url(" + _itemImagePath + ")";
+                    newInventoryItem.style.backgroundImage = "url('" + _itemImagePath + "')";
                 }
                 else {
-                    newInventoryItem.style.backgroundImage = "url(" + _itemImagePath + ")";
+                    newInventoryItem.style.backgroundImage = "url('" + _itemImagePath + "')";
                 }
 
             }
@@ -1031,14 +1031,14 @@ function loadInventory(user, force = false) {
             }
             if (_fullItem.gem != undefined) {
                 _gemImagePath = "images/items/" + _fullItem.gem.name.replace(/\s+/g, '') + ".gif";
-                newStashItem.style.backgroundImage = "url(" + _itemImagePath + "), url(" + _gemImagePath + ")";
+                newStashItem.style.backgroundImage = "url('" + _itemImagePath + "'), url('" + _gemImagePath + "')";
             } else {
                 if (_fullItem.kind == "gem") {
                     _itemImagePath = "images/items/" + _fullItem.name.replace(/\s+/g, '') + ".gif";
-                    newStashItem.style.backgroundImage = "url(" + _itemImagePath + ")";
+                    newStashItem.style.backgroundImage = "url('" + _itemImagePath + "')";
                 }
                 else {
-                    newStashItem.style.backgroundImage = "url(" + _itemImagePath + ")";
+                    newStashItem.style.backgroundImage = "url('" + _itemImagePath + "')";
                 }
 
             }
