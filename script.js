@@ -1089,8 +1089,6 @@ function loadInventory(user, force = false) {
                     inventoryItem.setAttribute('data-equipped', true);
 
                     //check if the gem even exists 
-                    let _itemImagePath = "images/items/" + currentItem.name.replace(/\s+/g, '') + ".png";
-
                     var _itemImagePath = "images/items/" + currentItem.name.replace(/\s+/g, '') + ".png";
                     if (currentItem.shimmering === true){
                         _itemImagePath = "images/items/" + currentItem.name.replace(/\s+/g, '') + "_shimmering.png";
