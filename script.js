@@ -1,6 +1,6 @@
 let onAuth = {}; loggedOut
 let inventory = [];
-const myServer = "https://germany.pauledevelopment.com:8051";
+const myServer = "https://germany.pauledevelopment.com:8052";
 let hideMarkerTimer;
 let emptyItem = {
     name: "empty",
@@ -183,11 +183,16 @@ function descriptionWithStats(item){
   if (item.description === undefined)
     item.description = "none";
 
-  var statsDescription = "";
+  var statsDescription = item.description;
+  var reqLevel = false;
 
   if (item.levelRequirement !== undefined){
-    statsDescription += `[REQUIRES LEVEL ${item.levelRequirement}]`;
+    statsDescription += `<br><br>[REQUIRES LEVEL ${item.levelRequirement}]<br>`;
+    reqLevel = true;
   }
+
+  if (!reqLevel)
+    statsDescription += '<br>';
 
   if (item.bonusArmor >= 1.0){ //FORBIDDEN ARMOR
     statsDescription += '<br>FORBIDDEN ARMOR';
