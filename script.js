@@ -1,6 +1,6 @@
 let onAuth = {}; loggedOut
 let inventory = [];
-const myServer = "https://germany.pauledevelopment.com:8051";
+const myServer = "https://germany.pauledevelopment.com:8052";
 let hideMarkerTimer;
 let emptyItem = {
     name: "empty",
@@ -179,35 +179,68 @@ function formatNumber(number) {
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-function formatDescription(text) {
-    const wordsToNewLine = [
-        'extraordinary damage',
-        'extraordinary armor'
-    ];
+function descriptionWithStats(item){
+  if (item.description === undefined)
+    item.description = "none";
 
-    wordsToNewLine.forEach((word) => {
-        const regex = new RegExp(word, 'gi'); // Create a case-insensitive regex
-        text = text.replace(regex, match => `<br>${match}`);
-    });
+  var statsDescription = item.description;
+  var reqLevel = false;
 
-    // Define the words and their corresponding colors, ensuring longer phrases come first
-    const wordsToColor = [
-        { word: 'extraordinary damage', color: 'gold' }, // darkyellow can be replaced with darkgoldenrod
-        { word: 'extraordinary armor', color: 'gold' },  // darkyellow can be replaced with darkgoldenrod
-        { word: 'mana', color: 'lightblue' },
-        { word: 'health', color: 'red' },
-        { word: 'damage', color: '#ec8d34' },
-        { word: 'armor', color: '#20985d' },
-        { word: 'one-hit', color: '#5C4033' }
-    ];
+  if (item.levelRequirement !== undefined){
+    statsDescription += `<br><br>[REQUIRES LEVEL ${item.levelRequirement}]<br>`;
+    reqLevel = true;
+  }
 
-    // Iterate over the words to color and replace them in the text
-    wordsToColor.forEach(({ word, color }) => {
-        const regex = new RegExp(word, 'gi'); // Create a case-insensitive regex
-        text = text.replace(regex, match => `<span style="color: ${color};">${match}</span>`);
-    });
+  if (!reqLevel)
+    statsDescription += '<br>';
 
-    return text;
+  if (item.bonusArmor >= 1.0){ //FORBIDDEN ARMOR
+    statsDescription += '<br>FORBIDDEN ARMOR';
+  } else if (item.bonusArmor >= 0.8) { //LEGENDARY ARMOR
+    statsDescription += '<br>LEGENDARY ARMOR';
+  } else if (item.bonusArmor >= 0.6) { //EPIC ARMOR
+    statsDescription += '<br>EPIC ARMOR';
+  } else if (item.bonusArmor >= 0.4) { //EXTRAORDINARY ARMOR
+    statsDescription += '<br>EXTRAORDINARY ARMOR';
+  }
+
+  if (item.bonusDamage >= 1.0){ //FORBIDDEN DAMAGE
+    statsDescription += '<br>FORBIDDEN DAMAGE';
+  } else if (item.bonusDamage >= 0.8) { //LEGENDARY DAMAGE
+    statsDescription += '<br>LEGENDARY DAMAGE';
+  } else if (item.bonusDamage >= 0.6) { //EPIC DAMAGE
+    statsDescription += '<br>EPIC DAMAGE';
+  } else if (item.bonusDamage >= 0.4) { //EXTRAORDINARY DAMAGE
+    statsDescription += '<br>EXTRAORDINARY DAMAGE';
+  }
+
+  return statsDescription;
+}
+
+function formatDescription(item) {
+
+  // Define the words and their corresponding colors, ensuring longer phrases come first
+  const wordsToColor = [
+      { word: 'extraordinary', color: '#2270AF' },
+      { word: 'epic', color: '#7C337B' },
+      { word: 'legendary', color: '#CCB333' },
+      { word: 'forbidden', color: '#4B4A56' },
+      { word: 'mana', color: 'lightblue' },
+      { word: 'health', color: 'red' },
+      { word: 'damage', color: '#ec8d34' },
+      { word: 'damages', color: '#ec8d34' },
+      { word: 'armor', color: '#20985d' },
+      { word: 'one-hit', color: '#5C4033' }
+  ];
+
+  var description = descriptionWithStats(item);
+  // Iterate over the words to color and replace them in the description
+  wordsToColor.forEach(({ word, color }) => {
+      const regex = new RegExp(word, 'gi'); // Create a case-insensitive regex
+      description = description.replace(regex, match => `<span style="color: ${color};">${match}</span>`);
+  });
+
+  return description;
 }
 
 function formatGem(gem) {
@@ -245,7 +278,7 @@ function generateItemTooltip(item, image) {
     itemTooltip +=
         `Kind: ${item.kind}<br>` +
         `Gold Value: ${formatMoney(item.goldValue)}<br>` +
-        `Description: ${formatDescription(item.description || "nothing")}<br>` +
+        `Description: ${formatDescription(item)}<br>` +
         `${item.gem ? `Gem: ${formatGem(item.gem)}` : ''}`;
 
     return itemTooltip;
@@ -263,18 +296,29 @@ function addItemModifiers(item, itemElement) {
             itemElement.style.backgroundImage = "url('images/inventory_background/non-tradable.png'), " + itemElement.style.backgroundImage;
         }
     }
+
+    if (item.bonusArmor >= 1.0){ //FORBIDDEN ARMOR
+        itemElement.style.backgroundImage = "url('images/inventory_background/forbidden-armor.png'), " + itemElement.style.backgroundImage;
+    } else if (item.bonusArmor >= 0.8) { //LEGENDARY ARMOR
+        itemElement.style.backgroundImage = "url('images/inventory_background/legendary-armor.png'), " + itemElement.style.backgroundImage;
+    } else if (item.bonusArmor >= 0.6) { //EPIC ARMOR
+        itemElement.style.backgroundImage = "url('images/inventory_background/epic-armor.png'), " + itemElement.style.backgroundImage;
+    } else if (item.bonusArmor >= 0.4) { //EXTRAORDINARY ARMOR
+        itemElement.style.backgroundImage = "url('images/inventory_background/extraordinary-armor.png'), " + itemElement.style.backgroundImage;
+    }
     
-    //add two stars if two extraordinaries properties on the item
-    if (item.description && item.description.toLowerCase().includes("extraordinary armor") && item.description && item.description.toLowerCase().includes("extraordinary damage")) {
-        itemElement.style.backgroundImage = "url('images/inventory_background/armordamage.png'), " + itemElement.style.backgroundImage;
-    } else {
-        //add a star if one extraordinary property
-        if (item.description && item.description.toLowerCase().includes("extraordinary armor")) {
-            itemElement.style.backgroundImage = "url('images/inventory_background/armor.png'), " + itemElement.style.backgroundImage;
-        }
-        if (item.description && item.description.toLowerCase().includes("extraordinary damage")){
-            itemElement.style.backgroundImage = "url('images/inventory_background/damage.png'), " + itemElement.style.backgroundImage;
-        }
+    if (item.bonusDamage >= 1.0){ //FORBIDDEN DAMAGE
+        itemElement.style.backgroundImage = "url('images/inventory_background/forbidden-damage.png'), " + itemElement.style.backgroundImage;
+    } else if (item.bonusDamage >= 0.8) { //LEGENDARY DAMAGE
+        itemElement.style.backgroundImage = "url('images/inventory_background/legendary-damage.png'), " + itemElement.style.backgroundImage;
+    } else if (item.bonusDamage >= 0.6) { //EPIC DAMAGE
+        itemElement.style.backgroundImage = "url('images/inventory_background/epic-damage.png'), " + itemElement.style.backgroundImage;
+    } else if (item.bonusDamage >= 0.4) { //EXTRAORDINARY DAMAGE
+        itemElement.style.backgroundImage = "url('images/inventory_background/extraordinary-damage.png'), " + itemElement.style.backgroundImage;
+    }
+    
+    if (item.shimmering === true){ //SHINY ITEM
+        itemElement.style.backgroundImage = "url('images/inventory_background/shimmering.png'), " + itemElement.style.backgroundImage;
     }
 }
 
@@ -885,17 +929,20 @@ function loadInventory(user, force = false) {
                 amountDisplay.innerHTML = formatItemAmount(_fullItem.amount);
                 newInventoryItem.appendChild(amountDisplay);
             }
-            _itemImagePath = "images/items/" + _fullItem.name.replace(/\s+/g, '') + ".png";
+            var _itemImagePath = "images/items/" + _fullItem.name.replace(/\s+/g, '') + ".png";
+            if (_fullItem.shimmering === true){
+                _itemImagePath = "images/items/" + _fullItem.name.replace(/\s+/g, '') + "_shimmering.png";
+            }
             if (_fullItem.gem != undefined) {
                 _gemImagePath = "images/items/" + _fullItem.gem.name.replace(/\s+/g, '') + ".gif";
-                newInventoryItem.style.backgroundImage = "url(" + _itemImagePath + "), url(" + _gemImagePath + ")";
+                newInventoryItem.style.backgroundImage = "url('" + _itemImagePath + "'), url('" + _gemImagePath + "')";
             } else {
                 if (_fullItem.kind == "gem") {
                     _itemImagePath = "images/items/" + _fullItem.name.replace(/\s+/g, '') + ".gif";
-                    newInventoryItem.style.backgroundImage = "url(" + _itemImagePath + ")";
+                    newInventoryItem.style.backgroundImage = "url('" + _itemImagePath + "')";
                 }
                 else {
-                    newInventoryItem.style.backgroundImage = "url(" + _itemImagePath + ")";
+                    newInventoryItem.style.backgroundImage = "url('" + _itemImagePath + "')";
                 }
 
             }
@@ -978,17 +1025,20 @@ function loadInventory(user, force = false) {
             newStashItem.setAttribute('data-fullItem', currentItem.fullItem);
 
             let _fullItem = JSON.parse(currentItem.fullItem);
-            _itemImagePath = "images/items/" + _fullItem.name.replace(/\s+/g, '') + ".png";
+            var _itemImagePath = "images/items/" + _fullItem.name.replace(/\s+/g, '') + ".png";
+            if (_fullItem.shimmering === true){
+                _itemImagePath = "images/items/" + _fullItem.name.replace(/\s+/g, '') + "_shimmering.png";
+            }
             if (_fullItem.gem != undefined) {
                 _gemImagePath = "images/items/" + _fullItem.gem.name.replace(/\s+/g, '') + ".gif";
-                newStashItem.style.backgroundImage = "url(" + _itemImagePath + "), url(" + _gemImagePath + ")";
+                newStashItem.style.backgroundImage = "url('" + _itemImagePath + "'), url('" + _gemImagePath + "')";
             } else {
                 if (_fullItem.kind == "gem") {
                     _itemImagePath = "images/items/" + _fullItem.name.replace(/\s+/g, '') + ".gif";
-                    newStashItem.style.backgroundImage = "url(" + _itemImagePath + ")";
+                    newStashItem.style.backgroundImage = "url('" + _itemImagePath + "')";
                 }
                 else {
-                    newStashItem.style.backgroundImage = "url(" + _itemImagePath + ")";
+                    newStashItem.style.backgroundImage = "url('" + _itemImagePath + "')";
                 }
 
             }
@@ -1044,7 +1094,10 @@ function loadInventory(user, force = false) {
                     inventoryItem.setAttribute('data-equipped', true);
 
                     //check if the gem even exists 
-                    let _itemImagePath = "images/items/" + currentItem.name.replace(/\s+/g, '') + ".png";
+                    var _itemImagePath = "images/items/" + currentItem.name.replace(/\s+/g, '') + ".png";
+                    if (currentItem.shimmering === true){
+                        _itemImagePath = "images/items/" + currentItem.name.replace(/\s+/g, '') + "_shimmering.png";
+                    }
 
                     if (currentItem.gem != undefined) {
                         // Use _itemImagePath for the item image, and create a path for the gem

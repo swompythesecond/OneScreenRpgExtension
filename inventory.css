@@ -123,6 +123,7 @@ div {
   text-align: left;
   line-height: 0.5vw;
   white-space: pre;
+  cursor: url(images/cursor/point.png) 10 0, auto !important;
 }
 
 #statsBars {
