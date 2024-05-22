@@ -317,7 +317,7 @@ function addItemModifiers(item, itemElement) {
         itemElement.style.backgroundImage = "url('images/inventory_background/extraordinary-damage.png'), " + itemElement.style.backgroundImage;
     }
     
-    if (item.shimmering === true){ //SHINY ITEM
+    if (item.shimmering === 1){ //SHINY ITEM
         itemElement.style.backgroundImage = "url('images/inventory_background/shimmering.png'), " + itemElement.style.backgroundImage;
     }
 }
@@ -930,7 +930,7 @@ function loadInventory(user, force = false) {
                 newInventoryItem.appendChild(amountDisplay);
             }
             var _itemImagePath = "images/items/" + _fullItem.name.replace(/\s+/g, '') + ".png";
-            if (_fullItem.shimmering === true){
+            if (_fullItem.shimmering === 1){
                 _itemImagePath = "images/items/" + _fullItem.name.replace(/\s+/g, '') + "_shimmering.png";
             }
             if (_fullItem.gem != undefined) {
@@ -1026,7 +1026,7 @@ function loadInventory(user, force = false) {
 
             let _fullItem = JSON.parse(currentItem.fullItem);
             var _itemImagePath = "images/items/" + _fullItem.name.replace(/\s+/g, '') + ".png";
-            if (_fullItem.shimmering === true){
+            if (_fullItem.shimmering === 1){
                 _itemImagePath = "images/items/" + _fullItem.name.replace(/\s+/g, '') + "_shimmering.png";
             }
             if (_fullItem.gem != undefined) {
@@ -1095,7 +1095,7 @@ function loadInventory(user, force = false) {
 
                     //check if the gem even exists 
                     var _itemImagePath = "images/items/" + currentItem.name.replace(/\s+/g, '') + ".png";
-                    if (currentItem.shimmering === true){
+                    if (currentItem.shimmering === 1){
                         _itemImagePath = "images/items/" + currentItem.name.replace(/\s+/g, '') + "_shimmering.png";
                     }
 
