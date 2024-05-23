@@ -21,6 +21,7 @@ var tooltips = {
     stash: {},
     selectedItems: {}
 };
+var loadedImages = [];
 
 class RequestQueue {
     constructor() {
@@ -263,14 +264,18 @@ function generateItemTooltip(item, image) {
         `<div style="margin-top:0.26vw;"/>`;
 
     if (item.damage > 0) {
-        if (item.gem !== undefined)
-            itemTooltip += `Base Damage/Damage: ${formatNumber(item.damage)}/${formatNumber(Math.round(item.damage * (1 + (item.gem?.gemRank ?? 0) * 0.08)))}<br>`;
+        if (item.gem !== undefined){
+            itemTooltip += `Base Damage: ${formatNumber(item.damage)}<br>`;
+            itemTooltip += `Damage: ${formatNumber(Math.round(item.damage * (1 + (item.gem?.gemRank ?? 0) * 0.08)))}<br>`;
+        }
         else
             itemTooltip += `Damage: ${formatNumber(Math.round(item.damage * (1 + (item.gem?.gemRank ?? 0) * 0.08)))}<br>`;
     }
     if (item.armor > 0) {
-        if (item.gem !== undefined)
-            itemTooltip += `Base Armor/Armor: ${formatNumber(item.armor)}/${formatNumber(Math.round(item.armor * (1 + (item.gem?.gemRank ?? 0) * 0.08)))}<br>`;
+        if (item.gem !== undefined){
+            itemTooltip += `Base Armor: ${formatNumber(item.armor)}<br>`;
+            itemTooltip += `Armor: ${formatNumber(Math.round(item.armor * (1 + (item.gem?.gemRank ?? 0) * 0.08)))}<br>`;
+        }
         else
             itemTooltip += `Armor: ${formatNumber(Math.round(item.armor * (1 + (item.gem?.gemRank ?? 0) * 0.08)))}<br>`;
     }
@@ -278,48 +283,99 @@ function generateItemTooltip(item, image) {
     itemTooltip +=
         `Kind: ${item.kind}<br>` +
         `Gold Value: ${formatMoney(item.goldValue)}<br>` +
-        `Description: ${formatDescription(item)}<br>` +
+        `${item.critChance ? `Crit Chance: ${item.critChance}%<br>` : ''}` +
+        `${item.critEffectiveness ? `Crit Effectiveness: ${item.critEffectiveness}%<br>` : ''}` +
+        `${formatDescription(item)}<br>` +
         `${item.gem ? `Gem: ${formatGem(item.gem)}` : ''}`;
 
     return itemTooltip;
 }
 
 function addItemModifiers(item, itemElement) {
+    let backgrounds = [];
 
     if (item.lock == true && (item.tradable == false || item.gem != undefined)) {
-        itemElement.style.backgroundImage = "url('images/inventory_background/locknon-tradable.png'), " + itemElement.style.backgroundImage;
+        backgrounds.push("url('images/inventory_background/locknon-tradable.png')");
     } else {
-        if (item.lock == true){
-            itemElement.style.backgroundImage = "url('images/inventory_background/lock.png'), " + itemElement.style.backgroundImage;
+        if (item.lock == true) {
+            backgrounds.push("url('images/inventory_background/lock.png')");
         }
-        if (item.tradable == false || item.gem != undefined){
-            itemElement.style.backgroundImage = "url('images/inventory_background/non-tradable.png'), " + itemElement.style.backgroundImage;
+        if (item.tradable == false || item.gem != undefined) {
+            backgrounds.push("url('images/inventory_background/non-tradable.png')");
         }
     }
 
-    if (item.armorBonus >= 1.0){ //FORBIDDEN ARMOR
-        itemElement.style.backgroundImage = "url('images/inventory_background/forbidden-armor.png'), " + itemElement.style.backgroundImage;
-    } else if (item.armorBonus >= 0.8) { //LEGENDARY ARMOR
-        itemElement.style.backgroundImage = "url('images/inventory_background/legendary-armor.png'), " + itemElement.style.backgroundImage;
-    } else if (item.armorBonus >= 0.6) { //EPIC ARMOR
-        itemElement.style.backgroundImage = "url('images/inventory_background/epic-armor.png'), " + itemElement.style.backgroundImage;
-    } else if (item.armorBonus >= 0.4) { //EXTRAORDINARY ARMOR
-        itemElement.style.backgroundImage = "url('images/inventory_background/extraordinary-armor.png'), " + itemElement.style.backgroundImage;
+    if (item.armorBonus >= 1.0) { // FORBIDDEN ARMOR
+        backgrounds.push("url('images/inventory_background/forbidden-armor.png')");
+    } else if (item.armorBonus >= 0.8) { // LEGENDARY ARMOR
+        backgrounds.push("url('images/inventory_background/legendary-armor.png')");
+    } else if (item.armorBonus >= 0.6) { // EPIC ARMOR
+        backgrounds.push("url('images/inventory_background/epic-armor.png')");
+    } else if (item.armorBonus >= 0.4) { // EXTRAORDINARY ARMOR
+        backgrounds.push("url('images/inventory_background/extraordinary-armor.png')");
+    }
+
+    if (item.damageBonus >= 1.0) { // FORBIDDEN DAMAGE
+        backgrounds.push("url('images/inventory_background/forbidden-damage.png')");
+    } else if (item.damageBonus >= 0.8) { // LEGENDARY DAMAGE
+        backgrounds.push("url('images/inventory_background/legendary-damage.png')");
+    } else if (item.damageBonus >= 0.6) { // EPIC DAMAGE
+        backgrounds.push("url('images/inventory_background/epic-damage.png')");
+    } else if (item.damageBonus >= 0.4) { // EXTRAORDINARY DAMAGE
+        backgrounds.push("url('images/inventory_background/extraordinary-damage.png')");
+    }
+
+    if (item.shimmering === 1) { // SHINY ITEM
+        backgrounds.push("url('images/inventory_background/shimmering.png')");
+    }
+
+    // If there are any backgrounds to apply, set them
+    if (backgrounds.length > 0) {
+        itemElement.style.backgroundImage = backgrounds.join(', ') + ', ' + itemElement.style.backgroundImage;
+    }
+}
+
+function getImageName(item){
+    if (item.shimmering === 1){
+        return item.name.replace(/\s+/g, '') + "_shimmering";
+    } else {
+        return item.name.replace(/\s+/g, '');
+    }
+}
+
+function styleItem(item, itemElement, isDefault = false){
+    if (item.amount > 0) {
+        const amountDisplay = document.createElement('div');
+        amountDisplay.classList.add('item-amount');
+        amountDisplay.innerHTML = formatItemAmount(item.amount);
+        itemElement.appendChild(amountDisplay);
+    }
+    var imageName = getImageName(item);
+    var _itemImagePath = "images/items/" + imageName + ".png";  
+    if (isDefault || loadedImages[imageName] === false){
+        _itemImagePath = "images/items/default.png";
     }
     
-    if (item.damageBonus >= 1.0){ //FORBIDDEN DAMAGE
-        itemElement.style.backgroundImage = "url('images/inventory_background/forbidden-damage.png'), " + itemElement.style.backgroundImage;
-    } else if (item.damageBonus >= 0.8) { //LEGENDARY DAMAGE
-        itemElement.style.backgroundImage = "url('images/inventory_background/legendary-damage.png'), " + itemElement.style.backgroundImage;
-    } else if (item.damageBonus >= 0.6) { //EPIC DAMAGE
-        itemElement.style.backgroundImage = "url('images/inventory_background/epic-damage.png'), " + itemElement.style.backgroundImage;
-    } else if (item.damageBonus >= 0.4) { //EXTRAORDINARY DAMAGE
-        itemElement.style.backgroundImage = "url('images/inventory_background/extraordinary-damage.png'), " + itemElement.style.backgroundImage;
+    if (item.gem != undefined) {
+        let _gemImagePath = "images/items/" + item.gem.name.replace(/\s+/g, '') + ".gif";
+        itemElement.style.backgroundImage = "url('" + _itemImagePath + "'), url('" + _gemImagePath + "')";
+    } else {
+        if (item.kind == "gem") {
+            _itemImagePath = "images/items/" + item.name.replace(/\s+/g, '') + ".gif";
+            itemElement.style.backgroundImage = "url('" + _itemImagePath + "')";
+        }
+        else {
+            itemElement.style.backgroundImage = "url('" + _itemImagePath + "')";
+        }
+
     }
-    
-    if (item.shimmering === 1){ //SHINY ITEM
-        itemElement.style.backgroundImage = "url('images/inventory_background/shimmering.png'), " + itemElement.style.backgroundImage;
-    }
+   
+    addItemModifiers(item, itemElement);
+
+    itemElement.style.backgroundPosition = "center center, center center"; // Positions for each image
+    itemElement.style.backgroundRepeat = "no-repeat, repeat"; // Repeat settings for each image
+    // Size settings for each image (e.g., cover, contain, or explicit dimensions)
+    itemElement.style.backgroundSize = "cover, contain";
 }
 
 function connectToExtension() {
@@ -795,8 +851,6 @@ function findFirstCraftableItem(craftingTable) {
     return null;
 }
 
-
-
 function updateBars(hp, maxHp, mana, maxMana) {
     const hpPercentage = (hp / maxHp) * 100;
     const manaPercentage = (mana / maxMana) * 100;
@@ -890,12 +944,6 @@ function loadInventory(user, force = false) {
     document.getElementById("blessingGoldGain").innerText = "+XP: " + user.blessings.xpGain + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
     document.getElementById("blessingXpGain").innerText = "Luck: " + user.blessings.goldGain + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
 
-
-
-
-
-
-
     // Get all elements with class 'inventory-item'
     const items = document.querySelectorAll('.inventory-item');
 
@@ -918,56 +966,31 @@ function loadInventory(user, force = false) {
             newInventoryItem.setAttribute('data-item-type', currentItem.type);
             newInventoryItem.setAttribute('data-inventory-position', currentItem.invPosition);
             newInventoryItem.setAttribute('data-fullItem', currentItem.fullItem);
-
+    
             // Setting two background images classes[1] is the item name
-
             let _fullItem = JSON.parse(currentItem.fullItem);
-
-            if (_fullItem.amount > 0) {
-                const amountDisplay = document.createElement('div');
-                amountDisplay.classList.add('item-amount');
-                amountDisplay.innerHTML = formatItemAmount(_fullItem.amount);
-                newInventoryItem.appendChild(amountDisplay);
-            }
-            var _itemImagePath = "images/items/" + _fullItem.name.replace(/\s+/g, '') + ".png";
-            if (_fullItem.shimmering === 1){
-                _itemImagePath = "images/items/" + _fullItem.name.replace(/\s+/g, '') + "_shimmering.png";
-            }
-            if (_fullItem.gem != undefined) {
-                _gemImagePath = "images/items/" + _fullItem.gem.name.replace(/\s+/g, '') + ".gif";
-                newInventoryItem.style.backgroundImage = "url('" + _itemImagePath + "'), url('" + _gemImagePath + "')";
-            } else {
-                if (_fullItem.kind == "gem") {
-                    _itemImagePath = "images/items/" + _fullItem.name.replace(/\s+/g, '') + ".gif";
-                    newInventoryItem.style.backgroundImage = "url('" + _itemImagePath + "')";
-                }
-                else {
-                    newInventoryItem.style.backgroundImage = "url('" + _itemImagePath + "')";
-                }
-
-            }
-
-            inventoryTooltipImage = newInventoryItem.style.backgroundImage;
-
-            checkImageExists(_itemImagePath).then((exists) => {
-                if (!exists) {
-                    newInventoryItem.style.backgroundImage = "url('images/items/default.png')";
-                    inventoryTooltipImage = "url('images/items/default.png')";
-                }
-            });
-
-            addItemModifiers(currentItem.stats, newInventoryItem);
-
-            newInventoryItem.style.backgroundPosition = "center center, center center"; // Positions for each image
-            newInventoryItem.style.backgroundRepeat = "no-repeat, repeat"; // Repeat settings for each image
-            // Size settings for each image (e.g., cover, contain, or explicit dimensions)
-            newInventoryItem.style.backgroundSize = "cover, contain";
-
+    
+            styleItem(_fullItem, newInventoryItem);
             // Set tooltip text with stats
-            tooltips['inventory'][currentItem.invPosition] = generateItemTooltip(currentItem.stats, inventoryTooltipImage);
-
+            tooltips['inventory'][currentItem.invPosition] = generateItemTooltip(currentItem.stats, newInventoryItem.style.backgroundImage);
+    
+            // Set default image if image doesn't exist   
+            (function(newInventoryItem, _fullItem, currentItem) {
+                var imageName = getImageName(_fullItem);
+                var _itemImagePath = "images/items/" + imageName + ".png";
+                if (loadedImages[imageName] === undefined){
+                    checkImageExists(_itemImagePath).then((exists) => {
+                        loadedImages[imageName] = exists;
+                        if (!exists) {
+                            styleItem(_fullItem, newInventoryItem, true);
+                            tooltips['inventory'][currentItem.invPosition] = generateItemTooltip(currentItem.stats, newInventoryItem.style.backgroundImage);
+                        }
+                    });
+                }
+            })(newInventoryItem, _fullItem, currentItem);
+    
             newInventoryItem.setAttribute('title', '');
-
+    
             // If the corresponding div element is empty, append the new inventory item to it
             if (inventoryTable.children[Math.floor(i / 5)].children[i % 5].childElementCount === 0) {
                 inventoryTable.children[Math.floor(i / 5)].children[i % 5].appendChild(newInventoryItem);
@@ -986,7 +1009,6 @@ function loadInventory(user, force = false) {
             inventoryTable.children[Math.floor(i / 5)].children[i % 5].innerHTML = "";
         }
     }
-
 
     let stash = user.stash;
 
@@ -1023,64 +1045,38 @@ function loadInventory(user, force = false) {
             newStashItem.setAttribute('data-item-type', currentItem.type);
             newStashItem.setAttribute('data-stashposition', currentItem.stashPosition);
             newStashItem.setAttribute('data-fullItem', currentItem.fullItem);
-
+    
             let _fullItem = JSON.parse(currentItem.fullItem);
-            var _itemImagePath = "images/items/" + _fullItem.name.replace(/\s+/g, '') + ".png";
-            if (_fullItem.shimmering === 1){
-                _itemImagePath = "images/items/" + _fullItem.name.replace(/\s+/g, '') + "_shimmering.png";
-            }
-            if (_fullItem.gem != undefined) {
-                _gemImagePath = "images/items/" + _fullItem.gem.name.replace(/\s+/g, '') + ".gif";
-                newStashItem.style.backgroundImage = "url('" + _itemImagePath + "'), url('" + _gemImagePath + "')";
-            } else {
-                if (_fullItem.kind == "gem") {
-                    _itemImagePath = "images/items/" + _fullItem.name.replace(/\s+/g, '') + ".gif";
-                    newStashItem.style.backgroundImage = "url('" + _itemImagePath + "')";
-                }
-                else {
-                    newStashItem.style.backgroundImage = "url('" + _itemImagePath + "')";
-                }
-
-            }
-
-            stashTooltipImage = newStashItem.style.backgroundImage;
-
-            checkImageExists(_itemImagePath).then((exists) => {
-                if (!exists) {
-                    newStashItem.style.backgroundImage = "url('images/items/default.png')";
-                    stashTooltipImage = "url('images/items/default.png')";
-                }
-            });
-
-            newStashItem.style.backgroundPosition = "center center, center center"; // Positions for each image
-            newStashItem.style.backgroundRepeat = "no-repeat, repeat"; // Repeat settings for each image
-            // Size settings for each image (e.g., cover, contain, or explicit dimensions)
-            newStashItem.style.backgroundSize = "cover, contain";
-
-            if (_fullItem.amount > 0) {
-                const amountDisplay = document.createElement('div');
-                amountDisplay.classList.add('item-amount');
-                amountDisplay.innerHTML = formatItemAmount(_fullItem.amount);
-                newStashItem.appendChild(amountDisplay);
-            }
-
-            addItemModifiers(currentItem.stats, newStashItem);
-
+    
+            styleItem(_fullItem, newStashItem);
+            
             // Add tooltip with item stats         
-            tooltips['stash'][currentItem.stashPosition] = generateItemTooltip(currentItem.stats, stashTooltipImage);
-
+            tooltips['stash'][currentItem.stashPosition] = generateItemTooltip(currentItem.stats, newStashItem.style.backgroundImage);
+    
+            // Set default image if image doesn't exist 
+            (function(newStashItem, _fullItem, currentItem) {
+                var imageName = getImageName(_fullItem);
+                var _itemImagePath = "images/items/" + imageName + ".png";
+                if (loadedImages[imageName] === undefined){
+                    checkImageExists(_itemImagePath).then((exists) => {
+                        loadedImages[imageName] = exists;
+                        if (!exists) {
+                            styleItem(_fullItem, newStashItem, true);
+                            tooltips['stash'][currentItem.stashPosition] = generateItemTooltip(currentItem.stats, newStashItem.style.backgroundImage);
+                        }
+                    });
+                }
+            })(newStashItem, _fullItem, currentItem);
+    
             newStashItem.setAttribute('title', '');
-
+    
             // Position the item in the corresponding cell
             stashInventoryTable.children[Math.floor(i / 10)].children[i % 10].appendChild(newStashItem);
-        }
-        else {
+        } else {
             stashInventoryTable.children[Math.floor(i / 10)].children[i % 10].innerHTML = "";
         }
     }
-
-
-
+    
     for (let item in _selectedItems) {
         if (_selectedItems.hasOwnProperty(item)) {
             let currentItem = _selectedItems[item];
@@ -1093,34 +1089,29 @@ function loadInventory(user, force = false) {
                     inventoryItem.setAttribute('data-fullItem', JSON.stringify(currentItem));
                     inventoryItem.setAttribute('data-equipped', true);
 
-                    //check if the gem even exists 
-                    var _itemImagePath = "images/items/" + currentItem.name.replace(/\s+/g, '') + ".png";
-                    if (currentItem.shimmering === 1){
-                        _itemImagePath = "images/items/" + currentItem.name.replace(/\s+/g, '') + "_shimmering.png";
-                    }
-
-                    if (currentItem.gem != undefined) {
-                        // Use _itemImagePath for the item image, and create a path for the gem
-                        let _gemImagePath = "images/items/" + currentItem.gem.name.replace(/\s+/g, '') + ".gif";
-                        inventoryItem.style.backgroundImage = `url('${_itemImagePath}'), url('${_gemImagePath}')`;
-                    } else {
-                        // Use _itemImagePath directly if no gem is present
-                        if (currentItem.kind == "gem") {
-                            // Change the extension to .gif if the kind is gem
-                            _itemImagePath = _itemImagePath.replace('.png', '.gif');
-                        }
-                        inventoryItem.style.backgroundImage = `url('${_itemImagePath}')`;
-                    }
-                    selectedItemsTooltipImage = inventoryItem.style.backgroundImage;
-
-                    addItemModifiers(currentItem, inventoryItem);
+                    styleItem(currentItem, inventoryItem);
 
                     // Set tooltip text        
-                    tooltips['selectedItems'][currentItem.kind] = generateItemTooltip(currentItem, selectedItemsTooltipImage);
+                    tooltips['selectedItems'][currentItem.kind] = generateItemTooltip(currentItem, inventoryItem.style.backgroundImage);
+
+                    //set default image if image doesn't exist
+                    (function(inventoryItem, currentItem) {
+                        var imageName = getImageName(currentItem);
+                        var _itemImagePath = "images/items/" + imageName + ".png";
+                        if (loadedImages[imageName] === undefined){
+                            checkImageExists(_itemImagePath).then((exists) => {
+                                loadedImages[imageName] = exists;
+                                if (!exists) {
+                                    styleItem(currentItem, inventoryItem, true);
+                                    tooltips['selectedItems'][currentItem.kind] = generateItemTooltip(currentItem, inventoryItem.style.backgroundImage);
+                                }
+                            });
+                        }
+                    })(inventoryItem, currentItem);
 
                     inventoryItem.setAttribute('title', '');
 
-                    cell.appendChild(inventoryItem);
+                    cell.appendChild(inventoryItem);                    
                 }
             }
         }
