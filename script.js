@@ -278,7 +278,9 @@ function generateItemTooltip(item, image) {
     itemTooltip +=
         `Kind: ${item.kind}<br>` +
         `Gold Value: ${formatMoney(item.goldValue)}<br>` +
-        `Description: ${formatDescription(item)}<br>` +
+        `${item.critChance ? `Crit Chance: ${item.critChance}%<br>` : ''}` +
+        `${item.critEffectiveness ? `Crit Effectiveness: ${item.critEffectiveness}%<br>` : ''}` +
+        `${formatDescription(item)}<br>` +
         `${item.gem ? `Gem: ${formatGem(item.gem)}` : ''}`;
 
     return itemTooltip;
