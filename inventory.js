@@ -88,7 +88,7 @@ $('#column-count').on('input propertychange change', function () {
 refreshSortableInventoryList();
 function refreshSortableInventoryList() {
     $('.inventory-cell').sortable({
-        connectWith: '.inventory-cell',
+        connectWith: ['.inventory-cell', '.page-button'],
         placeholder: 'inventory-item-sortable-placeholder',
         sort: function(event, ui) {
             $(this).attr('moving', 'true');
@@ -103,35 +103,17 @@ function refreshSortableInventoryList() {
             var attrBlackList = $(this).closest('.inventory-table').attr('data-item-filter-blacklist');
             var itemFilterWhitelistArray = attrWhitelist ? attrWhitelist.split(/\s+/) : [];
             var itemFilterBlacklistArray = attrBlackList ? attrBlackList.split(/\s+/) : [];
-            ////console.log(itemFilterWhitelistArray);
-            ////console.log(itemFilterBlacklistArray);  
 
             var attrTypeList = $(ui.item).attr('data-item-type');
             var itemTypeListArray = attrTypeList ? attrTypeList.split(/\s+/) : [];
-            ////console.log(itemTypeListArray);
 
-            var canMoveIntoSlot = verifyWithWhiteBlackLists(itemTypeListArray, itemFilterWhitelistArray, itemFilterBlacklistArray)
+            var canMoveIntoSlot = verifyWithWhiteBlackLists(itemTypeListArray, itemFilterWhitelistArray, itemFilterBlacklistArray);
 
             if (!canMoveIntoSlot) {
-                //console.log("Can't move to this slot");
-                //$(ui.sender).sortable('cancel');
                 $(ui.item).parentToAnimate($(ui.sender), 200);
-            }
-            else {
-
+            } else {
                 // Swap places of items if dragging on top of another
-                // Add the items in this list to the list the new item was from
                 $(this).children().not(ui.item).parentToAnimate($(ui.sender), 200);
-
-                // $(this) is the list the item is being moved into
-                // $(ui.sender) is the list the item came from
-                // Don't forget the move swap items as well
-
-                // $(this).attr('data-slot-position-x');
-                // $(this).attr('data-slot-position-y');
-                // $(ui.sender).attr('data-slot-position-x');
-                // $(ui.sender).attr('data-slot-position-y');
-                ////console.log("Moving to: (" + $(this).attr('data-slot-position-x') + ", " + $(this).attr('data-slot-position-y') + ") - From: (" + $(ui.sender).attr('data-slot-position-x') + ", " + $(ui.sender).attr('data-slot-position-y') + ")");
             }
         }
     }).each(function () {
@@ -140,6 +122,32 @@ function refreshSortableInventoryList() {
         $(this).attr('data-slot-position-x', $(this).prevAll('.inventory-cell').length);
         $(this).attr('data-slot-position-y', $(this).closest('.inventory-row').prevAll('.inventory-row').length);
     }).disableSelection();
+
+    $('.page-button').droppable({
+        accept: '.inventory-item',
+        hoverClass: 'inventory-item-sortable-hover',
+        drop: function(event, ui) {
+            var attrWhitelist = $(this).closest('.inventory-table').attr('data-item-filter-whitelist');
+            var attrBlackList = $(this).closest('.inventory-table').attr('data-item-filter-blacklist');
+            var itemFilterWhitelistArray = attrWhitelist ? attrWhitelist.split(/\s+/) : [];
+            var itemFilterBlacklistArray = attrBlackList ? attrBlackList.split(/\s+/) : [];
+
+            var attrTypeList = $(ui.helper).attr('data-item-type');
+            var itemTypeListArray = attrTypeList ? attrTypeList.split(/\s+/) : [];
+
+            const item = $(ui.helper);
+            const page = $(this).data('page');
+            
+            if (item.data('inventory-position') !== undefined) {
+                const position = item.data('inventory-position');
+                stashPutPage(position, page, false);
+            } else if (item.data('stashposition') !== undefined) {
+                const position = item.data('stashposition');
+                stashPutPage(position, page, true);
+            }
+            item.remove();
+        }
+    });
 }
 
 function verifyWithWhiteBlackLists(itemList, whiteList, blackList) {
