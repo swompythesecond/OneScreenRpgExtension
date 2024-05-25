@@ -1,6 +1,5 @@
 let onAuth = {}; loggedOut
 let inventory = [];
-const myServer = "https://germany.pauledevelopment.com:8052";
 let hideMarkerTimer;
 let emptyItem = {
     name: "empty",
@@ -180,68 +179,68 @@ function formatNumber(number) {
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-function descriptionWithStats(item){
-  if (item.description === undefined)
-    item.description = "none";
+function descriptionWithStats(item) {
+    if (item.description === undefined)
+        item.description = "none";
 
-  var statsDescription = item.description;
-  var reqLevel = false;
+    var statsDescription = item.description;
+    var reqLevel = false;
 
-  if (item.levelRequirement !== undefined){
-    statsDescription += `<br><br>[REQUIRES LEVEL ${item.levelRequirement}]<br>`;
-    reqLevel = true;
-  }
+    if (item.levelRequirement !== undefined) {
+        statsDescription += `<br><br>[REQUIRES LEVEL ${item.levelRequirement}]<br>`;
+        reqLevel = true;
+    }
 
-  if (!reqLevel)
-    statsDescription += '<br>';
+    if (!reqLevel)
+        statsDescription += '<br>';
 
-  if (item.armorBonus >= 1.0){ //FORBIDDEN ARMOR
-    statsDescription += '<br>FORBIDDEN ARMOR';
-  } else if (item.armorBonus >= 0.8) { //LEGENDARY ARMOR
-    statsDescription += '<br>LEGENDARY ARMOR';
-  } else if (item.armorBonus >= 0.6) { //EPIC ARMOR
-    statsDescription += '<br>EPIC ARMOR';
-  } else if (item.armorBonus >= 0.4) { //EXTRAORDINARY ARMOR
-    statsDescription += '<br>EXTRAORDINARY ARMOR';
-  }
+    if (item.armorBonus >= 1.0) { //FORBIDDEN ARMOR
+        statsDescription += '<br>FORBIDDEN ARMOR';
+    } else if (item.armorBonus >= 0.8) { //LEGENDARY ARMOR
+        statsDescription += '<br>LEGENDARY ARMOR';
+    } else if (item.armorBonus >= 0.6) { //EPIC ARMOR
+        statsDescription += '<br>EPIC ARMOR';
+    } else if (item.armorBonus >= 0.4) { //EXTRAORDINARY ARMOR
+        statsDescription += '<br>EXTRAORDINARY ARMOR';
+    }
 
-  if (item.damageBonus >= 1.0){ //FORBIDDEN DAMAGE
-    statsDescription += '<br>FORBIDDEN DAMAGE';
-  } else if (item.damageBonus >= 0.8) { //LEGENDARY DAMAGE
-    statsDescription += '<br>LEGENDARY DAMAGE';
-  } else if (item.damageBonus >= 0.6) { //EPIC DAMAGE
-    statsDescription += '<br>EPIC DAMAGE';
-  } else if (item.damageBonus >= 0.4) { //EXTRAORDINARY DAMAGE
-    statsDescription += '<br>EXTRAORDINARY DAMAGE';
-  }
+    if (item.damageBonus >= 1.0) { //FORBIDDEN DAMAGE
+        statsDescription += '<br>FORBIDDEN DAMAGE';
+    } else if (item.damageBonus >= 0.8) { //LEGENDARY DAMAGE
+        statsDescription += '<br>LEGENDARY DAMAGE';
+    } else if (item.damageBonus >= 0.6) { //EPIC DAMAGE
+        statsDescription += '<br>EPIC DAMAGE';
+    } else if (item.damageBonus >= 0.4) { //EXTRAORDINARY DAMAGE
+        statsDescription += '<br>EXTRAORDINARY DAMAGE';
+    }
 
-  return statsDescription;
+    return statsDescription;
 }
 
 function formatDescription(item) {
 
-  // Define the words and their corresponding colors, ensuring longer phrases come first
-  const wordsToColor = [
-      { word: 'extraordinary', color: '#2270AF' },
-      { word: 'epic', color: '#7C337B' },
-      { word: 'legendary', color: '#CCB333' },
-      { word: 'forbidden', color: '#4B4A56' },
-      { word: 'mana', color: 'lightblue' },
-      { word: 'health', color: 'red' },
-      { word: 'damage', color: '#ec8d34' },
-      { word: 'damages', color: '#ec8d34' },
-      { word: 'armor', color: '#20985d' },
-      { word: 'one-hit', color: '#5C4033' }
-  ];
+    // Define the words and their corresponding colors, ensuring longer phrases come first
+    const wordsToColor = [
+        { word: 'extraordinary', color: '#2270AF' },
+        { word: 'epic', color: '#7C337B' },
+        { word: 'legendary', color: '#CCB333' },
+        { word: 'forbidden', color: '#4B4A56' },
+        { word: 'mana', color: 'lightblue' },
+        { word: 'health', color: 'red' },
+        { word: 'damage', color: '#ec8d34' },
+        { word: 'damages', color: '#ec8d34' },
+        { word: 'armor', color: '#20985d' },
+        { word: 'one-hit', color: '#5C4033' }
+    ];
 
-  var description = descriptionWithStats(item);
-  // Iterate over the words to color and replace them in the description
-  wordsToColor.forEach(({ word, color }) => {
-      const regex = new RegExp(word, 'gi'); // Create a case-insensitive regex
-      description = description.replace(regex, match => `<span style="color: ${color};">${match}</span>`);
-  });
+    var description = descriptionWithStats(item);
+    // Iterate over the words to color and replace them in the description
+    wordsToColor.forEach(({ word, color }) => {
+        const regex = new RegExp(word, 'gi'); // Create a case-insensitive regex
+        description = description.replace(regex, match => `<span style="color: ${color};">${match}</span>`);
+    });
 
-  return description;
+    return description;
 }
 
 function formatGem(gem) {
@@ -264,7 +263,7 @@ function generateItemTooltip(item, image) {
         `<div style="margin-top:0.26vw;"/>`;
 
     if (item.damage > 0) {
-        if (item.gem !== undefined){
+        if (item.gem !== undefined) {
             itemTooltip += `Base Damage: ${formatNumber(item.damage)}<br>`;
             itemTooltip += `Damage: ${formatNumber(Math.round(item.damage * (1 + (item.gem?.gemRank ?? 0) * 0.08)))}<br>`;
         }
@@ -272,7 +271,7 @@ function generateItemTooltip(item, image) {
             itemTooltip += `Damage: ${formatNumber(Math.round(item.damage * (1 + (item.gem?.gemRank ?? 0) * 0.08)))}<br>`;
     }
     if (item.armor > 0) {
-        if (item.gem !== undefined){
+        if (item.gem !== undefined) {
             itemTooltip += `Base Armor: ${formatNumber(item.armor)}<br>`;
             itemTooltip += `Armor: ${formatNumber(Math.round(item.armor * (1 + (item.gem?.gemRank ?? 0) * 0.08)))}<br>`;
         }
@@ -335,15 +334,15 @@ function addItemModifiers(item, itemElement) {
     }
 }
 
-function getImageName(item){
-    if (item.shimmering === 1){
+function getImageName(item) {
+    if (item.shimmering === 1) {
         return item.name.replace(/\s+/g, '') + "_shimmering";
     } else {
         return item.name.replace(/\s+/g, '');
     }
 }
 
-function styleItem(item, itemElement, isDefault = false){
+function styleItem(item, itemElement, isDefault = false) {
     if (item.amount > 0) {
         const amountDisplay = document.createElement('div');
         amountDisplay.classList.add('item-amount');
@@ -351,11 +350,11 @@ function styleItem(item, itemElement, isDefault = false){
         itemElement.appendChild(amountDisplay);
     }
     var imageName = getImageName(item);
-    var _itemImagePath = "images/items/" + imageName + ".png";  
-    if (isDefault || loadedImages[imageName] === false){
+    var _itemImagePath = "images/items/" + imageName + ".png";
+    if (isDefault || loadedImages[imageName] === false) {
         _itemImagePath = "images/items/default.png";
     }
-    
+
     if (item.gem != undefined) {
         let _gemImagePath = "images/items/" + item.gem.name.replace(/\s+/g, '') + ".gif";
         itemElement.style.backgroundImage = "url('" + _itemImagePath + "'), url('" + _gemImagePath + "')";
@@ -369,7 +368,7 @@ function styleItem(item, itemElement, isDefault = false){
         }
 
     }
-   
+
     addItemModifiers(item, itemElement);
 
     itemElement.style.backgroundPosition = "center center, center center"; // Positions for each image
@@ -966,19 +965,19 @@ function loadInventory(user, force = false) {
             newInventoryItem.setAttribute('data-item-type', currentItem.type);
             newInventoryItem.setAttribute('data-inventory-position', currentItem.invPosition);
             newInventoryItem.setAttribute('data-fullItem', currentItem.fullItem);
-    
+
             // Setting two background images classes[1] is the item name
             let _fullItem = JSON.parse(currentItem.fullItem);
-    
+
             styleItem(_fullItem, newInventoryItem);
             // Set tooltip text with stats
             tooltips['inventory'][currentItem.invPosition] = generateItemTooltip(currentItem.stats, newInventoryItem.style.backgroundImage);
-    
+
             // Set default image if image doesn't exist   
-            (function(newInventoryItem, _fullItem, currentItem) {
+            (function (newInventoryItem, _fullItem, currentItem) {
                 var imageName = getImageName(_fullItem);
                 var _itemImagePath = "images/items/" + imageName + ".png";
-                if (loadedImages[imageName] === undefined){
+                if (loadedImages[imageName] === undefined) {
                     checkImageExists(_itemImagePath).then((exists) => {
                         loadedImages[imageName] = exists;
                         if (!exists) {
@@ -988,9 +987,9 @@ function loadInventory(user, force = false) {
                     });
                 }
             })(newInventoryItem, _fullItem, currentItem);
-    
+
             newInventoryItem.setAttribute('title', '');
-    
+
             // If the corresponding div element is empty, append the new inventory item to it
             if (inventoryTable.children[Math.floor(i / 5)].children[i % 5].childElementCount === 0) {
                 inventoryTable.children[Math.floor(i / 5)].children[i % 5].appendChild(newInventoryItem);
@@ -1045,19 +1044,19 @@ function loadInventory(user, force = false) {
             newStashItem.setAttribute('data-item-type', currentItem.type);
             newStashItem.setAttribute('data-stashposition', currentItem.stashPosition);
             newStashItem.setAttribute('data-fullItem', currentItem.fullItem);
-    
+
             let _fullItem = JSON.parse(currentItem.fullItem);
-    
+
             styleItem(_fullItem, newStashItem);
-            
+
             // Add tooltip with item stats         
             tooltips['stash'][currentItem.stashPosition] = generateItemTooltip(currentItem.stats, newStashItem.style.backgroundImage);
-    
+
             // Set default image if image doesn't exist 
-            (function(newStashItem, _fullItem, currentItem) {
+            (function (newStashItem, _fullItem, currentItem) {
                 var imageName = getImageName(_fullItem);
                 var _itemImagePath = "images/items/" + imageName + ".png";
-                if (loadedImages[imageName] === undefined){
+                if (loadedImages[imageName] === undefined) {
                     checkImageExists(_itemImagePath).then((exists) => {
                         loadedImages[imageName] = exists;
                         if (!exists) {
@@ -1067,16 +1066,16 @@ function loadInventory(user, force = false) {
                     });
                 }
             })(newStashItem, _fullItem, currentItem);
-    
+
             newStashItem.setAttribute('title', '');
-    
+
             // Position the item in the corresponding cell
             stashInventoryTable.children[Math.floor(i / 10)].children[i % 10].appendChild(newStashItem);
         } else {
             stashInventoryTable.children[Math.floor(i / 10)].children[i % 10].innerHTML = "";
         }
     }
-    
+
     for (let item in _selectedItems) {
         if (_selectedItems.hasOwnProperty(item)) {
             let currentItem = _selectedItems[item];
@@ -1095,10 +1094,10 @@ function loadInventory(user, force = false) {
                     tooltips['selectedItems'][currentItem.kind] = generateItemTooltip(currentItem, inventoryItem.style.backgroundImage);
 
                     //set default image if image doesn't exist
-                    (function(inventoryItem, currentItem) {
+                    (function (inventoryItem, currentItem) {
                         var imageName = getImageName(currentItem);
                         var _itemImagePath = "images/items/" + imageName + ".png";
-                        if (loadedImages[imageName] === undefined){
+                        if (loadedImages[imageName] === undefined) {
                             checkImageExists(_itemImagePath).then((exists) => {
                                 loadedImages[imageName] = exists;
                                 if (!exists) {
@@ -1111,7 +1110,7 @@ function loadInventory(user, force = false) {
 
                     inventoryItem.setAttribute('title', '');
 
-                    cell.appendChild(inventoryItem);                    
+                    cell.appendChild(inventoryItem);
                 }
             }
         }
