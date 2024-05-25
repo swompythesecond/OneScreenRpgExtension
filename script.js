@@ -21,6 +21,9 @@ var tooltips = {
     selectedItems: {}
 };
 var loadedImages = [];
+var totalPages = 1;
+var currentPage = 1;
+const itemsPerPage = 50;
 
 class RequestQueue {
     constructor() {
@@ -421,6 +424,76 @@ function abbreviateNumber(value) {
     return newValue;
 }
 
+function appendPaginationControls() {
+    const stashInventoryContainer = document.getElementById('stashInventory');
+    
+    // Remove existing pagination controls if they exist
+    const existingPaginationControls = document.querySelector('.stash-pagination');
+    if (existingPaginationControls) {
+        existingPaginationControls.remove();
+    }
+
+    // Create a div for pagination controls
+    const paginationControls = document.createElement('div');
+    paginationControls.classList.add('stash-pagination');
+
+    // Create numbered buttons
+    for (let page = 1; page <= 10; page++) {
+        const pageButton = document.createElement('div');
+        pageButton.classList.add('page-button');
+        pageButton.innerText = page;
+        pageButton.dataset.page = page;
+
+        if (page <= totalPages) {
+            if (page === currentPage) {
+                pageButton.disabled = true;
+                pageButton.classList.add('active');
+            } else {
+                pageButton.onclick = () => changePage(page);
+            }
+        } else {
+            pageButton.classList.add('disabled');
+            pageButton.disabled = true;
+            pageButton.onclick = null;
+            pageButton.title = "Buy more stash pages on the shop.";
+        }
+
+        paginationControls.appendChild(pageButton);
+    }
+
+    // Append pagination controls to the stash inventory container
+    stashInventoryContainer.appendChild(paginationControls);
+
+    // Now loop again to set the background image
+    $('.stash-pagination .page-button').each(function(index) {
+        var page = $(this).data('page');
+
+        if (page <= totalPages) {
+            var firstCell = $('#stash-inventory-' + page + ' .inventory-row:first .inventory-cell:first');
+            var firstInventoryItem = firstCell.find('.inventory-item:first');
+
+            if (firstInventoryItem.length > 0) {
+                var backgroundImage = firstInventoryItem.css('background-image');
+                var urls = backgroundImage.match(/url\(["']?([^"']*)["']?\)/g);
+                if (urls && urls.length > 0) {
+                    var lastUrl = urls[urls.length - 1];
+                    lastUrl = lastUrl.replace(/url\(["']?([^"']*)["']?\)/, '$1');
+
+                    // Get the computed style for the background image
+                    var computedStyle = window.getComputedStyle(this);
+                    var currentBackgroundImage = computedStyle.backgroundImage;
+
+                    // Append the new URL to the existing background image
+                    this.style.backgroundImage = "url(" + lastUrl + "), " + currentBackgroundImage;
+                    this.innerText = "";
+                }
+            } else {
+                console.log("There is no inventory item in the first cell.");
+            }
+        }
+    });
+}
+
 function initExtension() {
     $(document).tooltip({
         track: true,
@@ -472,6 +545,7 @@ function initExtension() {
         }
     });
     getInventory().then(() => {
+        appendPaginationControls();
         loadLoop = setInterval(() => {
             getInventory().catch(err => console.error('Failed to get inventory:', err));
         }, 2000);
@@ -863,6 +937,79 @@ function updateBars(hp, maxHp, mana, maxMana) {
     document.getElementById('manaText').textContent = `${mana}/${maxMana}`;
 }
 
+function changePage(newPage) {
+    // Check if the new page exists
+    if (newPage >= 1 && newPage <= totalPages) {
+        currentPage = newPage;
+
+        // Hide all stash tables and show the current one
+        for (let page = 1; page <= totalPages; page++) {
+            const table = document.getElementById(`stash-inventory-${page}`);
+            if (table) {
+                table.style.display = page === currentPage ? 'block' : 'none';
+            }
+        }
+
+        // Update pagination buttons
+        const paginationButtons = document.querySelectorAll('.page-button');
+        paginationButtons.forEach(button => {
+            const page = parseInt(button.dataset.page, 10);
+            if (page === currentPage) {
+                button.classList.add('active');
+                button.disabled = true;
+                button.onclick = null; // Remove the onclick handler for the current page button
+                
+                // Ensure the background image for the active button is still applied
+                var firstCell = $('#stash-inventory-' + page + ' .inventory-row:first .inventory-cell:first');
+                var firstInventoryItem = firstCell.find('.inventory-item:first');
+                
+                if (firstInventoryItem.length > 0) {
+                    var backgroundImage = firstInventoryItem.css('background-image');
+                    var urls = backgroundImage.match(/url\(["']?([^"']*)["']?\)/g);
+                    if (urls && urls.length > 0) {
+                        var lastUrl = urls[urls.length - 1];
+                        lastUrl = lastUrl.replace(/url\(["']?([^"']*)["']?\)/, '$1');
+
+                        // Get the computed style for the background image
+                        button.style.backgroundImage = null;
+                        var computedStyle = window.getComputedStyle(button);
+                        var currentBackgroundImage = computedStyle.backgroundImage;
+                        
+                        button.style.backgroundImage = "url(" + lastUrl + "), " + currentBackgroundImage;
+                        button.innerText = "";
+                    }
+                }
+            } else {
+                button.classList.remove('active');
+                button.disabled = false;
+                button.onclick = () => changePage(page); // Re-assign the onclick handler
+                
+                // Reapply the background image style
+                var firstCell = $('#stash-inventory-' + page + ' .inventory-row:first .inventory-cell:first');
+                var firstInventoryItem = firstCell.find('.inventory-item:first');
+                
+                if (firstInventoryItem.length > 0) {
+                    var backgroundImage = firstInventoryItem.css('background-image');
+                    var urls = backgroundImage.match(/url\(["']?([^"']*)["']?\)/g);
+                    if (urls && urls.length > 0) {
+                        var lastUrl = urls[urls.length - 1];
+                        lastUrl = lastUrl.replace(/url\(["']?([^"']*)["']?\)/, '$1');
+
+                        // Get the computed style for the background image
+                        button.style.backgroundImage = null;
+                        var computedStyle = window.getComputedStyle(button);
+                        var currentBackgroundImage = computedStyle.backgroundImage;
+
+                        // Append the new URL to the existing background image
+                        button.style.backgroundImage = "url(" + lastUrl + "), " + currentBackgroundImage;
+                        button.innerText = "";
+                    }
+                }
+            }
+        });
+    }
+}
+
 function loadInventory(user, force = false) {
     const craftInventoryArray = getCraftInventoryArray();
     if (craftInventoryArray.some(item => item !== null) && document.querySelectorAll(".crafting")[0].style.display === "block") {
@@ -880,19 +1027,17 @@ function loadInventory(user, force = false) {
                 `Description: ${itemToCraft?.description || "nothing"}\n` +
                 `Gem: ${itemToCraft?.gem?.name || 'none'}`
             );
-        }
-        else {
+        } else {
             document.getElementById("craftImage").style.backgroundImage = "";
             document.getElementById("craftImage").setAttribute('title', "");
         }
         return;
     } else {
+        document.getElementById("craftImage").style.backgroundImage = "";
+        document.getElementById("craftImage").setAttribute('title', "");
     }
-    document.getElementById("craftImage").style.backgroundImage = "";
-    document.getElementById("craftImage").setAttribute('title', "");
 
     if (isLeftMouseButtonPressed && !force) {
-        //console.log("cant load inventory")
         return;
     }
     let inv = user.inventory;
@@ -903,7 +1048,6 @@ function loadInventory(user, force = false) {
     if (user.metaData.hp != undefined) {
         updateBars(user.metaData.hp, user.metaData.maxHp, user.metaData.mana, user.metaData.maxMana);
     }
-
 
     inventory = [];
 
@@ -917,8 +1061,7 @@ function loadInventory(user, force = false) {
                 fullItem: JSON.stringify(inv[i]),
                 stats: inv[i]
             }
-        }
-        else {
+        } else {
             inventoryItem = {};
         }
 
@@ -943,21 +1086,15 @@ function loadInventory(user, force = false) {
     document.getElementById("blessingGoldGain").innerText = "+XP: " + user.blessings.xpGain + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
     document.getElementById("blessingXpGain").innerText = "Luck: " + user.blessings.goldGain + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
 
-    // Get all elements with class 'inventory-item'
     const items = document.querySelectorAll('.inventory-item');
 
-    // Loop through each item and remove it
     items.forEach(item => {
         item.parentNode.removeChild(item);
     });
 
-    // Get a reference to the inventory table
     const inventoryTable = document.getElementById('personal-inventory');
-    // Loop through the inventory array and populate the inventory table
     for (let i = 0; i < inventory.length; i++) {
-        // Get the current inventory item
         const currentItem = inventory[i];
-        // If the current item is not empty, create a new inventory item div and add it to the inventory table
         if (Object.keys(currentItem).length !== 0) {
             const newInventoryItem = document.createElement('div');
             const classes = currentItem.class.split(' ');
@@ -966,14 +1103,11 @@ function loadInventory(user, force = false) {
             newInventoryItem.setAttribute('data-inventory-position', currentItem.invPosition);
             newInventoryItem.setAttribute('data-fullItem', currentItem.fullItem);
 
-            // Setting two background images classes[1] is the item name
             let _fullItem = JSON.parse(currentItem.fullItem);
 
             styleItem(_fullItem, newInventoryItem);
-            // Set tooltip text with stats
             tooltips['inventory'][currentItem.invPosition] = generateItemTooltip(currentItem.stats, newInventoryItem.style.backgroundImage);
 
-            // Set default image if image doesn't exist   
             (function (newInventoryItem, _fullItem, currentItem) {
                 var imageName = getImageName(_fullItem);
                 var _itemImagePath = "images/items/" + imageName + ".png";
@@ -990,21 +1124,14 @@ function loadInventory(user, force = false) {
 
             newInventoryItem.setAttribute('title', '');
 
-            // If the corresponding div element is empty, append the new inventory item to it
             if (inventoryTable.children[Math.floor(i / 5)].children[i % 5].childElementCount === 0) {
                 inventoryTable.children[Math.floor(i / 5)].children[i % 5].appendChild(newInventoryItem);
-            }
-            // If the corresponding div element is not empty, but the item is not present in the inventory array, remove the inventory item from the div element
-            else if (!inventory.includes(currentItem)) {
+            } else if (!inventory.includes(currentItem)) {
                 inventoryTable.children[Math.floor(i / 5)].children[i % 5].innerHTML = "";
-            }
-            // If the corresponding div element is not empty, and the item is present in the inventory array, replace its contents with the new inventory item
-            else {
+            } else {
                 inventoryTable.children[Math.floor(i / 5)].children[i % 5].replaceChild(newInventoryItem, inventoryTable.children[Math.floor(i / 5)].children[i % 5].firstChild);
             }
-        }
-        // If the current item is empty, remove any existing inventory item from the corresponding div element
-        else {
+        } else {
             inventoryTable.children[Math.floor(i / 5)].children[i % 5].innerHTML = "";
         }
     }
@@ -1013,7 +1140,6 @@ function loadInventory(user, force = false) {
 
     let stashInventory = [];
 
-    // Populate the stash inventory array
     for (let i = 0; i < stash.length; i++) {
         let stashItem;
         if (stash[i].name != "empty") {
@@ -1024,8 +1150,7 @@ function loadInventory(user, force = false) {
                 fullItem: JSON.stringify(stash[i]),
                 stats: stash[i]
             };
-        }
-        else {
+        } else {
             stashItem = {};
         }
 
@@ -1033,48 +1158,72 @@ function loadInventory(user, force = false) {
     }
 
     // Get a reference to the stash inventory table
-    const stashInventoryTable = document.getElementById('stash-inventory');
-    // Loop through the stash inventory array and populate the stash inventory table
-    for (let i = 0; i < stashInventory.length; i++) {
-        const currentItem = stashInventory[i];
-        if (Object.keys(currentItem).length !== 0) {
-            const newStashItem = document.createElement('div');
-            const classes = currentItem.class.split(' ');
-            classes.forEach(className => newStashItem.classList.add(className));
-            newStashItem.setAttribute('data-item-type', currentItem.type);
-            newStashItem.setAttribute('data-stashposition', currentItem.stashPosition);
-            newStashItem.setAttribute('data-fullItem', currentItem.fullItem);
+    const baseStashInventoryTable = document.getElementById('stash-inventory');
+    baseStashInventoryTable.style.display = 'none';
 
-            let _fullItem = JSON.parse(currentItem.fullItem);
+    totalPages = Math.ceil(stashInventory.length / itemsPerPage);
 
-            styleItem(_fullItem, newStashItem);
+    // Remove existing cloned tables
+    document.querySelectorAll('[id^="stash-inventory-"]').forEach(table => table.remove());
 
-            // Add tooltip with item stats         
-            tooltips['stash'][currentItem.stashPosition] = generateItemTooltip(currentItem.stats, newStashItem.style.backgroundImage);
+    for (let page = 1; page <= totalPages; page++) {
+        const clonedStashInventoryTable = baseStashInventoryTable.cloneNode(true);
+        clonedStashInventoryTable.id = `stash-inventory-${page}`;
+        clonedStashInventoryTable.style.display = page === currentPage ? 'block' : 'none';
+        baseStashInventoryTable.parentNode.appendChild(clonedStashInventoryTable);
+        const stashInventoryTable = document.getElementById(`stash-inventory-${page}`);
 
-            // Set default image if image doesn't exist 
-            (function (newStashItem, _fullItem, currentItem) {
-                var imageName = getImageName(_fullItem);
-                var _itemImagePath = "images/items/" + imageName + ".png";
-                if (loadedImages[imageName] === undefined) {
-                    checkImageExists(_itemImagePath).then((exists) => {
-                        loadedImages[imageName] = exists;
-                        if (!exists) {
-                            styleItem(_fullItem, newStashItem, true);
-                            tooltips['stash'][currentItem.stashPosition] = generateItemTooltip(currentItem.stats, newStashItem.style.backgroundImage);
-                        }
-                    });
-                }
-            })(newStashItem, _fullItem, currentItem);
-
-            newStashItem.setAttribute('title', '');
-
-            // Position the item in the corresponding cell
-            stashInventoryTable.children[Math.floor(i / 10)].children[i % 10].appendChild(newStashItem);
-        } else {
-            stashInventoryTable.children[Math.floor(i / 10)].children[i % 10].innerHTML = "";
+        const startIndex = ((page-1) * itemsPerPage);
+        const endIndex = startIndex + itemsPerPage;
+        
+        // Loop through the stash inventory array and populate the stash inventory table
+        for (let i = startIndex; i < Math.min(endIndex, stashInventory.length); i++) {
+            const currentItem = stashInventory[i];
+            const pageIndex = i - startIndex;
+            const rowIndex = Math.floor(pageIndex / 10);
+            const colIndex = pageIndex % 10;
+            if (Object.keys(currentItem).length !== 0) {
+                const newStashItem = document.createElement('div');
+                const classes = currentItem.class.split(' ');
+                classes.forEach(className => newStashItem.classList.add(className));
+                newStashItem.setAttribute('data-item-type', currentItem.type);
+                newStashItem.setAttribute('data-stashposition', currentItem.stashPosition);
+                newStashItem.setAttribute('data-fullItem', currentItem.fullItem);
+    
+                let _fullItem = JSON.parse(currentItem.fullItem);
+    
+                styleItem(_fullItem, newStashItem);
+    
+                // Add tooltip with item stats         
+                tooltips['stash'][currentItem.stashPosition] = generateItemTooltip(currentItem.stats, newStashItem.style.backgroundImage);
+    
+                // Set default image if image doesn't exist 
+                (function (newStashItem, _fullItem, currentItem) {
+                    var imageName = getImageName(_fullItem);
+                    var _itemImagePath = "images/items/" + imageName + ".png";
+                    if (loadedImages[imageName] === undefined) {
+                        checkImageExists(_itemImagePath).then((exists) => {
+                            loadedImages[imageName] = exists;
+                            if (!exists) {
+                                styleItem(_fullItem, newStashItem, true);
+                                tooltips['stash'][currentItem.stashPosition] = generateItemTooltip(currentItem.stats, newStashItem.style.backgroundImage);
+                            }
+                        });
+                    }
+                })(newStashItem, _fullItem, currentItem);
+    
+                newStashItem.setAttribute('title', '');
+    
+                // Position the item in the corresponding cell
+                stashInventoryTable.children[rowIndex].children[colIndex].appendChild(newStashItem);
+            } else {
+                stashInventoryTable.children[rowIndex].children[colIndex].innerHTML = "";
+            }
         }
     }
+
+    refreshSortableInventoryList(); //this is needed so items can be moved on the newly created stash pages
+    appendPaginationControls();
 
     for (let item in _selectedItems) {
         if (_selectedItems.hasOwnProperty(item)) {
@@ -1090,10 +1239,8 @@ function loadInventory(user, force = false) {
 
                     styleItem(currentItem, inventoryItem);
 
-                    // Set tooltip text        
                     tooltips['selectedItems'][currentItem.kind] = generateItemTooltip(currentItem, inventoryItem.style.backgroundImage);
 
-                    //set default image if image doesn't exist
                     (function (inventoryItem, currentItem) {
                         var imageName = getImageName(currentItem);
                         var _itemImagePath = "images/items/" + imageName + ".png";
@@ -1115,8 +1262,6 @@ function loadInventory(user, force = false) {
             }
         }
     }
-
-
 }
 
 function getCraftInventoryArray() {
@@ -1165,7 +1310,7 @@ function getInventoryArray() {
                         if (stashPutTracker.from instanceof String || stashPutTracker.from === null) {
                             stashPut(fromPos, toPos);
                             stashPutTracker = { from: fromPos, to: toPos };
-                            console.log('stashPut From Inventory');
+                            console.log('stashPut From Stash');
                         }
                         allowSetInventory = false;
                         return { inventoryArray, allowSetInventory };
@@ -1197,7 +1342,11 @@ function getInventoryArray() {
 
 function getStashInventoryArray() {
     const stashInventoryArray = [];
-    const stashInventoryRows = document.querySelectorAll('#stash-inventory .inventory-row');
+    let stashInventoryRows = [];
+    for (let i = 1; i <= totalPages; i++) {
+      const rows = document.querySelectorAll(`#stash-inventory-${i} .inventory-row`);
+      stashInventoryRows = stashInventoryRows.concat(Array.from(rows));
+    }
     let loop = 0;
     let allowSetStash = true;
 
@@ -1222,7 +1371,7 @@ function getStashInventoryArray() {
                         if (stashPutTracker.to instanceof String || stashPutTracker.to === null) {
                             stashPut(fromPos, toPos);
                             stashPutTracker = { from: fromPos, to: toPos };
-                            console.log('stashPut From Stash');
+                            console.log('stashPut From Inventory');
                         }
                         allowSetStash = false;
                         return { stashInventoryArray, allowSetStash };
@@ -1403,6 +1552,60 @@ function stashPut(inventoryPosition, stashPosition) {
             .then(data => {
                 loadInventory(data.user);
                 resolve(data); // Resolve the promise with the data when everything is successful
+            })
+            .catch(error => {
+                console.error(error);
+                reject(error); // Reject the promise when there's an error
+            }).finally(() => {
+                // Restart the inventory check interval 2 seconds after stashPut completes
+                settingInventory = false;
+                setTimeout(restartInventoryCheck, 2000);
+            });
+    }));
+}
+
+function stashPutPage(position, page, fromStash) {
+    isLeftMouseButtonPressed = false;
+    settingInventory = true;
+    stopInventoryCheck();
+    requestQueue.clear('getInventory');
+    return requestQueue.enqueue(() => new Promise((resolve, reject) => {
+        jwt = window.Twitch.ext.viewer.sessionToken;
+
+        if (jwt === undefined && accessToken === undefined) {
+            reject("No session or token defined!");
+            return;
+        }
+
+        fetch(myServer + '/stashPutPage', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                jwt: jwt,
+                position: position,
+                page: page,
+                fromStash: fromStash,
+                accessToken: accessToken
+            }),
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    spawnTextAtPosition("grrr swompy", 50, 50);
+                    //throw new Error(response.statusText);
+                }
+            })
+            .then(data => {
+                try {
+                    loadInventory(data.user);
+                    resolve(data); // Resolve the promise with the data when everything is successful
+                }
+                catch {
+                    reject('grr swompy');
+                }
             })
             .catch(error => {
                 console.error(error);
