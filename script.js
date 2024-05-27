@@ -988,7 +988,7 @@ function updateUI(user){
     let _totalBlessing = (user.blessings.damage + user.blessings.afkGain + user.blessings.armor + user.blessings.xpGain + user.blessings.goldGain);
     let _totalBlessingsCost = _totalBlessing ** 3 + 500;
     document.getElementById("blessingDamage").innerText = "Dmg: " + user.blessings.damage + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
-    document.getElementById("blessingAfkGain").innerText = "Salary: " + user.blessings.afkGain + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
+    document.getElementById("blessingAfkGain").innerText = "AtkSpeed: " + user.blessings.afkGain + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
     document.getElementById("blessingArmor").innerText = "Armor: " + user.blessings.armor + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
     document.getElementById("blessingGoldGain").innerText = "+XP: " + user.blessings.xpGain + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
     document.getElementById("blessingXpGain").innerText = "Luck: " + user.blessings.goldGain + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
