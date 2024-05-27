@@ -1184,10 +1184,10 @@ function loadInventory(user, force = false) {
         }
     }
 
-    refreshSortableInventoryList(); //this is needed so items can be moved on the newly created stash pages
     if (user.username == "mantegudo" || user.username == "hydranime" || user.username == "onestreamrpg"){
         appendPaginationControls();
     }
+    refreshSortableInventoryList(); //this is needed so items can be moved on the newly created stash pages
 
     for (let item in _selectedItems) {
         if (_selectedItems.hasOwnProperty(item)) {
