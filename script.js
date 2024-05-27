@@ -485,8 +485,6 @@ function appendPaginationControls() {
                     this.innerText = "";
                     this.appendChild(pageImage);
                 }
-            } else {
-                console.log("There is no inventory item in the first cell.");
             }
         }
     });
@@ -547,7 +545,6 @@ function initExtension() {
             getInventory().catch(err => console.error('Failed to get inventory:', err));
         }, 2000);
     uiLoop = setInterval(() => {
-        console.log('settingInventory: ' + settingInventory);
         if (settingInventory){
             getUIInfo().catch(err => console.error('Failed to get UI Info:', err));
         }
