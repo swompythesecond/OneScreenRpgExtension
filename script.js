@@ -1599,18 +1599,12 @@ function stashPutPage(position, page, fromStash) {
                 if (response.ok) {
                     return response.json();
                 } else {
-                    spawnTextAtPosition("grrr swompy", 50, 50);
-                    //throw new Error(response.statusText);
+                    throw new Error(response.statusText);
                 }
             })
             .then(data => {
-                try {
-                    loadInventory(data.user);
-                    resolve(data); // Resolve the promise with the data when everything is successful
-                }
-                catch {
-                    reject('grr swompy');
-                }
+                loadInventory(data.user, true);
+                resolve(data); // Resolve the promise with the data when everything is successful
             })
             .catch(error => {
                 console.error(error);
