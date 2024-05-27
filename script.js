@@ -10,6 +10,7 @@ let emptyItem = {
     sprite: 0,
 }
 let loadLoop;
+let uiLoop;
 let mouseReleaseTimer;
 let isLeftMouseButtonPressed = false;
 let autoSellList = [];
@@ -478,14 +479,11 @@ function appendPaginationControls() {
                 if (urls && urls.length > 0) {
                     var lastUrl = urls[urls.length - 1];
                     lastUrl = lastUrl.replace(/url\(["']?([^"']*)["']?\)/, '$1');
-
-                    // Get the computed style for the background image
-                    var computedStyle = window.getComputedStyle(this);
-                    var currentBackgroundImage = computedStyle.backgroundImage;
-
-                    // Append the new URL to the existing background image
-                    this.style.backgroundImage = "url(" + lastUrl + "), " + currentBackgroundImage;
+                    const pageImage = document.createElement('div');
+                    pageImage.classList.add('page-image');
+                    pageImage.style.backgroundImage = "url(" + lastUrl + ")";
                     this.innerText = "";
+                    this.appendChild(pageImage);
                 }
             } else {
                 console.log("There is no inventory item in the first cell.");
@@ -545,10 +543,14 @@ function initExtension() {
         }
     });
     getInventory().then(() => {
-        appendPaginationControls();
         loadLoop = setInterval(() => {
             getInventory().catch(err => console.error('Failed to get inventory:', err));
         }, 2000);
+    uiLoop = setInterval(() => {
+        if (settingInventory){
+            getUIInfo().catch(err => console.error('Failed to get UI Info:', err));
+        }
+    }, 1000);
     }).catch(error => {
         console.error('Initial inventory retrieval failed:', error);
         // Optionally start the interval even if the initial call fails
@@ -819,7 +821,7 @@ document.addEventListener('contextmenu', function (event) {
 document.addEventListener('click', function (event) {
     $('.ui-tooltip').remove();
     // Array of selectors to check
-    var selectors = ['#fullInventory', '#craftInventory', '#craftPreview', '#selectedInventory', '.context-menu-list', '#stashInventory', '#statsBars', '#stats', '#mission', '#blessings', '#blessBlessings', '.submenuSpan'];
+    var selectors = ['#fullInventory', '#craftInventory', '#craftPreview', '#selectedInventory', '.context-menu-list', '#stashInventory', '#statsBars', '#stats', '#mission', '#blessings', '#blessBlessings', '.submenuSpan', '.stash-pagination', '.page-button', '.page-image'];
 
     // Check if click is inside any specified and visible elements
     let isContextMenu = event.target.closest('.context-menu-list');
@@ -958,56 +960,40 @@ function changePage(newPage) {
                 button.classList.add('active');
                 button.disabled = true;
                 button.onclick = null; // Remove the onclick handler for the current page button
-                
-                // Ensure the background image for the active button is still applied
-                var firstCell = $('#stash-inventory-' + page + ' .inventory-row:first .inventory-cell:first');
-                var firstInventoryItem = firstCell.find('.inventory-item:first');
-                
-                if (firstInventoryItem.length > 0) {
-                    var backgroundImage = firstInventoryItem.css('background-image');
-                    var urls = backgroundImage.match(/url\(["']?([^"']*)["']?\)/g);
-                    if (urls && urls.length > 0) {
-                        var lastUrl = urls[urls.length - 1];
-                        lastUrl = lastUrl.replace(/url\(["']?([^"']*)["']?\)/, '$1');
-
-                        // Get the computed style for the background image
-                        button.style.backgroundImage = null;
-                        var computedStyle = window.getComputedStyle(button);
-                        var currentBackgroundImage = computedStyle.backgroundImage;
-                        
-                        button.style.backgroundImage = "url(" + lastUrl + "), " + currentBackgroundImage;
-                        button.innerText = "";
-                    }
-                }
             } else {
                 button.classList.remove('active');
                 button.disabled = false;
                 button.onclick = () => changePage(page); // Re-assign the onclick handler
-                
-                // Reapply the background image style
-                var firstCell = $('#stash-inventory-' + page + ' .inventory-row:first .inventory-cell:first');
-                var firstInventoryItem = firstCell.find('.inventory-item:first');
-                
-                if (firstInventoryItem.length > 0) {
-                    var backgroundImage = firstInventoryItem.css('background-image');
-                    var urls = backgroundImage.match(/url\(["']?([^"']*)["']?\)/g);
-                    if (urls && urls.length > 0) {
-                        var lastUrl = urls[urls.length - 1];
-                        lastUrl = lastUrl.replace(/url\(["']?([^"']*)["']?\)/, '$1');
-
-                        // Get the computed style for the background image
-                        button.style.backgroundImage = null;
-                        var computedStyle = window.getComputedStyle(button);
-                        var currentBackgroundImage = computedStyle.backgroundImage;
-
-                        // Append the new URL to the existing background image
-                        button.style.backgroundImage = "url(" + lastUrl + "), " + currentBackgroundImage;
-                        button.innerText = "";
-                    }
-                }
             }
         });
     }
+}
+
+function updateUI(user){
+    let _stats = user.stats;
+    let _mission = user.mission;
+
+    if (user.metaData.hp != undefined) {
+        updateBars(user.metaData.hp, user.metaData.maxHp, user.metaData.mana, user.metaData.maxMana);
+    }
+
+    document.getElementById("statsLvl").innerText = "Level: " + abbreviateNumber(_stats.lvl);
+    document.getElementById("statsXp").innerText = "XP: " + abbreviateNumber(Math.floor(_stats.xp)) + "/" + abbreviateNumber(Math.floor((50 * (_stats.lvl ** 2))));
+    document.getElementById("statsGold").innerText = "Gold: " + abbreviateNumber(_stats.gold);
+    document.getElementById("statsArmor").innerText = "Armor: " + abbreviateNumber(_stats.armor);
+    document.getElementById("statsDamage").innerText = "Dmg: " + abbreviateNumber(_stats.damage);
+
+    document.getElementById("missionTitle").style.display = "block";
+    document.getElementById("missionText").innerText = _mission.text;
+    document.getElementById("missionProgress").innerText = "Progress: " + _mission.progress + "/" + _mission.maxProgress;
+
+    let _totalBlessing = (user.blessings.damage + user.blessings.afkGain + user.blessings.armor + user.blessings.xpGain + user.blessings.goldGain);
+    let _totalBlessingsCost = _totalBlessing ** 3 + 500;
+    document.getElementById("blessingDamage").innerText = "Dmg: " + user.blessings.damage + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
+    document.getElementById("blessingAfkGain").innerText = "Salary: " + user.blessings.afkGain + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
+    document.getElementById("blessingArmor").innerText = "Armor: " + user.blessings.armor + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
+    document.getElementById("blessingGoldGain").innerText = "+XP: " + user.blessings.xpGain + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
+    document.getElementById("blessingXpGain").innerText = "Luck: " + user.blessings.goldGain + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
 }
 
 function loadInventory(user, force = false) {
@@ -1042,12 +1028,8 @@ function loadInventory(user, force = false) {
     }
     let inv = user.inventory;
     let _selectedItems = user.selectedItems;
-    let _stats = user.stats;
-    let _mission = user.mission;
 
-    if (user.metaData.hp != undefined) {
-        updateBars(user.metaData.hp, user.metaData.maxHp, user.metaData.mana, user.metaData.maxMana);
-    }
+    updateUI(user);
 
     inventory = [];
 
@@ -1067,25 +1049,7 @@ function loadInventory(user, force = false) {
 
         inventory.push(inventoryItem);
     }
-
-    document.getElementById("statsLvl").innerText = "Level: " + abbreviateNumber(_stats.lvl);
-    document.getElementById("statsXp").innerText = "XP: " + abbreviateNumber(Math.floor(_stats.xp)) + "/" + abbreviateNumber(Math.floor((50 * (_stats.lvl ** 2))));
-    document.getElementById("statsGold").innerText = "Gold: " + abbreviateNumber(_stats.gold);
-    document.getElementById("statsArmor").innerText = "Armor: " + abbreviateNumber(_stats.armor);
-    document.getElementById("statsDamage").innerText = "Dmg: " + abbreviateNumber(_stats.damage);
-
-    document.getElementById("missionTitle").style.display = "block";
-    document.getElementById("missionText").innerText = _mission.text;
-    document.getElementById("missionProgress").innerText = "Progress: " + _mission.progress + "/" + _mission.maxProgress;
-
-    let _totalBlessing = (user.blessings.damage + user.blessings.afkGain + user.blessings.armor + user.blessings.xpGain + user.blessings.goldGain);
-    let _totalBlessingsCost = _totalBlessing ** 3 + 500;
-    document.getElementById("blessingDamage").innerText = "Dmg: " + user.blessings.damage + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
-    document.getElementById("blessingAfkGain").innerText = "Salary: " + user.blessings.afkGain + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
-    document.getElementById("blessingArmor").innerText = "Armor: " + user.blessings.armor + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
-    document.getElementById("blessingGoldGain").innerText = "+XP: " + user.blessings.xpGain + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
-    document.getElementById("blessingXpGain").innerText = "Luck: " + user.blessings.goldGain + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
-
+    
     const items = document.querySelectorAll('.inventory-item');
 
     items.forEach(item => {
@@ -1223,7 +1187,9 @@ function loadInventory(user, force = false) {
     }
 
     refreshSortableInventoryList(); //this is needed so items can be moved on the newly created stash pages
-    appendPaginationControls();
+    if (user.username == "mantegudo" || user.username == "hydranime" || user.username == "onestreamrpg"){
+        appendPaginationControls();
+    }
 
     for (let item in _selectedItems) {
         if (_selectedItems.hasOwnProperty(item)) {
@@ -1465,6 +1431,46 @@ function getInventory() {
                 reject(error); // Reject the promise when there's an error
             });
     }));
+}
+
+function getUIInfo(){
+    return new Promise((resolve, reject) => {
+        jwt = window.Twitch.ext.viewer.sessionToken;
+    
+        if (jwt === undefined && accessToken === undefined) {
+            reject("No session or token defined!");
+            return;
+        }
+    
+        fetch(myServer + '/getinventory', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ jwt, accessToken })
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error(response.statusText);
+            }
+        })
+        .then(data => {
+            document.getElementById('disconnectedMessage').style.display = 'none';
+            autoSellList = data.user.autoSell;
+            updateUI(data.user);
+            resolve(data); // Resolve the promise with the data when everything is successful
+        })
+        .catch(error => {
+            console.error(error);
+            let element = document.getElementById('loggedOut');
+            if (!element) {
+                document.getElementById('disconnectedMessage').style.display = 'block';
+            }
+            reject(error); // Reject the promise when there's an error
+        });
+    });
 }
 
 function setInventory(inventory, selectInventoryArray, stashInventoryArray) {
