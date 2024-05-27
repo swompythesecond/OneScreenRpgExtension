@@ -485,8 +485,6 @@ function appendPaginationControls() {
                     this.innerText = "";
                     this.appendChild(pageImage);
                 }
-            } else {
-                console.log("There is no inventory item in the first cell.");
             }
         }
     });
@@ -1023,13 +1021,13 @@ function loadInventory(user, force = false) {
         document.getElementById("craftImage").setAttribute('title', "");
     }
 
+    updateUI(user);
+    
     if (isLeftMouseButtonPressed && !force) {
         return;
     }
     let inv = user.inventory;
     let _selectedItems = user.selectedItems;
-
-    updateUI(user);
 
     inventory = [];
 
@@ -1567,6 +1565,7 @@ function stashPut(inventoryPosition, stashPosition) {
                 settingInventory = false;
                 setTimeout(restartInventoryCheck, 2000);
             });
+        
     }));
 }
 
