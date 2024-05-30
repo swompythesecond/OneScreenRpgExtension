@@ -119,11 +119,57 @@ div {
   left: 0;
   color: white;
   padding: 0.1vw 0.3vw;
-  font-size: 0.5vw;
+  font-size: 0.4vw;
   text-align: left;
   line-height: 0.5vw;
   white-space: pre;
   cursor: url(images/cursor/point.png) 10 0, auto !important;
+}
+
+.item-amount-changed-up {
+  color: #42b425;
+  animation: colorChangeUp 0.5s forwards;
+}
+
+.item-amount-changed-down {
+  color: #e02e2e;
+  animation: colorChangeDown 0.5s forwards;
+}
+
+@keyframes shake {
+  0% { transform: translate(0.5px, 0.5px) rotate(0deg); }
+  10% { transform: translate(-0.5px, -1px) rotate(-0.5deg); }
+  20% { transform: translate(-1.5px, 0px) rotate(0.5deg); }
+  30% { transform: translate(1.5px, 1px) rotate(0deg); }
+  40% { transform: translate(0.5px, -0.5px) rotate(0.5deg); }
+  50% { transform: translate(-0.5px, 1px) rotate(-0.5deg); }
+  60% { transform: translate(-1.5px, 0.5px) rotate(0deg); }
+  70% { transform: translate(1.5px, 0.5px) rotate(-0.5deg); }
+  80% { transform: translate(-0.5px, -0.5px) rotate(0.5deg); }
+  90% { transform: translate(0.5px, 1px) rotate(0deg); }
+  100% { transform: translate(0.5px, -1px) rotate(-0.5deg); }
+}
+
+/* Color change animations */
+@keyframes colorChangeUp {
+  0% { color: #42b425; }
+  100% { color: white; }
+}
+
+@keyframes colorChangeDown {
+  0% { color: #e02e2e; }
+  100% { color: white; }
+}
+
+/* Apply shake animation to .inventory-item if it has .item-amount-changed-up or .item-amount-changed-down as a child */
+.inventory-item:has(.item-amount-changed-up),
+.inventory-item:has(.item-amount-changed-down) {
+  animation: shake 0.5s, colorChangeShake 0.5s forwards;
+}
+
+@keyframes colorChangeShake {
+  0% { color: inherit; }
+  100% { color: white; }
 }
 
 .item-amount span{
