@@ -113,6 +113,43 @@ function refreshSortableInventoryList() {
                 $(ui.item).parentToAnimate($(ui.sender), 200);
             } else {
                 // Swap places of items if dragging on top of another
+                var senderItemElement = ui.item;
+                var receiverItemElement = $(this).children().not(ui.item);
+                
+                var senderDataFullItem = senderItemElement.attr('data-fullitem');
+                var receiverDataFullItem = receiverItemElement.attr('data-fullitem');
+    
+                // Check if the data-fullitem attributes exist
+                if (senderDataFullItem && receiverDataFullItem) {
+                    var senderData = JSON.parse(senderDataFullItem);
+                    var receiverData = JSON.parse(receiverDataFullItem);
+   
+                    var senderIsEquipped = senderItemElement.attr('data-equipped');
+                    var receiverIsEquipped = receiverItemElement.attr('data-equipped');
+
+                    if (senderIsEquipped || receiverIsEquipped) {
+                        var senderHasGem = senderData.gem !== undefined;
+                        var receiverHasGem = receiverData.gem !== undefined;
+   
+                        if (senderHasGem && !receiverHasGem) {
+                            receiverData.gem = senderData.gem;
+                            delete senderData.gem;    
+                            senderItemElement.attr('data-fullitem', JSON.stringify(senderData));
+                            receiverItemElement.attr('data-fullitem', JSON.stringify(receiverData));
+                            styleItem(senderData, senderItemElement[0]);
+                            styleItem(receiverData, receiverItemElement[0]);
+                        }
+
+                        if (!senderHasGem && receiverHasGem) {
+                            senderData.gem = receiverData.gem;
+                            delete receiverData.gem;    
+                            senderItemElement.attr('data-fullitem', JSON.stringify(senderData));
+                            receiverItemElement.attr('data-fullitem', JSON.stringify(receiverData));
+                            styleItem(senderData, senderItemElement[0]);
+                            styleItem(receiverData, receiverItemElement[0]);
+                        }
+                    }
+                }
                 $(this).children().not(ui.item).parentToAnimate($(ui.sender), 200);
             }
         }
