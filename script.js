@@ -1110,6 +1110,7 @@ const compareItems = (item1, item2) => {
            item1.bonusDamage === item2.bonusDamage && 
            item1.bonusArmor === item2.bonusArmor && 
            item1.shimmering === item2.shimmering &&
+           item1.lock === item2.lock &&
            item1.amount === item2.amount;
 };
 
