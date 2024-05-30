@@ -23,8 +23,12 @@ var tooltips = {
 };
 var loadedImages = [];
 var totalPages = 1;
+var oldTotalPages = 0;
 var currentPage = 1;
 const itemsPerPage = 50;
+let previousInventoryState = {};
+let previousStashState = {};
+let previousSelectedItemsState = {};
 
 class RequestQueue {
     constructor() {
@@ -347,12 +351,34 @@ function getImageName(item) {
 }
 
 function styleItem(item, itemElement, isDefault = false) {
+    // Check if itemElement already has a .item-amount element
+    let amountDisplay = itemElement.querySelector('.item-amount');
     if (item.amount > 0) {
-        const amountDisplay = document.createElement('div');
-        amountDisplay.classList.add('item-amount');
+        if (!amountDisplay) {
+            amountDisplay = document.createElement('div');
+            amountDisplay.classList.add('item-amount');
+            itemElement.appendChild(amountDisplay);
+        }
+
+        if (item.changedAmount === 1) {
+            amountDisplay.classList.add('item-amount-changed-up');
+            setTimeout(() => {
+                amountDisplay.classList.remove('item-amount-changed-up');
+            }, 2000);
+        } else if (item.changedAmount === -1) {
+            amountDisplay.classList.add('item-amount-changed-down');
+            setTimeout(() => {
+                amountDisplay.classList.remove('item-amount-changed-down');
+            }, 2000);
+        }
+
         amountDisplay.innerHTML = formatItemAmount(item.amount);
-        itemElement.appendChild(amountDisplay);
+    } else {
+        if (amountDisplay) {
+            itemElement.removeChild(amountDisplay);
+        }
     }
+
     var imageName = getImageName(item);
     var _itemImagePath = "images/items/" + imageName + ".png";
     if (isDefault || loadedImages[imageName] === false) {
@@ -366,11 +392,9 @@ function styleItem(item, itemElement, isDefault = false) {
         if (item.kind == "gem") {
             _itemImagePath = "images/items/" + item.name.replace(/\s+/g, '') + ".gif";
             itemElement.style.backgroundImage = "url('" + _itemImagePath + "')";
-        }
-        else {
+        } else {
             itemElement.style.backgroundImage = "url('" + _itemImagePath + "')";
         }
-
     }
 
     addItemModifiers(item, itemElement);
@@ -467,7 +491,7 @@ function appendPaginationControls() {
 
     // Now loop again to set the background image
     $('.stash-pagination .page-button').each(function(index) {
-        var page = $(this).data('page');
+        var page = $(this).attr('data-page');
 
         if (page <= totalPages) {
             var firstCell = $('#stash-inventory-' + page + ' .inventory-row:first .inventory-cell:first');
@@ -495,24 +519,24 @@ function initExtension() {
         track: true,
         content: function () {
             // Get location and position from data attributes
-            if ($(this).data('inventoryPosition') !== undefined) {
+            if ($(this).attr('data-inventory-position') !== undefined) {
                 type = 'inventory';
-                position = $(this).data('inventoryPosition');
+                position = $(this).attr('data-inventory-position');
             }
-            else if ($(this).data('stashposition') !== undefined) {
+            else if ($(this).attr('data-stashposition') !== undefined) {
                 type = 'stash';
-                position = $(this).data('stashposition');
+                position = $(this).attr('data-stashposition');
             }
             else {
                 type = 'selectedItems';
-                position = $(this).data('itemType');
+                position = $(this).attr('data-itemType');
             }
             // Fetch the tooltip content from the global tooltips object
             return tooltips[type][position] || '';
         },
         open: function (event, ui) {
             // Get the new tooltip text
-            var newTooltipText = $(event.target).data('ui-tooltip-content') || $(event.target).attr('title');
+            var newTooltipText = $(event.target).attr('data-ui-tooltip-content') || $(event.target).attr('title');
 
             // Compare with the current tooltip text
             if (newTooltipText === currentTooltipText) {
@@ -544,11 +568,12 @@ function initExtension() {
         loadLoop = setInterval(() => {
             getInventory().catch(err => console.error('Failed to get inventory:', err));
         }, 2000);
-    uiLoop = setInterval(() => {
-        if (settingInventory){
-            getUIInfo().catch(err => console.error('Failed to get UI Info:', err));
-        }
-    }, 1000);
+        uiLoop = setInterval(() => {
+            if (settingInventory){
+                getUIInfo().catch(err => console.error('Failed to get UI Info:', err));
+            }
+        }, 1000);
+        initializeContextMenu();
     }).catch(error => {
         console.error('Initial inventory retrieval failed:', error);
         // Optionally start the interval even if the initial call fails
@@ -834,7 +859,6 @@ document.addEventListener('click', function (event) {
         }
     }
 
-    console.log(event.target);
     $('.context-menu-list').trigger('contextmenu:hide');
 
     var percentX = (event.clientX / window.innerWidth) * 100;
@@ -994,15 +1018,111 @@ function updateUI(user){
     document.getElementById("blessingXpGain").innerText = "Luck: " + user.blessings.goldGain + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
 }
 
+function createItemElement(itemObj, type) {
+    const newItemElement = document.createElement('div');
+    const item = itemObj.fullItem;
+    const position = itemObj.position;
+    newItemElement.className = `inventory-item ${item.name.replace(/\s+/g, '')}`;
+    newItemElement.setAttribute('data-item-type', item.kind);
+    newItemElement.setAttribute('data-fullItem', JSON.stringify(item));
+    if (type === 'inventory') {
+        newItemElement.setAttribute('data-inventory-position', position);
+        newItemElement.removeAttribute('data-stashposition');
+        newItemElement.removeAttribute('data-equipped');
+    } else if (type === 'stash') {
+        newItemElement.setAttribute('data-stashposition', position);
+        newItemElement.removeAttribute('data-inventory-position');
+        newItemElement.removeAttribute('data-equipped');
+    } else if (type === 'selectedItems') {
+        newItemElement.setAttribute('data-equipped', true);
+        newItemElement.removeAttribute('data-inventory-position');
+        newItemElement.removeAttribute('data-stashposition');
+    }
+
+    styleItem(item, newItemElement);
+    tooltips[type][type === 'selectedItems' ? item.kind : position] = generateItemTooltip(item, newItemElement.style.backgroundImage);
+
+    const imageName = getImageName(item);
+    const itemImagePath = `images/items/${imageName}.png`;
+    if (loadedImages[imageName] === undefined) {
+        checkImageExists(itemImagePath).then((exists) => {
+            loadedImages[imageName] = exists;
+            if (!exists) {
+                styleItem(item, newItemElement, true);
+                tooltips[type][type === 'selectedItems' ? item.kind : position] = generateItemTooltip(item, newItemElement.style.backgroundImage);
+            }
+        });
+    }
+
+    newItemElement.setAttribute('title', '');
+
+    return newItemElement;
+}
+
+function updateItemElement(itemElement, itemObj, type) {
+    const item = itemObj.fullItem;
+    const position = itemObj.position;
+    itemElement.className = `inventory-item ${item.name.replace(/\s+/g, '')}`;
+    itemElement.setAttribute('data-item-type', item.kind);
+    itemElement.setAttribute('data-fullItem', JSON.stringify(item));
+    if (type === 'inventory') {
+        itemElement.setAttribute('data-inventory-position', position);
+        itemElement.removeAttribute('data-stashposition');
+        itemElement.removeAttribute('data-equipped');
+    } else if (type === 'stash') {
+        itemElement.setAttribute('data-stashposition', position);
+        itemElement.removeAttribute('data-inventory-position');
+        itemElement.removeAttribute('data-equipped');
+    } else if (type === 'selectedItems') {
+        itemElement.setAttribute('data-equipped', true);
+        itemElement.removeAttribute('data-inventory-position');
+        itemElement.removeAttribute('data-stashposition');
+    }
+
+    item.changedAmount = itemObj.changedAmount;
+    styleItem(item, itemElement);
+    tooltips[type][type === 'selectedItems' ? item.kind : position] = generateItemTooltip(item, itemElement.style.backgroundImage);
+
+    const imageName = getImageName(item);
+    const itemImagePath = `images/items/${imageName}.png`;
+    if (loadedImages[imageName] === undefined) {
+        checkImageExists(itemImagePath).then((exists) => {
+            loadedImages[imageName] = exists;
+            if (!exists) {
+                styleItem(item, itemElement, true);
+                tooltips[type][type === 'selectedItems' ? item.kind : position] = generateItemTooltip(item, itemElement.style.backgroundImage);
+            }
+        });
+    }
+
+    itemElement.setAttribute('title', '');
+}
+
+function removeItemElement(itemElement) {
+    itemElement.remove();
+}
+
+const compareItems = (item1, item2) => {
+    return item1.name === item2.name && 
+           item1.damage === item2.damage && 
+           item1.armor === item2.armor && 
+           item1.goldValue === item2.goldValue && 
+           item1.bonusDamage === item2.bonusDamage && 
+           item1.bonusArmor === item2.bonusArmor && 
+           item1.shimmering === item2.shimmering &&
+           item1.amount === item2.amount;
+};
+
 function loadInventory(user, force = false) {
     const craftInventoryArray = getCraftInventoryArray();
+    const craftImageElement = document.getElementById("craftImage");
+
     if (craftInventoryArray.some(item => item !== null) && document.querySelectorAll(".crafting")[0].style.display === "block") {
         let itemToCraft = findFirstCraftableItem(craftInventoryArray);
         if (itemToCraft) {
             const _imagePath = "./images/items/" + itemToCraft.name.replace(/\s+/g, '') + ".png";
-            let _element = document.getElementById("craftImage");
-            _element.style.backgroundImage = "url(" + _imagePath + ")";
-            _element.setAttribute('title',
+            craftImageElement.style.backgroundImage = "url(" + _imagePath + ")";
+            craftImageElement.setAttribute('title',
                 `Name: ${itemToCraft.name}\n` +
                 `Damage: ${Math.round(itemToCraft.damage * (1 + (itemToCraft.gem?.gemRank ?? 0) * 0.08))}\n` +
                 `Armor: ${Math.round(itemToCraft.armor * (1 + (itemToCraft.gem?.gemRank ?? 0) * 0.08))}\n` +
@@ -1012,13 +1132,13 @@ function loadInventory(user, force = false) {
                 `Gem: ${itemToCraft?.gem?.name || 'none'}`
             );
         } else {
-            document.getElementById("craftImage").style.backgroundImage = "";
-            document.getElementById("craftImage").setAttribute('title', "");
+            craftImageElement.style.backgroundImage = "";
+            craftImageElement.setAttribute('title', "");
         }
         return;
     } else {
-        document.getElementById("craftImage").style.backgroundImage = "";
-        document.getElementById("craftImage").setAttribute('title', "");
+        craftImageElement.style.backgroundImage = "";
+        craftImageElement.setAttribute('title', "");
     }
 
     updateUI(user);
@@ -1026,91 +1146,62 @@ function loadInventory(user, force = false) {
     if (isLeftMouseButtonPressed && !force) {
         return;
     }
+
     let inv = user.inventory;
     let _selectedItems = user.selectedItems;
 
     inventory = [];
 
     for (let i = 0; i < inv.length; i++) {
-        let inventoryItem
+        let inventoryItem;
         if (inv[i].name != "empty") {
             inventoryItem = {
-                class: "inventory-item " + inv[i].name.replace(/\s+/g, ''),
-                type: inv[i].kind,
-                invPosition: i,
-                fullItem: JSON.stringify(inv[i]),
-                stats: inv[i]
-            }
+                position: i,
+                fullItem: inv[i]
+            };
         } else {
             inventoryItem = {};
         }
 
         inventory.push(inventoryItem);
     }
-    
-    const items = document.querySelectorAll('.inventory-item');
-
-    items.forEach(item => {
-        item.parentNode.removeChild(item);
-    });
 
     const inventoryTable = document.getElementById('personal-inventory');
     for (let i = 0; i < inventory.length; i++) {
         const currentItem = inventory[i];
+        const cell = inventoryTable.children[Math.floor(i / 5)].children[i % 5];
+        const existingItemElement = cell.querySelector('.inventory-item');
+
+        const prevItem = previousInventoryState[i] && previousInventoryState[i].fullItem ? previousInventoryState[i].fullItem : {};
+
         if (Object.keys(currentItem).length !== 0) {
-            const newInventoryItem = document.createElement('div');
-            const classes = currentItem.class.split(' ');
-            classes.forEach(className => newInventoryItem.classList.add(className));
-            newInventoryItem.setAttribute('data-item-type', currentItem.type);
-            newInventoryItem.setAttribute('data-inventory-position', currentItem.invPosition);
-            newInventoryItem.setAttribute('data-fullItem', currentItem.fullItem);
-
-            let _fullItem = JSON.parse(currentItem.fullItem);
-
-            styleItem(_fullItem, newInventoryItem);
-            tooltips['inventory'][currentItem.invPosition] = generateItemTooltip(currentItem.stats, newInventoryItem.style.backgroundImage);
-
-            (function (newInventoryItem, _fullItem, currentItem) {
-                var imageName = getImageName(_fullItem);
-                var _itemImagePath = "images/items/" + imageName + ".png";
-                if (loadedImages[imageName] === undefined) {
-                    checkImageExists(_itemImagePath).then((exists) => {
-                        loadedImages[imageName] = exists;
-                        if (!exists) {
-                            styleItem(_fullItem, newInventoryItem, true);
-                            tooltips['inventory'][currentItem.invPosition] = generateItemTooltip(currentItem.stats, newInventoryItem.style.backgroundImage);
-                        }
-                    });
+            if (existingItemElement) {
+                if (!compareItems(currentItem.fullItem, prevItem)) {
+                    currentItem.changedAmount = currentItem.fullItem.amount > prevItem.amount ? 1 : currentItem.fullItem.amount < prevItem.amount ? -1 : 0;
+                    updateItemElement(existingItemElement, currentItem, 'inventory');
                 }
-            })(newInventoryItem, _fullItem, currentItem);
-
-            newInventoryItem.setAttribute('title', '');
-
-            if (inventoryTable.children[Math.floor(i / 5)].children[i % 5].childElementCount === 0) {
-                inventoryTable.children[Math.floor(i / 5)].children[i % 5].appendChild(newInventoryItem);
-            } else if (!inventory.includes(currentItem)) {
-                inventoryTable.children[Math.floor(i / 5)].children[i % 5].innerHTML = "";
             } else {
-                inventoryTable.children[Math.floor(i / 5)].children[i % 5].replaceChild(newInventoryItem, inventoryTable.children[Math.floor(i / 5)].children[i % 5].firstChild);
+                const newInventoryItem = createItemElement(currentItem, 'inventory');
+                cell.appendChild(newInventoryItem);
             }
-        } else {
-            inventoryTable.children[Math.floor(i / 5)].children[i % 5].innerHTML = "";
+        } else if (existingItemElement) {
+            existingItemElement.remove();
         }
+
+        // Update the previous state for this item
+        previousInventoryState[i] = {...currentItem};
     }
 
+    // Handle Stash Inventory
     let stash = user.stash;
-
     let stashInventory = [];
 
     for (let i = 0; i < stash.length; i++) {
         let stashItem;
         if (stash[i].name != "empty") {
             stashItem = {
-                class: "inventory-item " + stash[i].name.replace(/\s+/g, ''),
-                type: stash[i].kind,
-                stashPosition: i,
-                fullItem: JSON.stringify(stash[i]),
-                stats: stash[i]
+                position: i,
+                fullItem: stash[i]
             };
         } else {
             stashItem = {};
@@ -1119,111 +1210,97 @@ function loadInventory(user, force = false) {
         stashInventory.push(stashItem);
     }
 
-    // Get a reference to the stash inventory table
-    const baseStashInventoryTable = document.getElementById('stash-inventory');
-    baseStashInventoryTable.style.display = 'none';
-
     totalPages = Math.ceil(stashInventory.length / itemsPerPage);
 
-    // Remove existing cloned tables
-    document.querySelectorAll('[id^="stash-inventory-"]').forEach(table => table.remove());
+    const baseStashInventoryTable = document.getElementById('stash-inventory');
+    if (totalPages != oldTotalPages){        
+        baseStashInventoryTable.style.display = 'none';
+        document.querySelectorAll('[id^="stash-inventory-"]').forEach(table => table.remove());
+    }
 
     for (let page = 1; page <= totalPages; page++) {
-        const clonedStashInventoryTable = baseStashInventoryTable.cloneNode(true);
-        clonedStashInventoryTable.id = `stash-inventory-${page}`;
-        clonedStashInventoryTable.style.display = page === currentPage ? 'block' : 'none';
-        baseStashInventoryTable.parentNode.appendChild(clonedStashInventoryTable);
+        if (totalPages != oldTotalPages){
+            const clonedStashInventoryTable = baseStashInventoryTable.cloneNode(true);
+            clonedStashInventoryTable.id = `stash-inventory-${page}`;
+            clonedStashInventoryTable.style.display = page === currentPage ? 'block' : 'none';
+            baseStashInventoryTable.parentNode.appendChild(clonedStashInventoryTable);
+        }
         const stashInventoryTable = document.getElementById(`stash-inventory-${page}`);
 
-        const startIndex = ((page-1) * itemsPerPage);
+        const startIndex = ((page - 1) * itemsPerPage);
         const endIndex = startIndex + itemsPerPage;
-        
-        // Loop through the stash inventory array and populate the stash inventory table
+
         for (let i = startIndex; i < Math.min(endIndex, stashInventory.length); i++) {
             const currentItem = stashInventory[i];
             const pageIndex = i - startIndex;
             const rowIndex = Math.floor(pageIndex / 10);
             const colIndex = pageIndex % 10;
+
+            const cell = stashInventoryTable.children[rowIndex].children[colIndex];
+            const existingItemElement = cell.querySelector('.inventory-item');
+
+            const prevItem = previousStashState[i] && previousStashState[i].fullItem ? previousStashState[i].fullItem : {};
+
             if (Object.keys(currentItem).length !== 0) {
-                const newStashItem = document.createElement('div');
-                const classes = currentItem.class.split(' ');
-                classes.forEach(className => newStashItem.classList.add(className));
-                newStashItem.setAttribute('data-item-type', currentItem.type);
-                newStashItem.setAttribute('data-stashposition', currentItem.stashPosition);
-                newStashItem.setAttribute('data-fullItem', currentItem.fullItem);
-    
-                let _fullItem = JSON.parse(currentItem.fullItem);
-    
-                styleItem(_fullItem, newStashItem);
-    
-                // Add tooltip with item stats         
-                tooltips['stash'][currentItem.stashPosition] = generateItemTooltip(currentItem.stats, newStashItem.style.backgroundImage);
-    
-                // Set default image if image doesn't exist 
-                (function (newStashItem, _fullItem, currentItem) {
-                    var imageName = getImageName(_fullItem);
-                    var _itemImagePath = "images/items/" + imageName + ".png";
-                    if (loadedImages[imageName] === undefined) {
-                        checkImageExists(_itemImagePath).then((exists) => {
-                            loadedImages[imageName] = exists;
-                            if (!exists) {
-                                styleItem(_fullItem, newStashItem, true);
-                                tooltips['stash'][currentItem.stashPosition] = generateItemTooltip(currentItem.stats, newStashItem.style.backgroundImage);
-                            }
-                        });
+                if (existingItemElement) {
+                    if (!compareItems(currentItem.fullItem, prevItem)) {
+                        currentItem.changedAmount = currentItem.fullItem.amount > prevItem.amount ? 1 : currentItem.fullItem.amount < prevItem.amount ? -1 : 0;
+                        updateItemElement(existingItemElement, currentItem, 'stash');
                     }
-                })(newStashItem, _fullItem, currentItem);
-    
-                newStashItem.setAttribute('title', '');
-    
-                // Position the item in the corresponding cell
-                stashInventoryTable.children[rowIndex].children[colIndex].appendChild(newStashItem);
-            } else {
-                stashInventoryTable.children[rowIndex].children[colIndex].innerHTML = "";
+                } else {
+                    const newStashItem = createItemElement(currentItem, 'stash');
+                    cell.appendChild(newStashItem);
+                }
+            } else if (existingItemElement) {
+                existingItemElement.remove();
             }
+
+            // Update the previous state for this item
+            previousStashState[i] = {...currentItem};
         }
     }
 
-    if (user.username == "mantegudo" || user.username == "hydranime" || user.username == "onestreamrpg"){
+    oldTotalPages = totalPages;
+
+    if (user.username == "mantegudo" || user.username == "hydranime" || user.username == "onestreamrpg") {
         appendPaginationControls();
     }
-    refreshSortableInventoryList(); //this is needed so items can be moved on the newly created stash pages
+    refreshSortableInventoryList();
+
+    const selectedItemsContainer = document.getElementById("select-inventory");
 
     for (let item in _selectedItems) {
         if (_selectedItems.hasOwnProperty(item)) {
-            let currentItem = _selectedItems[item];
-            if (currentItem.name !== "empty") {
-                let cell = document.getElementById("select-" + item);
-                if (cell) {
-                    var inventoryItem = document.createElement("div");
-                    inventoryItem.className = "inventory-item " + currentItem.name.replace(/\s+/g, '');
-                    inventoryItem.setAttribute("data-item-type", currentItem.kind);
-                    inventoryItem.setAttribute('data-fullItem', JSON.stringify(currentItem));
-                    inventoryItem.setAttribute('data-equipped', true);
-
-                    styleItem(currentItem, inventoryItem);
-
-                    tooltips['selectedItems'][currentItem.kind] = generateItemTooltip(currentItem, inventoryItem.style.backgroundImage);
-
-                    (function (inventoryItem, currentItem) {
-                        var imageName = getImageName(currentItem);
-                        var _itemImagePath = "images/items/" + imageName + ".png";
-                        if (loadedImages[imageName] === undefined) {
-                            checkImageExists(_itemImagePath).then((exists) => {
-                                loadedImages[imageName] = exists;
-                                if (!exists) {
-                                    styleItem(currentItem, inventoryItem, true);
-                                    tooltips['selectedItems'][currentItem.kind] = generateItemTooltip(currentItem, inventoryItem.style.backgroundImage);
-                                }
-                            });
-                        }
-                    })(inventoryItem, currentItem);
-
-                    inventoryItem.setAttribute('title', '');
-
-                    cell.appendChild(inventoryItem);
-                }
+            if (item === "pet"){
+                continue;
             }
+            
+            let currentItem = {
+                position: null,
+                fullItem: _selectedItems[item]
+            }
+            
+            const cell = selectedItemsContainer.querySelector("#select-" + item);
+            const existingItemElement = cell.querySelector('.inventory-item');
+
+            const prevItem = previousSelectedItemsState[item] ? previousSelectedItemsState[item] : {};
+
+            if (currentItem.fullItem.name !== "empty") {
+                if (existingItemElement) {
+                    if (!compareItems(currentItem.fullItem, prevItem)) {
+                        currentItem.changedAmount = currentItem.fullItem.amount > prevItem.amount ? 1 : currentItem.fullItem.amount < prevItem.amount ? -1 : 0;
+                        updateItemElement(existingItemElement, currentItem, 'selectedItems');
+                    }
+                } else {
+                    const newSelectedItem = createItemElement(currentItem, 'selectedItems');
+                    cell.appendChild(newSelectedItem);
+                }
+            } else if (existingItemElement) {
+                existingItemElement.remove();
+            }
+
+            // Update the previous state for this item
+            previousSelectedItemsState[item] = {...currentItem};
         }
     }
 }
@@ -1877,168 +1954,169 @@ function removeGem(slotNumber, isStash) {
         });
 }
 
-$.contextMenu({
-    selector: '.inventory-item',
-    build: function ($trigger, e) {
-        var fullItem = $trigger.data('fullitem');
+function initializeContextMenu() {
+    $.contextMenu({
+        selector: '.inventory-item',
+        build: function ($trigger, e) {
+            var fullItem = JSON.parse($trigger.attr('data-fullitem'));
 
-        // Retrieving data attributes
-        var inventoryPosition = $trigger.data('inventory-position');
-        var stashPosition = $trigger.data('stashposition');
+            // Retrieving data attributes
+            var inventoryPosition = $trigger.attr('data-inventory-position');
+            var stashPosition = $trigger.attr('data-stashposition');
 
-        var isStash;
-        if (inventoryPosition !== undefined && inventoryPosition > -1) {
-            position = inventoryPosition;
-            isStash = false;
-        } else {
-            position = stashPosition;
-            isStash = true;
-        }
-
-        var isInsideSelectedInventory = $trigger.closest('#selectedInventory').length > 0;
-
-        // Prevent showing the menu if inside #selectedInventory
-        if (isInsideSelectedInventory) {
-            return false;
-        }
-
-        var sellMenu;
-        if (fullItem.amount !== undefined && fullItem.amount > 0) {
-            sellMenu = {
-                name: "Sell Item",
-                disabled: fullItem && fullItem.lock,
-                className: "osrsubmenu",
-                items: {
-                    "sellall": {
-                        name: `All ${fullItem.amount} Items`,
-                        className: "submenuSpan"
-                    },
-                    "sep6": {
-                        type: "cm_separator"
-                    },
-                    "sellx": {
-                        name: "Custom Amount",
-                        type: "html",
-                        html: `
-                        <div class="custom-amount-menu">
-                        <label>
-                          <span>Custom Amount</span>
-                          <div style="display: flex; align-items: center;">
-                            <input type="number" value="1" min="1" max="${fullItem.amount}" name="context-menu-input-sellx" id="customAmountInput">
-                            <div class="spin-buttons">
-                              <button class="spin-button up">▲</button>
-                              <button class="spin-button down">▼</button>
-                            </div>
-                            <button id="customAmountSell" style="margin-left: 0.26vw;" data-position="${position}" data-isstash="${isStash}" data-fullitem='${JSON.stringify(fullItem)}'>Sell</button>
-                          </div>
-                        </label>
-                      </div>                        
-                        `
-                    }
-                }
-            };
-        } else {
-            sellMenu = {
-                name: "Sell Item",
-                disabled: fullItem && fullItem.lock
-            };
-        }
-
-        // Build the items object dynamically
-        var items = {
-            "gem": {
-                name: "Remove Gem",
-                //icon: "fa-solid fa-gem",
-                visible: fullItem && fullItem.gem !== undefined && fullItem.gem !== "none"
-            },
-            "sep3": {
-                type: "cm_separator",
-                visible: fullItem && fullItem.gem !== undefined && fullItem.gem !== "none"
-            },
-            "lock": {
-                name: fullItem && fullItem.lock ? "Unlock Item" : "Lock Item",
-                //icon: fullItem && fullItem.lock ? "fa-solid fa-unlock" : "fa-solid fa-lock"
-            },
-            "sep2": "---------",
-            "sell": sellMenu,
-            "sep1": "---------",
-            "autosell": {
-                name: fullItem && autoSellList.includes(fullItem.name) ? "Remove from Autosell" : "Add to Autosell",
-                //icon: "fa-solid fa-money-bill"
-            },
-            "sep4": "---------",
-            "swap": {
-                name: isStash ? "Send to Inventory" : "Send to Stash",
-                //icon: "fa-solid fa-right-left"
-            },
-            "sep5": "---------",
-            "cancel": {
-                name: "Cancel",
-                //icon: function() {
-                //    return 'context-menu-icon context-menu-icon-quit';
-                //}
+            var isStash;
+            if (inventoryPosition !== undefined && inventoryPosition > -1) {
+                position = inventoryPosition;
+                isStash = false;
+            } else {
+                position = stashPosition;
+                isStash = true;
             }
-        };
 
-        return {
-            callback: function (key, options) {
-                isLeftMouseButtonPressed = false;
-                // Accessing the triggering element
-                var $trigger = options.$trigger;
+            var isInsideSelectedInventory = $trigger.closest('#selectedInventory').length > 0;
 
-                // Retrieving data attributes
-                var inventoryPosition = $trigger.data('inventory-position');
-                var stashPosition = $trigger.data('stashposition');
+            // Prevent showing the menu if inside #selectedInventory
+            if (isInsideSelectedInventory) {
+                return false;
+            }
 
-                var isStash;
-                if (inventoryPosition !== undefined && inventoryPosition > -1) {
-                    position = inventoryPosition;
-                    isStash = false;
-                } else {
-                    position = stashPosition;
-                    isStash = true;
-                }
-
-                var fullItem = $trigger.data('fullitem');
-
-                // Additional logic based on the clicked menu item
-                switch (key) {
-                    case "lock":
-                        lock(position, isStash);
-                        break;
-                    case "autosell":
-                        if (autoSellList.includes(fullItem.name)) {//remove from autosell
-                            toggleAutoSell(fullItem.name, 'Remove');
-                        } else {//add to autosell
-                            toggleAutoSell(fullItem.name, 'Add');
+            var sellMenu;
+            if (fullItem.amount !== undefined && fullItem.amount > 0) {
+                sellMenu = {
+                    name: "Sell Item",
+                    disabled: fullItem && fullItem.lock,
+                    className: "osrsubmenu",
+                    items: {
+                        "sellall": {
+                            name: `All ${fullItem.amount} Items`,
+                            className: "submenuSpan"
+                        },
+                        "sep6": {
+                            type: "cm_separator"
+                        },
+                        "sellx": {
+                            name: "Custom Amount",
+                            type: "html",
+                            html: `
+                            <div class="custom-amount-menu">
+                            <label>
+                              <span>Custom Amount</span>
+                              <div style="display: flex; align-items: center;">
+                                <input type="number" value="1" min="1" max="${fullItem.amount}" name="context-menu-input-sellx" id="customAmountInput">
+                                <div class="spin-buttons">
+                                  <button class="spin-button up">▲</button>
+                                  <button class="spin-button down">▼</button>
+                                </div>
+                                <button id="customAmountSell" style="margin-left: 0.26vw;" data-position="${position}" data-isstash="${isStash}" data-fullitem='${JSON.stringify(fullItem)}'>Sell</button>
+                              </div>
+                            </label>
+                          </div>                        
+                            `
                         }
-                        break;
-                    case "gem":
-                        removeGem(position, isStash);
-                        break;
-                    case "sell":
-                    case "sellall":
-                        sellItem(position, isStash, fullItem);
-                        break;
-                    case "swap":
-                        swapItem(position, isStash);
-                        break;
-                    case "cancel":
-                        console.log("Action canceled.");
-                        // Perform cancel action
-                        break;
+                    }
+                };
+            } else {
+                sellMenu = {
+                    name: "Sell Item",
+                    disabled: fullItem && fullItem.lock
+                };
+            }
+
+            // Build the items object dynamically
+            items = {
+                "gem": {
+                    name: "Remove Gem",
+                    //icon: "fa-solid fa-gem",
+                    visible: fullItem && fullItem.gem !== undefined && fullItem.gem !== "none"
+                },
+                "sep3": {
+                    type: "cm_separator",
+                    visible: fullItem && fullItem.gem !== undefined && fullItem.gem !== "none"
+                },
+                "lock": {
+                    name: fullItem && fullItem.lock ? "Unlock Item" : "Lock Item",
+                    //icon: fullItem && fullItem.lock ? "fa-solid fa-unlock" : "fa-solid fa-lock"
+                },
+                "sep2": "---------",
+                "sell": sellMenu,
+                "sep1": "---------",
+                "autosell": {
+                    name: fullItem && autoSellList.includes(fullItem.name) ? "Remove from Autosell" : "Add to Autosell",
+                    //icon: "fa-solid fa-money-bill"
+                },
+                "sep4": "---------",
+                "swap": {
+                    name: isStash ? "Send to Inventory" : "Send to Stash",
+                    //icon: "fa-solid fa-right-left"
+                },
+                "sep5": "---------",
+                "cancel": {
+                    name: "Cancel",
+                    //icon: function() {
+                    //    return 'context-menu-icon context-menu-icon-quit';
+                    //}
                 }
-            },
-            items: items
-        };
-    }
-});
+            };
+
+            return {
+                callback: function (key, options) {
+                    isLeftMouseButtonPressed = false;
+                    // Accessing the triggering element
+                    //var $trigger = options.$trigger;
+
+                    // Retrieving data attributes
+                    inventoryPosition = $trigger.attr('data-inventory-position');
+                    stashPosition = $trigger.attr('data-stashposition');
+
+                    var isStash;
+                    if (inventoryPosition !== undefined && inventoryPosition > -1) {
+                        position = inventoryPosition;
+                        isStash = false;
+                    } else {
+                        position = stashPosition;
+                        isStash = true;
+                    }
+
+                    fullItem = JSON.parse($trigger.attr('data-fullitem'));
+
+                    // Additional logic based on the clicked menu item
+                    switch (key) {
+                        case "lock":
+                            lock(position, isStash);
+                            break;
+                        case "autosell":
+                            if (autoSellList.includes(fullItem.name)) {//remove from autosell
+                                toggleAutoSell(fullItem.name, 'Remove');
+                            } else {//add to autosell
+                                toggleAutoSell(fullItem.name, 'Add');
+                            }
+                            break;
+                        case "gem":
+                            removeGem(position, isStash);
+                            break;
+                        case "sell":
+                        case "sellall":
+                            sellItem(position, isStash, fullItem);
+                            break;
+                        case "swap":
+                            swapItem(position, isStash);
+                            break;
+                        case "cancel":
+                            // Perform cancel action
+                            break;
+                    }
+                },
+                items: items
+            };
+        }
+    });
+}
 
 $(document).on('click', '#customAmountSell', function () {
     $('.context-menu-list').trigger('contextmenu:hide');
-    var position = $(this).data('position');
-    var isStash = $(this).data('isstash');
-    var fullItem = $(this).data('fullitem');
+    var position = parseInt($(this).attr('data-position'));
+    var isStash = $(this).attr('data-isstash') === 'true';
+    var fullItem = JSON.parse($(this).attr('data-fullitem'));
     sellItem(position, isStash, fullItem, $('#customAmountInput').val());
 });
 
