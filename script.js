@@ -425,7 +425,7 @@ function connectToExtension() {
 
 // New function to remove the 'loggedOut' element
 function removeLoggedOutElement() {
-    let fullInventoryDivs = document.querySelectorAll(".hud");
+    let fullInventoryDivs = document.querySelectorAll(".hud:not(#statsBars)");
     let element = document.getElementById('loggedOut');
     if (element) {
         element.remove();
@@ -434,6 +434,7 @@ function removeLoggedOutElement() {
         div.style.display = "block";
     });
     document.getElementById('hideInventory').style.display = "block";
+    document.getElementById(`statsBars`).style.display = "flex";
 }
 
 function abbreviateNumber(value) {
