@@ -992,6 +992,10 @@ function changePage(newPage) {
 }
 
 function updateUI(user){
+    if (user === undefined){
+        console.error('Error updating the UI');
+        return;
+    }
     let _stats = user.stats;
     let _mission = user.mission;
 
@@ -1111,6 +1115,7 @@ const compareItems = (item1, item2) => {
            item1.bonusArmor === item2.bonusArmor && 
            item1.shimmering === item2.shimmering &&
            item1.lock === item2.lock &&
+           item1.gem === item2.gem &&
            item1.amount === item2.amount;
 };
 
@@ -1863,7 +1868,7 @@ function toggleAutoSell(itemName, type) {
         });
 }
 
-function sellItem(slotNumber, isStash, item, amount = -1) {
+function sellItem(slotNumber, isStash, item, amount = -1, callback = false) {
     event.stopPropagation();
     jwt = window.Twitch.ext.viewer.sessionToken;
     fetch(myServer + '/sell', {
@@ -1888,7 +1893,19 @@ function sellItem(slotNumber, isStash, item, amount = -1) {
             }
         })
         .then(data => {
-            loadInventory(data.user, true)
+            if (data.user.stats !== undefined){
+                loadInventory(data.user, true);
+                $('#delete-item').addClass('sold-item');
+                setTimeout(() => {
+                    $('#delete-item').removeClass('sold-item');
+                }, 2000);
+            } else {
+                $('#delete-item').addClass('cannot-sell');
+                setTimeout(() => {
+                    $('#delete-item').removeClass('cannot-sell');
+                }, 1500);
+            }
+            callback(data.user.stats !== undefined);
         })
         .catch(error => {
             console.error(error);
