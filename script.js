@@ -678,7 +678,7 @@ document.querySelector("#craftButton").addEventListener("click", function () {
 document.querySelector("#hideInventory").addEventListener("click", function () {
     event.stopPropagation();
     $('.context-menu-list').trigger('contextmenu:hide');
-    let fullInventoryDivs = document.querySelectorAll(".hud");
+    let fullInventoryDivs = document.querySelectorAll(".hud:not(#statsBars)");
 
     if (fullInventoryDivs[0].style.display === "none") {
         fullInventoryDivs.forEach(function (div) {
@@ -693,10 +693,12 @@ document.querySelector("#hideInventory").addEventListener("click", function () {
             }
             );
         });
+        document.getElementById(`statsBars`).style.display = "flex";
     } else {
         fullInventoryDivs.forEach(function (div) {
             div.style.display = "none";
         });
+        document.getElementById(`statsBars`).style.display = "none";
     }
 
 
@@ -953,12 +955,12 @@ function updateBars(hp, maxHp, mana, maxMana) {
     const manaPercentage = (mana / maxMana) * 100;
 
     // Modify the widths of .barFill inside hpBar and manaBar
-    document.querySelector('#hpBar .barFill').style.width = `${hpPercentage}%`;
-    document.querySelector('#manaBar .barFill').style.width = `${manaPercentage}%`;
+    document.querySelector('#hpBar .progress').style.width = `${hpPercentage}%`;
+    document.querySelector('#manaBar .progress').style.width = `${manaPercentage}%`;
 
     // Update the text content for hp and mana
-    document.getElementById('hpText').textContent = `${hp}/${maxHp}`;
-    document.getElementById('manaText').textContent = `${mana}/${maxMana}`;
+    document.querySelector('#hpBar .text').innerText = `${hp}/${maxHp}`;
+    document.querySelector('#manaBar .text').innerText = `${mana}/${maxMana}`;
 }
 
 function changePage(newPage) {
