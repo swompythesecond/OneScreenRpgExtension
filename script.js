@@ -1005,9 +1005,9 @@ function updateUI(user){
 
     document.getElementById("statsLvl").innerText = "Level: " + abbreviateNumber(_stats.lvl);
     document.getElementById("statsXp").innerText = "XP: " + abbreviateNumber(Math.floor(_stats.xp)) + "/" + abbreviateNumber(Math.floor((50 * (_stats.lvl ** 2))));
-    document.getElementById("statsGold").innerText = "Gold: " + abbreviateNumber(_stats.gold);
-    document.getElementById("statsArmor").innerText = "Armor: " + abbreviateNumber(_stats.armor);
-    document.getElementById("statsDamage").innerText = "Dmg: " + abbreviateNumber(_stats.damage);
+    document.getElementById("statsGold").innerText = abbreviateNumber(_stats.gold);
+    document.getElementById("statsArmor").innerText = abbreviateNumber(_stats.armor);
+    document.getElementById("statsDamage").innerText = abbreviateNumber(_stats.damage);
 
     document.getElementById("missionTitle").style.display = "block";
     document.getElementById("missionText").innerText = _mission.text;
@@ -1047,7 +1047,8 @@ function createItemElement(itemObj, type) {
     tooltips[type][type === 'selectedItems' ? item.kind : position] = generateItemTooltip(item, newItemElement.style.backgroundImage);
 
     const imageName = getImageName(item);
-    const itemImagePath = `images/items/${imageName}.png`;
+    const imageExtension = (item.kind == "gem" ? 'gif' : 'png');
+    const itemImagePath = `images/items/${imageName}.${imageExtension}`;
     if (loadedImages[imageName] === undefined) {
         checkImageExists(itemImagePath).then((exists) => {
             loadedImages[imageName] = exists;
@@ -1088,7 +1089,8 @@ function updateItemElement(itemElement, itemObj, type) {
     tooltips[type][type === 'selectedItems' ? item.kind : position] = generateItemTooltip(item, itemElement.style.backgroundImage);
 
     const imageName = getImageName(item);
-    const itemImagePath = `images/items/${imageName}.png`;
+    const imageExtension = (item.kind == "gem" ? 'gif' : 'png');
+    const itemImagePath = `images/items/${imageName}.${imageExtension}`;
     if (loadedImages[imageName] === undefined) {
         checkImageExists(itemImagePath).then((exists) => {
             loadedImages[imageName] = exists;
