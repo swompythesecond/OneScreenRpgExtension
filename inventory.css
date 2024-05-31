@@ -364,12 +364,19 @@ div {
   text-align: center;
   font-size: 0.5vw;
   padding-top: 0.5vw;
-  padding-left: 0.21vw; 
-  padding-right: 0.21vw; 
+  padding-bottom: 0.5vw;
+  padding-left: 0.55vw;
+  padding-right: 0.55vw;
   overflow-wrap: break-word;
+  padding-bottom: 0.5vw;
   overflow: auto;
   left: 1%;
   cursor: url('images/cursor/select.png') 10 0, auto;
+}
+
+.inner-mission {
+  height: 100%;
+  overflow: auto;
 }
 
 #mission div {
