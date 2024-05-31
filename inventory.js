@@ -23,7 +23,7 @@ jQuery.fn.extend({
     },
     // Modified and Updated by MLM
     // Origin: Davy8 (http://stackoverflow.com/a/5212193/796832)
-    parentToAnimate: function (newParent, duration) {
+    parentToAnimate: function (newParent, duration, hidden = false) {
         duration = duration || 'slow';
 
         var $element = $(this);
@@ -51,8 +51,10 @@ jQuery.fn.extend({
                 'top': newOffset.top,
                 'left': newOffset.left
             }, duration, function () {
-                $element.show();
-                temp.remove();
+                if (!hidden){
+                    $element.show();
+                    temp.remove();
+                }                
             });
 
             ////console.log("parentTo Animate done");
@@ -99,8 +101,8 @@ function refreshSortableInventoryList() {
             $(ui.sender).removeAttr('moving');
         },
         receive: function (event, ui) {            
-            var attrWhitelist = $(this).closest('.inventory-table').attr('data-item-filter-whitelist');
-            var attrBlackList = $(this).closest('.inventory-table').attr('data-item-filter-blacklist');
+            var attrWhitelist = $(this).attr('data-item-filter-whitelist');
+            var attrBlackList = $(this).attr('data-item-filter-blacklist');
             var itemFilterWhitelistArray = attrWhitelist ? attrWhitelist.split(/\s+/) : [];
             var itemFilterBlacklistArray = attrBlackList ? attrBlackList.split(/\s+/) : [];
 
@@ -111,25 +113,110 @@ function refreshSortableInventoryList() {
 
             if (!canMoveIntoSlot) {
                 $(ui.item).parentToAnimate($(ui.sender), 200);
-            } else {
-                // Swap places of items if dragging on top of another
+            } else {                
                 var senderItemElement = ui.item;
-                var receiverItemElement = $(this).children().not(ui.item);
-                
+                var receiverItemElement = $(this).children().not(ui.item);                
                 var senderDataFullItem = senderItemElement.attr('data-fullitem');
                 var receiverDataFullItem = receiverItemElement.attr('data-fullitem');
-    
-                // Check if the data-fullitem attributes exist
+                var senderData = JSON.parse(senderDataFullItem);
+                
+                if ( $(this).attr('id') && $(this).attr('id') == 'delete-item' ){
+                    if (senderData.amount !== undefined && senderData.amount > 1){        
+                        console.log('test 1');
+                        $(ui.item).parentToAnimate($(ui.sender), 200);
+                    } else {
+                        if (senderData.lock !== undefined && senderData.lock){
+                            senderItemElement.parentToAnimate($(ui.sender), 200);
+                            $(senderItemElement).addClass('cannot-sell');
+                            setTimeout(() => {
+                                $(senderItemElement).removeClass('cannot-sell');
+                            }, 500);
+                            return;
+                        } else {
+                            senderItemElement.hide();
+                        }
+                    }
+
+                    var inventoryPosition = senderItemElement.attr('data-inventory-position');
+                    var stashPosition = senderItemElement.attr('data-stashposition');
+        
+                    var isStash;
+                    var position;
+                    if (inventoryPosition !== undefined && inventoryPosition > -1) {
+                        position = inventoryPosition;
+                        isStash = false;
+                    } else {
+                        position = stashPosition;
+                        isStash = true;
+                    }
+
+                    sellItem(position, isStash, senderData, 1, function(success){
+                        if (success){
+                            if (senderData.amount === undefined || senderData.amount === 1){
+                                senderItemElement.remove();
+                            }
+                        } else {
+                            $(ui.item).parentToAnimate($(ui.sender), 200);
+                            senderItemElement.show();
+                        }
+                    });
+                    
+                    return;
+                }
+
+                var preventSwap = false;
+                if ( $(this).attr('id') && $(this).attr('id') == 'remove-gem' ){
+                    if (senderData.gem === undefined || senderData.gem === null){
+                        $(ui.item).parentToAnimate($(ui.sender), 200);
+                        return;
+                    } else {
+                        preventSwap = true;
+                        $(senderItemElement).addClass('removing-gem');
+                        setTimeout(() => {
+                            $(senderItemElement).removeClass('removing-gem');
+                            $(senderItemElement).remove();
+                        }, 1000);
+                    }             
+                }
+
+                // Swap places of items if dragging on top of another
+                var hiddenSwap = false;
                 if (senderDataFullItem && receiverDataFullItem) {
-                    var senderData = JSON.parse(senderDataFullItem);
                     var receiverData = JSON.parse(receiverDataFullItem);
    
                     var senderIsEquipped = senderItemElement.attr('data-equipped');
+                    if (!senderIsEquipped){
+                        if (($(ui.sender).attr('id') && $(ui.sender).attr('id').startsWith('select'))){
+                            senderItemElement.attr('data-equipped', 'true');
+                            senderIsEquipped = true;
+                        }
+                    }
                     var receiverIsEquipped = receiverItemElement.attr('data-equipped');
+                    if (!receiverIsEquipped){
+                        if ($(this).attr('id') && $(this).attr('id').startsWith('select')){
+                            receiverItemElement.attr('data-equipped', 'true');
+                            receiverIsEquipped = true;
+                        }
+                    }
 
                     if (senderIsEquipped || receiverIsEquipped) {
-                        var senderHasGem = senderData.gem !== undefined;
-                        var receiverHasGem = receiverData.gem !== undefined;
+                        var senderHasGem = senderData.gem !== undefined && senderData.gem !== null;
+                        var receiverHasGem = receiverData.gem !== undefined && receiverData.gem !== null;
+
+                        if (senderData.kind == 'gem' && receiverHasGem){      
+                            $(ui.item).parentToAnimate($(ui.sender), 200);
+                            return;
+                        } else {
+                            receiverData.gem = senderData;
+                            receiverItemElement.hide();
+                            styleItem(receiverData, senderItemElement[0]);
+                            delete receiverData.gem;
+                            hiddenSwap = true;
+                            $(senderItemElement).addClass('equipped-gem');
+                            setTimeout(() => {
+                                $(senderItemElement).removeClass('equipped-gem');
+                            }, 2000);
+                        }
    
                         if (senderHasGem && !receiverHasGem) {
                             receiverData.gem = senderData.gem;
@@ -149,8 +236,13 @@ function refreshSortableInventoryList() {
                             styleItem(receiverData, receiverItemElement[0]);
                         }
                     }
+                }       
+
+                clearTimeout(saveInventoryTimer);
+                saveInventoryTimer = setTimeout(saveInventory, 200);   
+                if (!preventSwap){
+                    $(this).children().not(ui.item).parentToAnimate($(ui.sender), 200, hiddenSwap);
                 }
-                $(this).children().not(ui.item).parentToAnimate($(ui.sender), 200);
             }
         }
     }).each(function () {
@@ -164,14 +256,6 @@ function refreshSortableInventoryList() {
         accept: '.inventory-item',
         hoverClass: 'inventory-item-sortable-hover',
         drop: function(event, ui) {
-            var attrWhitelist = $(this).closest('.inventory-table').attr('data-item-filter-whitelist');
-            var attrBlackList = $(this).closest('.inventory-table').attr('data-item-filter-blacklist');
-            var itemFilterWhitelistArray = attrWhitelist ? attrWhitelist.split(/\s+/) : [];
-            var itemFilterBlacklistArray = attrBlackList ? attrBlackList.split(/\s+/) : [];
-
-            var attrTypeList = $(ui.helper).attr('data-item-type');
-            var itemTypeListArray = attrTypeList ? attrTypeList.split(/\s+/) : [];
-
             const item = $(ui.helper);
             const page = $(this).data('page');
             
@@ -195,10 +279,6 @@ function verifyWithWhiteBlackLists(itemList, whiteList, blackList) {
     // Else return false
 
     //we delay it since the swapping has an animation
-    
-
-    clearTimeout(saveInventoryTimer);
-    saveInventoryTimer = setTimeout(saveInventory, 200)
 
     // If white and black lists are empty, return true
     // Save the calculations, no filtering
