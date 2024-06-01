@@ -16,10 +16,15 @@ let isLeftMouseButtonPressed = false;
 let autoSellList = [];
 let stashPutTracker = { from: null, to: null };
 let currentTooltipText = "";
+var freeBlessings = 0;
+var nextBlessingCost = 1;
+var blessings = {};
+var currentGold = 0;
 var tooltips = {
     inventory: {},
     stash: {},
-    selectedItems: {}
+    selectedItems: {},
+    blessings: {}
 };
 var loadedImages = [];
 var totalPages = 1;
@@ -264,6 +269,53 @@ function formatGem(gem) {
     }
 }
 
+function generateBlessingTooltip(blessing, total) {
+
+    var blessingName;
+    var image;
+    var description;
+    switch (blessing) {
+      case "dex":
+        blessingName = "Dexterity";
+        image = 'images/attackSpeed.png';
+        description = 'Increases your attack speed.';
+        break;
+      case "str":
+        blessingName = "Strength";
+        image = 'images/damage.png';
+        description = 'Increases your physical damage.';
+        break;
+      case "def":
+        blessingName = "Defense";
+        image = 'images/armor.png';
+        description = 'Increases your armor.';
+        break;
+      case "luck":
+        blessingName = "Luck";
+        image = 'images/luck.png';
+        description = 'Increases your drop rate when killing monsters.';
+        break;
+      case "xp":
+        blessingName = "XP Gain";
+        image = 'images/xp.png';
+        description = 'Increases your experience rate when killing monsters.';
+        break;
+    }
+    
+    blessingTooltip =
+        `<div class="item-image" style='background-image: url("${image}");'></div>` +
+        `<span style="font-size: 0.47vw;">${blessingName}</span><br>` +
+        `<div style="margin-top:0.26vw;"/>`;
+
+    blessingTooltip +=
+        `${description}<br>` +
+        `Current Blessings: ${total}<br>` +
+        `Next Blessing Cost: ${abbreviateNumber(nextBlessingCost)}<br><br>` +
+        `Click to buy 1 ${blessingName} blessing.`;
+
+    return blessingTooltip;
+}
+
 function generateItemTooltip(item, image) {
     itemTooltip =
         `<div class="item-image" style='background-image: ${image};'></div>` +
@@ -425,7 +477,7 @@ function connectToExtension() {
 
 // New function to remove the 'loggedOut' element
 function removeLoggedOutElement() {
-    let fullInventoryDivs = document.querySelectorAll(".hud:not(#statsBars)");
+    let fullInventoryDivs = document.querySelectorAll(".hud");
     let element = document.getElementById('loggedOut');
     if (element) {
         element.remove();
@@ -434,7 +486,6 @@ function removeLoggedOutElement() {
         div.style.display = "block";
     });
     document.getElementById('hideInventory').style.display = "block";
-    document.getElementById(`statsBars`).style.display = "flex";
 }
 
 function abbreviateNumber(value) {
@@ -519,6 +570,11 @@ function initExtension() {
     $(document).tooltip({
         track: true,
         content: function () {
+            if ($(this).hasClass('bless-button')) { //Bless tooltip
+                blessingType = $(this).attr('data-type');
+                return tooltips['blessings'][blessingType] || ''; 
+            }
+            
             // Get location and position from data attributes
             if ($(this).attr('data-inventory-position') !== undefined) {
                 type = 'inventory';
@@ -679,7 +735,7 @@ document.querySelector("#craftButton").addEventListener("click", function () {
 document.querySelector("#hideInventory").addEventListener("click", function () {
     event.stopPropagation();
     $('.context-menu-list').trigger('contextmenu:hide');
-    let fullInventoryDivs = document.querySelectorAll(".hud:not(#statsBars)");
+    let fullInventoryDivs = document.querySelectorAll(".hud");
 
     if (fullInventoryDivs[0].style.display === "none") {
         fullInventoryDivs.forEach(function (div) {
@@ -694,7 +750,6 @@ document.querySelector("#hideInventory").addEventListener("click", function () {
             }
             );
         });
-        document.getElementById(`statsBars`).style.display = "flex";
     } else {
         fullInventoryDivs.forEach(function (div) {
             div.style.display = "none";
@@ -821,12 +876,24 @@ function hideMarker() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    var blessButtons = document.querySelectorAll('.blessButton');
+    var blessButtons = document.querySelectorAll('.bless-button');
 
     blessButtons.forEach(function (button) {
         button.addEventListener('click', function (event) {
             var blessingType = event.currentTarget.getAttribute('data-blessing');
-            blessBlessing(blessingType);
+            var type = event.currentTarget.getAttribute('data-type');
+            event.currentTarget.classList.remove('blessed-success');
+            event.currentTarget.classList.remove('blessed-fail');
+
+            void event.currentTarget.offsetWidth; // Trigger reflow to restart the animation
+            if (freeBlessings > 0 || nextBlessingCost <= currentGold){
+                //updateBlessing(type, blessings[blessingType], true);
+                //blessings[blessingType]++;
+                event.currentTarget.classList.add('blessed-success');
+                blessBlessing(blessingType);
+            } else {
+                event.currentTarget.classList.add('blessed-fail');
+            }
         });
     });
 });
@@ -951,17 +1018,34 @@ function findFirstCraftableItem(craftingTable) {
     return null;
 }
 
-function updateBars(hp, maxHp, mana, maxMana) {
+function adjustPlayerFontSize() {
+  const namePlate = document.getElementById('namePlate');
+  const playerName = document.getElementById('playerName');
+
+  let fontSize = parseFloat(window.getComputedStyle(playerName).fontSize);
+  const namePlateWidth = namePlate.clientWidth - parseFloat(window.getComputedStyle(namePlate).paddingLeft) - parseFloat(window.getComputedStyle(namePlate).paddingRight);
+
+  // Adjust the font size until the text fits within the namePlate
+  while (playerName.scrollWidth > namePlateWidth && fontSize > 0) {
+    fontSize -= 0.1;
+    playerName.style.fontSize = fontSize + 'px';
+  }
+}
+
+function updateBars(hp, maxHp, mana, maxMana, xp, maxXp) {
     const hpPercentage = (hp / maxHp) * 100;
     const manaPercentage = (mana / maxMana) * 100;
+    const xpPercentage = (Math.floor(xp) / Math.floor(maxXp)) * 100;
 
-    // Modify the widths of .barFill inside hpBar and manaBar
+    // Modify the widths of .progress inside hpBar/manaBar/xpBar
     document.querySelector('#hpBar .progress').style.width = `${hpPercentage}%`;
     document.querySelector('#manaBar .progress').style.width = `${manaPercentage}%`;
+    document.querySelector('#xpBar .progress').style.width = `${xpPercentage}%`;
 
     // Update the text content for hp and mana
     document.querySelector('#hpBar .text').innerText = `${hp}/${maxHp}`;
     document.querySelector('#manaBar .text').innerText = `${mana}/${maxMana}`;
+    document.querySelector('#xpBar .text').innerText = `${abbreviateNumber(xp)}/${abbreviateNumber(maxXp)}`;
 }
 
 function changePage(newPage) {
@@ -994,6 +1078,19 @@ function changePage(newPage) {
     }
 }
 
+function capitalizeFirstLetter(string) {
+  if (string.length === 0) return string;
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+function updateBlessing(blessing, total, force = false){
+    if (force){
+        total = total + 1;
+    }
+    tooltips['blessings'][blessing] = generateBlessingTooltip(blessing, total);
+    document.getElementById("blessing" + capitalizeFirstLetter(blessing)).innerHTML = "<div>" + blessing.toUpperCase() + "</div>" + "<div>" + total + "</div>";
+}
+
 function updateUI(user){
     if (user === undefined){
         console.error('Error updating the UI');
@@ -1002,27 +1099,37 @@ function updateUI(user){
     let _stats = user.stats;
     let _mission = user.mission;
 
-    if (user.metaData.hp != undefined) {
-        updateBars(user.metaData.hp, user.metaData.maxHp, user.metaData.mana, user.metaData.maxMana);
+    if (user.metaData.hp !== undefined) {
+        console.log('bars!!!');
+        updateBars(user.metaData.hp, user.metaData.maxHp, user.metaData.mana, user.metaData.maxMana, _stats.xp, Math.floor((50 * (_stats.lvl ** 2))));
     }
 
-    document.getElementById("statsLvl").innerText = "Level: " + abbreviateNumber(_stats.lvl);
-    document.getElementById("statsXp").innerText = "XP: " + abbreviateNumber(Math.floor(_stats.xp)) + "/" + abbreviateNumber(Math.floor((50 * (_stats.lvl ** 2))));
+    document.getElementById("statsLvl").innerText = "Level: " + _stats.lvl;
     document.getElementById("statsGold").innerText = abbreviateNumber(_stats.gold);
-    document.getElementById("statsArmor").innerText = abbreviateNumber(_stats.armor);
+    document.getElementById("statsPremiumCurrency").innerText = _stats.premiumCurrency ?? 0;
     document.getElementById("statsDamage").innerText = abbreviateNumber(_stats.damage);
+    document.getElementById("statsAttackSpeed").innerText = (_stats.attackSpeed ? _stats.attackSpeed + "/SEC" : 0);
+    document.getElementById("statsArmor").innerText = abbreviateNumber(_stats.armor);
+    document.getElementById("statsMagicResistance").innerText = abbreviateNumber(_stats.magicResistance ?? 0);
 
     document.getElementById("missionTitle").style.display = "block";
     document.getElementById("missionText").innerText = _mission.text;
     document.getElementById("missionProgress").innerText = "Progress: " + _mission.progress + "/" + _mission.maxProgress;
 
-    let _totalBlessing = (user.blessings.damage + user.blessings.afkGain + user.blessings.armor + user.blessings.xpGain + user.blessings.goldGain);
-    let _totalBlessingsCost = _totalBlessing ** 3 + 500;
-    document.getElementById("blessingDamage").innerText = "Dmg: " + user.blessings.damage + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
-    document.getElementById("blessingAfkGain").innerText = "AtkSpeed: " + user.blessings.afkGain + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
-    document.getElementById("blessingArmor").innerText = "Armor: " + user.blessings.armor + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
-    document.getElementById("blessingGoldGain").innerText = "+XP: " + user.blessings.xpGain + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
-    document.getElementById("blessingXpGain").innerText = "Luck: " + user.blessings.goldGain + "(" + abbreviateNumber(_totalBlessingsCost) + "$)";
+    let _totalBlessing = (user.blessings.damage + user.blessings.afkGain + user.blessings.armor + user.blessings.xpGain + user.blessings.goldGain + user.stats.freeBlessings);
+    freeBlessings = user.stats.freeBlessings;
+    nextBlessingCost = _totalBlessing ** 3 + 500;
+    blessings = user.blessings;
+    currentGold = user.stats.gold;
+
+    updateBlessing("dex", user.blessings.afkGain);
+    updateBlessing("str", user.blessings.damage);
+    updateBlessing("def", user.blessings.armor);
+    updateBlessing("luck", user.blessings.goldGain);
+    updateBlessing("xp", user.blessings.xpGain);
+
+    document.getElementById('playerName').innerText = `${user.username}`;
+    adjustPlayerFontSize();
 }
 
 function createItemElement(itemObj, type) {
