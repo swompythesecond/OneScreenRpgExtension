@@ -122,7 +122,6 @@ function refreshSortableInventoryList() {
                 
                 if ( $(this).attr('id') && $(this).attr('id') == 'delete-item' ){
                     if (senderData.amount !== undefined && senderData.amount > 1){        
-                        console.log('test 1');
                         $(ui.item).parentToAnimate($(ui.sender), 200);
                     } else {
                         if (senderData.lock !== undefined && senderData.lock){
@@ -203,21 +202,28 @@ function refreshSortableInventoryList() {
                         var senderHasGem = senderData.gem !== undefined && senderData.gem !== null;
                         var receiverHasGem = receiverData.gem !== undefined && receiverData.gem !== null;
 
-                        if (senderData.kind == 'gem' && receiverHasGem){      
-                            $(ui.item).parentToAnimate($(ui.sender), 200);
-                            return;
+                        if (senderData.kind == 'gem'){
+                            if (receiverHasGem){      
+                                $(ui.item).parentToAnimate($(ui.sender), 200);
+                                return;
+                            } else {
+                                receiverData.gem = senderData;
+                                receiverItemElement.hide();
+                                styleItem(receiverData, senderItemElement[0]);
+                                delete receiverData.gem;
+                                hiddenSwap = true;
+                                $(senderItemElement).addClass('equipped-gem');
+                                setTimeout(() => {
+                                    $(senderItemElement).removeClass('equipped-gem');
+                                }, 2000);
+                            }
                         } else {
-                            receiverData.gem = senderData;
-                            receiverItemElement.hide();
-                            styleItem(receiverData, senderItemElement[0]);
-                            delete receiverData.gem;
-                            hiddenSwap = true;
-                            $(senderItemElement).addClass('equipped-gem');
-                            setTimeout(() => {
-                                $(senderItemElement).removeClass('equipped-gem');
-                            }, 2000);
+                            if (senderData.kind !== receiverData.kind){
+                                $(ui.item).parentToAnimate($(ui.sender), 200);
+                                return;
+                            }
                         }
-   
+
                         if (senderHasGem && !receiverHasGem) {
                             receiverData.gem = senderData.gem;
                             delete senderData.gem;    
