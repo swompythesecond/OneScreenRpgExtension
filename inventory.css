@@ -38,7 +38,7 @@ body {
 
 #fullInventory {
   position: absolute;
-  top: 50%;
+  top: 53%;
   left: 1%;
   display: block;
   cursor: url('images/cursor/default.png'), auto;
@@ -61,10 +61,9 @@ body {
 }
 
 #stashInventory {
-  margin-top: 1vw;
   position: absolute;
-  left: 11%;
-  top: 48%;
+  left: 12%;
+  top: 53%;
 }
 
 #craftPreview {
@@ -119,30 +118,278 @@ div {
   left: 0;
   color: white;
   padding: 0.1vw 0.3vw;
-  font-size: 0.5vw;
+  font-size: 0.4vw;
   text-align: left;
   line-height: 0.5vw;
   white-space: pre;
   cursor: url(images/cursor/point.png) 10 0, auto !important;
 }
 
+.item-amount-changed-up {
+  color: #42b425;
+  animation: colorChangeUp 0.5s forwards;
+}
+
+.item-amount-changed-down {
+  color: #e02e2e;
+  animation: colorChangeDown 0.5s forwards;
+}
+
+.blessed-success {
+  animation: colorChangeSuccess 0.5s;
+}
+
+@keyframes colorChangeSuccess {
+  0%, 100% { color: white; }
+  50% { color: #42b425; }
+}
+
+.blessed-fail {
+  animation: colorChangeFail 0.5s;
+}
+
+#blessingDex, #blessingStr, #blessingDef, #blessingLuck, #blessingXp {
+  line-height: 0.7vw;
+}
+
+@keyframes colorChangeFail {
+  0%, 100% { color: white; }
+  50% { color: #e02e2e; }
+}
+
+@keyframes shake {
+  0% { transform: translate(0.5px, 0.5px) rotate(0deg); }
+  10% { transform: translate(-0.5px, -1px) rotate(-0.5deg); }
+  20% { transform: translate(-1.5px, 0px) rotate(0.5deg); }
+  30% { transform: translate(1.5px, 1px) rotate(0deg); }
+  40% { transform: translate(0.5px, -0.5px) rotate(0.5deg); }
+  50% { transform: translate(-0.5px, 1px) rotate(-0.5deg); }
+  60% { transform: translate(-1.5px, 0.5px) rotate(0deg); }
+  70% { transform: translate(1.5px, 0.5px) rotate(-0.5deg); }
+  80% { transform: translate(-0.5px, -0.5px) rotate(0.5deg); }
+  90% { transform: translate(0.5px, 1px) rotate(0deg); }
+  100% { transform: translate(0.5px, -1px) rotate(-0.5deg); }
+}
+
+/* Color change animations */
+@keyframes colorChangeUp {
+  0% { color: #42b425; }
+  100% { color: white; }
+}
+
+@keyframes colorChangeDown {
+  0% { color: #e02e2e; }
+  100% { color: white; }
+}
+
+/* Apply shake animation to .inventory-item if it has .item-amount-changed-up or .item-amount-changed-down as a child */
+.inventory-item:has(.item-amount-changed-up),
+.inventory-item:has(.item-amount-changed-down) {
+  animation: shake 0.5s, colorChangeShake 0.5s forwards;
+}
+
+.inventory-item.cannot-sell {
+  animation: shake 0.5s;
+}
+
+@keyframes colorChangeShake {
+  0% { color: inherit; }
+  100% { color: white; }
+}
+
 .item-amount span{
   cursor: url(images/cursor/point.png) 10 0, auto !important;
 }
 
+.sold-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.sold-item::before,
+.sold-item::after,
+.sold-item span {
+  content: "$";
+  position: absolute;
+  bottom: -20px;
+  font-size: 1.0vw;
+  color: green;
+  animation: moveUp 1s 2s;
+  opacity: 0;
+}
+
+.sold-item::before {
+  animation-delay: 0s;
+}
+
+.sold-item::after {
+  animation-delay: 0.5s;
+}
+
+.sold-item span {
+  animation-delay: 1s;
+}
+
+@keyframes moveUp {
+  0% {
+    bottom: -20px;
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    bottom: 20px;
+    opacity: 0;
+  }
+}
+
+.equipped-gem {
+  overflow: hidden;
+  animation: grow-shrink 2s infinite;
+}
+
+@keyframes grow-shrink {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.4);
+  }
+}
+
+.removing-gem {
+  overflow: hidden;
+  animation: growFadeOut 1s linear forwards;
+}
+
+@keyframes growFadeOut {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+}
+
+#namePlate {
+  position: absolute;
+  top: 4%;
+  left: 1%;
+  width: 10vw;
+  height: 2vw;
+  text-align: center;
+  overflow: hidden; /* Change this to hidden to prevent scroll */
+  background: url('images/namePlate.png') no-repeat;
+  background-size: 100% 100%;
+  background-position: center center;
+  font-size: 0.7vw;
+  padding-left: 1.75vw;
+  padding-right: 1.75vw;
+}
+
+#namePlate .inner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%; /* Ensure .inner matches parent's height */
+}
+
+#playerName {
+  margin: 0;
+}
+
+.rpgui-button {
+    overflow: hidden;
+    background: url(images/button.png) center no-repeat no-repeat;
+    background-clip: padding-box;
+    background-origin: padding-box;
+    background-size: 100% 100%;
+    font-size: 1em
+}
+
+.rpgui-button.hover,.rpgui-button:hover {
+    background-image: url(images/button-hover.png)
+}
+
+.rpgui-button.down,.rpgui-button:active {
+    background-image: url(images/button-down.png)
+}
+
+.rpgui-button.golden p {
+    display: inline-block
+}
+
+.rpgui-button.golden {
+    background: url(images/button-golden.png) center no-repeat no-repeat;
+    background-clip: padding-box;
+    background-origin: padding-box;
+    background-size: 100% 80%;
+    padding-top: 5px;
+    overflow: visible
+}
+
+.rpgui-button.golden:after,.rpgui-button.golden:before {
+    white-space: nowrap;
+    display: block;
+    content: "";
+    width: 34px;
+    height: 110%
+}
+
+.rpgui-button.golden.hover,.rpgui-button.golden:hover {
+    background-image: url(images/button-golden-hover.png)
+}
+
+.rpgui-button.golden.down,.rpgui-button.golden:active {
+    background-image: url(images/button-golden-down.png)
+}
+
+.rpgui-button.golden:before {
+    background: url(images/button-golden-left.png) right center no-repeat;
+    background-size: 100% 100%;
+    margin: -5% 0 0 -2px;
+    left: 0;
+    float: left
+}
+
+.rpgui-button.golden:after {
+    background: url(images/button-golden-right.png) left center no-repeat;
+    background-size: 100% 100%;
+    margin: -5% -2px 0 0;
+    right: 0;
+    float: right
+}
+
 #statsBars {
   position: absolute;
-  top: 6%;
+  top: 8%;
   left: 1%;
   width: 10vw;
   height: 4vw;
   background-image: url('images/inventory_background/stats_bars_area.png');
-  background-size: cover;
+  background-size: 100% 100%;
   text-align: center;
   font-size: 0.5vw;
   padding: 0.35vw;
   box-sizing: border-box;
 }
+
+#statsBars .inner {
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2vw;
+  justify-content: center;
+}
+
 
 .statBar {
   position: relative;
@@ -169,12 +416,26 @@ div {
   width: 100%;
 }
 
-#hpBar .barFill {
-  background-color: #FF4136;
+#hpBar , #manaBar {
+  position: relative; /* Ensure that the text position is absolute relative to these bars */
 }
 
-#manaBar .barFill {
-  background-color: #0074D9;
+#hpBar .text, #manaBar .text, #xpBar .text {
+  display: flex; /* Enable Flexbox */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  color: white; /* or another contrasting color */
+  pointer-events: none; /* if you want to make sure it's not interactive */
+  font-size: 0.45vw;
+  margin: 0;
+  height: 100%;
+  width: 100%; /* Ensure it covers the full width */
+  text-align: center; /* Center text */
 }
 
 .statBar>span {
@@ -182,17 +443,31 @@ div {
   z-index: 2;
 }
 
+.hud {
+  text-shadow: 
+    -1px -1px 0 #000,  
+     1px -1px 0 #000,
+    -1px  1px 0 #000,
+     1px  1px 0 #000;
+}
+
+#statsLvl {
+  text-align: center;
+}
+
 #stats {
   position: absolute;
   top: 16%;
   width: 10vw;
-  height: 4vw;
+  height: 6vw;
   background-image: url('images/inventory_background/stats_area.png');
-  background-size: cover;
-  text-align: center;
+  background-size: 100% 100%;
+  text-align: left;
   font-size: 0.5vw;
-  padding-top: 0.35vw;
+  padding-top: 0.75vw;
   left: 1%;
+  padding-left: 0.75vw;
+  padding-right: 0.75vw;
 }
 
 #blessings {
@@ -200,12 +475,18 @@ div {
   top: 40%;
   left: 1%;
   width: 10vw;
-  height: 4vw;
+  height: 7vw;
   background-image: url('images/inventory_background/stats_area.png');
-  background-size: cover;
-  text-align: center;
+  background-size: 100% 100%;
+  text-align: left;
+  padding-left: 0.75vw;
+  padding-right: 0.75vw;
   font-size: 0.5vw;
   padding-top: 0.35vw;
+}
+
+#blessings .double-stats .side-image, #blessings .double-stats .side-image img, #blessings .double-stats .side-image p, .double-stats .side-image div {
+  cursor: url(images/cursor/point.png) 10 0, auto !important;
 }
 
 #blessBlessings {
@@ -230,20 +511,28 @@ div {
 
 #mission {
   position: absolute;
-  top: 25%;
+  top: 27%;
   width: 10vw;
   height: 6.6vw;
   background-image: url('images/inventory_background/text_area.png');
-  background-size: cover;
+  background-size: 100% 100%;
   text-align: center;
   font-size: 0.5vw;
   padding-top: 0.5vw;
-  padding-left: 0.21vw; 
-  padding-right: 0.21vw; 
+  padding-bottom: 0.5vw;
+  padding-left: 0.75vw;
+  padding-right: 0.75vw;
   overflow-wrap: break-word;
+  padding-bottom: 0.5vw;
   overflow: auto;
   left: 1%;
   cursor: url('images/cursor/select.png') 10 0, auto;
+}
+
+.inner-mission {
+  height: 100%;
+  overflow: auto;
+  
 }
 
 #mission div {
@@ -252,10 +541,40 @@ div {
 
 #missionText {
   padding-top: 0.2vw;
+  text-align: left;
 }
 
 #missionProgress {
   padding-top: 0.4vw;
+  text-align: left;
+}
+
+.side-image {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  line-height: 0;
+  justify-content: flex-start; /* Align items to the left */
+}
+
+.double-stats {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  line-height: 0;
+  justify-content: flex-start; /* Align items to the left */
+}
+
+.double-stats > .side-image {
+  width: 50%; /* Set each child to take 50% width */
+  display: flex;
+  align-items: center;
+}
+
+.small-image {
+  width: 0.8vw;
+  height: 0.8vw;
+  margin-right: 5px;
 }
 
 #heal {
@@ -409,16 +728,15 @@ input[type="range"] {
 }
 
 .inventory-cell {
-  width: 1.8vw;
-  height: 1.8vw;
+  width: 2.0vw; /* Adjusted to 1.8vw to accommodate padding */
+  height: 2.0vw;
   flex-shrink: 0;
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
   align-content: center;
-  background-size: cover;
-  background-repeat: no-repeat;
+  background-size: 100% 100%;
   background-image: url('images/inventory_background/middle_middle.png');
   color: white;
   text-shadow:
@@ -429,50 +747,38 @@ input[type="range"] {
 }
 
 .inventory-cell:first-child {
-  width: 1.9vw;
-  padding-left: 0.052vw; 
+  padding-left: 0.052vw;
   background-image: url('images/inventory_background/middle_left.png');
 }
 
 .inventory-cell:last-child {
-  width: 1.9vw;
-  padding-right: 0.052vw; 
+  padding-right: 0.052vw;
   background-image: url('images/inventory_background/middle_right.png');
 }
 
 .inventory-row:first-child .inventory-cell {
-  height: 1.9vw;
-  padding-top: 0.052vw; 
+  padding-top: 0.052vw;
   background-image: url('images/inventory_background/top_middle.png');
 }
 
 .inventory-row:last-child .inventory-cell {
-  height: 1.9vw;
-  padding-bottom: 0.052vw; 
+  padding-bottom: 0.052vw;
   background-image: url('images/inventory_background/bottom_middle.png');
 }
 
 .inventory-row:first-child .inventory-cell:first-child {
-  width: 1.9vw;
-  height: 1.9vw;
   background-image: url('images/inventory_background/top_left.png');
 }
 
 .inventory-row:first-child .inventory-cell:last-child {
-  width: 1.9vw;
-  height: 1.9vw;
   background-image: url('images/inventory_background/top_right.png');
 }
 
 .inventory-row:last-child .inventory-cell:first-child {
-  width: 1.9vw;
-  height: 1.9vw;
   background-image: url('images/inventory_background/bottom_left.png');
 }
 
 .inventory-row:last-child .inventory-cell:last-child {
-  width: 1.9vw;
-  height: 1.9vw;
   background-image: url('images/inventory_background/bottom_right.png');
 }
 
@@ -481,44 +787,33 @@ input[type="range"] {
 }
 
 .inventory-row:only-child .inventory-cell:first-child {
-  width: 1.9vw;
-  height: 2vw;
-  background-position: -29.85vw -14.87vw; 
+  background-position: -29.85vw -14.87vw;
 }
 
 .inventory-row:only-child .inventory-cell:last-child {
-  width: 1.9vw;
-  height: 2vw;
-  background-position: -33.8vw -14.87vw; 
+  background-position: -33.8vw -14.87vw;
 }
 
 .inventory-row .inventory-cell:only-child {
-  width: 2vw;
-  background-position: -29.276vw -24.076vw; 
+  background-position: -29.276vw -24.076vw;
 }
 
 .inventory-row:first-child .inventory-cell:only-child {
-  width: 2vw;
-  height: 1.9vw;
-  background-position: -29.276vw -22.048vw; 
+  background-position: -29.276vw -22.048vw;
 }
 
 .inventory-row:last-child .inventory-cell:only-child {
-  width: 2vw;
-  height: 1.9vw;
-  background-position: -29.276vw -26vw; 
+  background-position: -29.276vw -26vw;
 }
 
 .inventory-row:only-child .inventory-cell:only-child {
-  width: 2vw;
-  height: 2vw;
-  background-position: -1.56vw -14.976vw; 
+  background-position: -1.56vw -14.976vw;
 }
 
 .inventory-item {
   position: relative;
-  width: 1.7vw;
-  height: 1.7vw;
+  width: 1.8vw;
+  height: 1.8vw;
   background-repeat: no-repeat;
   cursor: url(images/cursor/point.png) 10 0, auto !important;
   -webkit-transition: opacity 0.3s ease;
@@ -797,8 +1092,8 @@ ui-tooltip::before,
 .page-button {
   font-size: 0.5vw;
   text-align: center;
-  width: 1.8vw;
-  height: 1.8vw;
+  width: 2.0vw;
+  height: 2.0vw;
   flex-shrink: 0;
   display: flex;
   flex-direction: row;
@@ -836,7 +1131,7 @@ ui-tooltip::before,
 }
 
 .page-button:first-child {
-  width: 1.9vw;
+  width: 2.0vw;
   padding-left: 0.052vw; 
   background-image: url('images/inventory_background/bottom_left_button.png');
 }
@@ -846,7 +1141,7 @@ ui-tooltip::before,
 }
 
 .page-button:last-child {
-  width: 1.9vw;
+  width: 2.0vw;
   padding-right: 0.052vw; 
   background-image: url('images/inventory_background/bottom_right_button.png');
 }
@@ -860,13 +1155,13 @@ ui-tooltip::before,
 }
 
 .stash-pagination:only-child .page-button:first-child {
-  width: 1.9vw;
+  width: 2.0vw;
   height: 2vw;
   background-position: -29.85vw -14.87vw; 
 }
 
 .stash-pagination:only-child .page-button:last-child {
-  width: 1.9vw;
+  width: 2vw;
   height: 2vw;
   background-position: -33.8vw -14.87vw; 
 }
@@ -878,13 +1173,13 @@ ui-tooltip::before,
 
 .stash-pagination:first-child .page-button:only-child {
   width: 2vw;
-  height: 1.9vw;
+  height: 2vw;
   background-position: -29.276vw -22.048vw; 
 }
 
 .stash-pagination:last-child .page-button:only-child {
   width: 2vw;
-  height: 1.9vw;
+  height: 2vw;
   background-position: -29.276vw -26vw; 
 }
 
@@ -900,4 +1195,63 @@ ui-tooltip::before,
   background-position: center;
   background-size: cover;
   pointer-events: none;
+}
+
+.rpgui-progress {
+    height: 1.05vw; /* 21px / 2 */
+    width: 100%;
+    position: relative;
+}
+
+.rpgui-progress-left-edge,
+.rpgui-progress-right-edge {
+    position: absolute;
+    width: 1vw; /* 20px / 2 */
+    background-size: 100% 100%;
+    height: 1.05vw; /* 21px / 2 */
+}
+
+.rpgui-progress-left-edge {
+    left: 0;
+    background-image: url(images/progress-bar-left.png);
+}
+
+.rpgui-progress-right-edge {
+    right: 0;
+    background-image: url(images/progress-bar-right.png);
+}
+
+.rpgui-progress-fill,
+.rpgui-progress-track {
+    position: absolute;
+    background-repeat: repeat-x;
+    background-size: 1.8vw 100%; /* 36px / 2 */
+}
+
+.rpgui-progress-track {
+    height: 1.05vw; /* 21px / 2 */
+    left: 1vw;
+    right: 1vw;
+    background-image: url(images/progress-bar-track.png);
+}
+
+.rpgui-progress-fill {
+    top: 0.2vw;
+    bottom: 8px;
+    left: 0;
+    width: 100%;
+    height: 0.7vw; /* 12px / 2 */
+    background-image: url(images/progress.png);
+}
+
+.rpgui-progress-fill.blue {
+    background-image: url(images/progress-blue.png);
+}
+
+.rpgui-progress-fill.green {
+    background-image: url(images/progress-green.png);
+}
+
+.rpgui-progress-fill.red {
+    background-image: url(images/progress-red.png);
 }

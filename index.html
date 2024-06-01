@@ -88,17 +88,17 @@
             <div id="selectedInventory">
                 <div class="inventory-table" id="select-inventory">
                     <div class="inventory-row">
-                        <div class="inventory-cell" id="select-helmet"></div>
-                        <div class="inventory-cell" id="select-plating"></div>
-                        <div class="inventory-cell" id="select-chest"></div>
-                        <div class="inventory-cell" id="select-fabric"></div>
-                        <div class="inventory-cell" id="select-pants"></div>
+                        <div class="inventory-cell" id="select-helmet" data-item-filter-whitelist="helmet"></div>
+                        <div class="inventory-cell" id="select-plating" data-item-filter-whitelist="plating"></div>
+                        <div class="inventory-cell" id="select-chest" data-item-filter-whitelist="chest"></div>
+                        <div class="inventory-cell" id="select-fabric" data-item-filter-whitelist="fabric"></div>
+                        <div class="inventory-cell" id="select-pants" data-item-filter-whitelist="pants"></div>
                     </div>
                     <div class="inventory-row">
-                        <div class="inventory-cell" id="select-weapon"></div>
-                        <div class="inventory-cell" id="select-fishingRod"></div>
+                        <div class="inventory-cell" id="select-weapon" data-item-filter-whitelist="weapon"></div>
+                        <div class="inventory-cell" id="select-fishingRod" data-item-filter-whitelist="fishingRod"></div>
                         <div class="inventory-cell" id="remove-gem"></div>
-                        <div class="inventory-cell"></div>
+                        <div class="inventory-cell" id="select-pet" data-item-filter-whitelist="pet"></div>
                         <div class="inventory-cell" id="delete-item"></div>
                     </div>
                 </div>
@@ -197,49 +197,80 @@
         </div>
     </div>
 
+    <div id="namePlate" class="hud">
+        <div class="inner">
+            <p id="playerName"></p>
+        </div>
+    </div>
 
     <div id="statsBars" class="hud">
-        <div id="hpBar" class="statBar">
-            <div class="barFill"></div>
-            <span id="hpText">100/100</span>
-        </div>
-        <div id="manaBar" class="statBar">
-            <div class="barFill"></div>
-            <span id="manaText">50/50</span>
+        <div class="inner">
+            <div id="hpBar" class="rpgui-progress red">
+               <div class="rpgui-progress-track">
+                <p class="text"></p>
+                <div class="rpgui-progress-fill red progress" style="left: 0px;"></div>
+               </div>
+               <div class=" rpgui-progress-left-edge"></div>
+               <div class=" rpgui-progress-right-edge"></div>
+            </div>
+            <div id="manaBar" class="rpgui-progress blue">
+               <div class="rpgui-progress-track">
+                  <p class="text"></p>
+                  <div class="rpgui-progress-fill blue progress" style="left: 0px;"></div>
+               </div>
+               <div class=" rpgui-progress-left-edge"></div>
+               <div class=" rpgui-progress-right-edge"></div>
+            </div>
         </div>
     </div>
 
     <div id="stats" class="hud">
         <div id="statsLvl"></div>
-        <div id="statsXp"></div>
-        <div id="statsGold"></div>
-        <div id="statsArmor"></div>
-        <div id="statsDamage"></div>
+        <div id="xpBar" class="rpgui-progress purple">
+           <div class="rpgui-progress-track">
+            <p class="text"></p>
+            <div class="rpgui-progress-fill purple progress" style="left: 0px;"></div>
+           </div>
+           <div class=" rpgui-progress-left-edge"></div>
+           <div class=" rpgui-progress-right-edge"></div>
+        </div>
+        <div class="double-stats">
+            <div class="side-image"><img src="images/gold.png" class="small-image" alt="gold"/><p id="statsGold"></p></div>            
+            <div class="side-image"><img src="images/premiumCurrency.png" class="small-image" alt="premium currency"/><p id="statsPremiumCurrency"></p></div>
+        </div>
+        <div class="double-stats">
+            <div class="side-image"><img src="images/damage.png" class="small-image" alt="damage"/><p id="statsDamage"></p></div>
+            <div class="side-image"><img src="images/attackSpeed.png" class="small-image" alt="attack speed"/><p id="statsAttackSpeed"></p></div>
+        </div>
+        <div class="double-stats">
+            <div class="side-image"><img src="images/armor.png" class="small-image" alt="armor"/><p id="statsArmor"></p></div>
+            <div class="side-image"><img src="images/magicResistance.png" class="small-image" alt="magic resistance"/><p id="statsMagicResistance"></p></div>
+        </div>
     </div>
 
     <div id="mission" class="hud">
-        <div id="missionTitle" style="display: none">Mission:</div>
-        <div id="missionProgress"></div>
-        <div id="missionText">You are not in the Game write !play to see your stats in the Twitch Chat</div>
+        <div class="inner-mission">
+            <div id="missionTitle" style="display: none">Mission</div>
+            <div id="missionProgress"></div>
+            <div id="missionText">You are not in the Game write !play to see your stats in the Twitch Chat</div>
+        </div>
     </div>
 
     <div id="blessings" class="hud">
-        <div id="blessingDamage"></div>
-        <div id="blessingAfkGain"></div>
-        <div id="blessingArmor"></div>
-        <div id="blessingGoldGain"></div>
-        <div id="blessingXpGain"></div>
+        <p style="text-align: center;">Blessings</p>
+        <div class="double-stats">
+            <div class="side-image bless-button" data-type="dex" data-blessing="afkGain" title=""><img src="images/attackSpeed.png" class="small-image" alt="dex"/><div id="blessingDex">DEX</div></div>
+            <div class="side-image"></div>
+        </div>
+        <div class="double-stats">
+            <div class="side-image bless-button" data-type="str" data-blessing="damage" title=""><img src="images/damage.png" class="small-image" alt="str"/><div id="blessingStr">STR</div></div>
+            <div class="side-image bless-button" data-type="def" data-blessing="armor" title=""><img src="images/armor.png" class="small-image" alt="def"/><div id="blessingDef">DEF</div></div>
+        </div>
+        <div class="double-stats">
+            <div class="side-image bless-button" data-type="luck" data-blessing="luck" title=""><img src="images/luck.png" class="small-image" alt="luck"/><div id="blessingLuck">LUCK</div></div>
+            <div class="side-image bless-button" data-type="xp" data-blessing="xpGain" title=""><img src="images/xp.png" class="small-image" alt="xp"/><div id="blessingXp">XP</div></div>
+        </div>
     </div>
-
-    <div id="blessBlessings" class="hud">
-        <div class="blessButton" data-blessing="damage"></div>
-        <div class="blessButton" data-blessing="afkGain"></div>
-        <div class="blessButton" data-blessing="armor"></div>
-        <div class="blessButton" data-blessing="xpGain"></div>
-        <div class="blessButton" data-blessing="luck"></div>
-    </div>
-
-
 
     <div id="heal" class="hud"></div>
 
