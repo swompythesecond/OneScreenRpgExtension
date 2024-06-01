@@ -1397,8 +1397,10 @@ function loadInventory(user, force = false) {
                 position: null,
                 fullItem: _selectedItems[item]
             }
-            
+
             const cell = selectedItemsContainer.querySelector("#select-" + item);
+            if (!cell)
+                console.log('item error: ' + item);
             const existingItemElement = cell.querySelector('.inventory-item');
 
             const prevItem = previousSelectedItemsState[item] ? previousSelectedItemsState[item] : {};
