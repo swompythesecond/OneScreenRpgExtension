@@ -181,7 +181,6 @@ function refreshSortableInventoryList() {
                 // Swap places of items if dragging on top of another
                 var hiddenSwap = false;
                 if (senderDataFullItem && receiverDataFullItem) {
-                    console.log('test 1');
                     var receiverData = JSON.parse(receiverDataFullItem);
    
                     var senderIsEquipped = senderItemElement.attr('data-equipped');
@@ -200,19 +199,14 @@ function refreshSortableInventoryList() {
                     }
 
                     if (senderIsEquipped || receiverIsEquipped) {
-                        console.log('test 2');
-                        console.log('senderIsEquipped: ' + senderIsEquipped);
-                        console.log('receiverIsEquipped: ' + receiverIsEquipped);
                         var senderHasGem = senderData.gem !== undefined && senderData.gem !== null;
                         var receiverHasGem = receiverData.gem !== undefined && receiverData.gem !== null;
 
                         if (senderData.kind == 'gem'){
                             if (receiverHasGem){      
-                                console.log('test 3');
                                 $(ui.item).parentToAnimate($(ui.sender), 200);
                                 return;
                             } else {
-                                console.log('test 4');
                                 receiverData.gem = senderData;
                                 receiverItemElement.hide();
                                 styleItem(receiverData, senderItemElement[0]);
@@ -231,7 +225,6 @@ function refreshSortableInventoryList() {
                         }
 
                         if (senderHasGem && !receiverHasGem) {
-                            console.log('test 5');
                             receiverData.gem = senderData.gem;
                             delete senderData.gem;    
                             senderItemElement.attr('data-fullitem', JSON.stringify(senderData));
@@ -241,7 +234,6 @@ function refreshSortableInventoryList() {
                         }
 
                         if (!senderHasGem && receiverHasGem) {
-                            console.log('test 6');
                             senderData.gem = receiverData.gem;
                             delete receiverData.gem;    
                             senderItemElement.attr('data-fullitem', JSON.stringify(senderData));
