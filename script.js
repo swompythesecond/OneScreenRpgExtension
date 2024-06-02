@@ -767,6 +767,30 @@ window.addEventListener("DOMContentLoaded", function () {
         div.style.display = "none";
     }
     );
+    $('.expandable').click(function() {
+        var collapsibleElement = $(this).next('.collapsible');
+        var isCurrentlyVisible = collapsibleElement.is(":visible");
+
+        // Log the action based on current visibility
+        if (isCurrentlyVisible) {
+            if ($(this).is(':first-of-type')) {
+                $(this).removeClass('top');
+            } else {
+                $(this).removeClass('full');
+                $(this).addClass('bottom');
+            }            
+        } else {
+            $(this).removeClass('bottom');
+            if ($(this).is(':first-of-type')) {
+                $(this).addClass('top');
+            } else {
+                $(this).addClass('full');
+            }
+        }
+
+        // Toggle the visibility
+        collapsibleElement.slideToggle();
+    });
 }, false);
 
 document.querySelector("#craft").addEventListener("click", function () {
@@ -910,7 +934,7 @@ document.addEventListener('contextmenu', function (event) {
 document.addEventListener('click', function (event) {
     $('.ui-tooltip').remove();
     // Array of selectors to check
-    var selectors = ['#fullInventory', '#craftInventory', '#craftPreview', '#selectedInventory', '.context-menu-list', '#stashInventory', '#statsBars', '#stats', '#mission', '#blessings', '#blessBlessings', '.submenuSpan', '.stash-pagination', '.page-button', '.page-image'];
+    var selectors = ['#fullInventory', '#craftInventory', '#craftPreview', '#selectedInventory', '.context-menu-list', '#stashInventory', '#statsBars', '#stats', '#mission', '#blessings', '#blessBlessings', '.submenuSpan', '.stash-pagination', '.page-button', '.page-image', '#main-hud-container'];
 
     // Check if click is inside any specified and visible elements
     let isContextMenu = event.target.closest('.context-menu-list');
