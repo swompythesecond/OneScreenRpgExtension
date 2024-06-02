@@ -37,18 +37,12 @@ body {
 }
 
 #fullInventory {
-  position: absolute;
-  top: 57%;
-  left: 1%;
   display: block;
   cursor: url('images/cursor/default.png'), auto;
 }
 
 #selectedInventory {
   margin-top: 1vw;
-  position: absolute;
-  top: 100%;
-  left: 1%;
   display: block;
 }
 
@@ -60,11 +54,7 @@ body {
   display: block;
 }
 
-#stashInventory {
-  position: absolute;
-  left: 12%;
-  top: 57%;
-}
+#stashInventory {margin-left: 1vw;}
 
 #craftPreview {
   position: absolute;
@@ -211,8 +201,8 @@ div {
 .sold-item span {
   content: "$";
   position: absolute;
-  bottom: -20px;
-  font-size: 1.0vw;
+  bottom: -0.8vw;
+  font-size: 1vw;
   color: green;
   animation: moveUp 1s 2s;
   opacity: 0;
@@ -232,7 +222,7 @@ div {
 
 @keyframes moveUp {
   0% {
-    bottom: -20px;
+    bottom: -0.8vw;
     opacity: 0;
   }
   20% {
@@ -242,7 +232,7 @@ div {
     opacity: 1;
   }
   100% {
-    bottom: 20px;
+    bottom: 0.8vw;
     opacity: 0;
   }
 }
@@ -381,18 +371,20 @@ div {
     float: right
 }
 
+.hud-container {
+  border-style: solid;
+  border-image-source: url(images/border-image.png);
+  border-image-repeat: repeat;
+  border-image-slice: 6 6 6 6;
+  border-image-width: 0.3vw;
+  border-width: 0.2vw;
+  background-color: #595652;
+}
+
 #statsBars {
-  position: absolute;
-  top: 8%;
-  left: 1%;
-  width: 10vw;
-  height: 4vw;
-  background-image: url('images/inventory_background/stats_bars_area.png');
-  background-size: 100% 100%;
+  width: auto;
   text-align: center;
   font-size: 0.5vw;
-  padding: 0.35vw;
-  box-sizing: border-box;
 }
 
 #statsBars .inner {
@@ -401,7 +393,7 @@ div {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 0.2vw;
+  gap: 0vw;
   justify-content: center;
 }
 
@@ -470,34 +462,72 @@ div {
   text-align: left;
 }
 
-#stats {
+#main-hud-container {
   position: absolute;
-  top: 16%;
-  width: 10vw;
-  height: 6vw;
-  background-image: url('images/inventory_background/stats_area.png');
-  background-size: 100% 100%;
+  top: 8%;
+  left: 1%;
+  width: 11vw;
+}
+
+#main-hud-container > div {
+  padding: 0.3vw;
+}
+
+.expandable {
   text-align: left;
   font-size: 0.5vw;
-  padding-top: 0.75vw;
-  left: 1%;
-  padding-left: 0.75vw;
-  padding-right: 0.75vw;
+  overflow-wrap: break-word;
+  overflow: auto;
+  margin: 0;
+  padding-left: 0.3vw;
+  padding-right: 0.3vw;
+  padding-top: 0.2vw;
+  padding-bottom: 0.1vw;
+  cursor: url(images/cursor/point.png) 10 0, auto !important;
+}
+
+.expandable.full {
+  border-top-style: solid;
+  border-bottom-style: solid;
+  border-image-source: url(images/border-image.png);
+  border-image-repeat: repeat;
+  border-image-slice: 6 6 6 6;
+  border-top-image-width: 0.3vw;
+  border-top-width: 0.2vw;
+  border-bottom-image-width: 0.3vw;
+  border-bottom-width: 0.2vw;
+}
+
+.inventory-stash {
+  display: flex;
+}
+
+.expandable.top {
+  border-bottom-style: solid;
+  border-image-source: url(images/border-image.png);
+  border-image-repeat: repeat;
+  border-image-slice: 6 6 6 6;
+  border-bottom-image-width: 0.3vw;
+  border-bottom-width: 0.2vw;
+}
+
+.expandable.bottom {
+  border-top-style: solid;
+  border-image-source: url(images/border-image.png);
+  border-image-repeat: repeat;
+  border-image-slice: 6 6 6 6;
+  border-top-image-width: 0.3vw;
+  border-top-width: 0.2vw;
+}
+
+#stats {
+  text-align: left;
+  font-size: 0.5vw;
 }
 
 #blessings {
-  position: absolute;
-  top: 40%;
-  left: 1%;
-  width: 10vw;
-  height: 9vw;
-  background-image: url('images/inventory_background/stats_area.png');
-  background-size: 100% 100%;
   text-align: left;
-  padding-left: 0.75vw;
-  padding-right: 0.75vw;
   font-size: 0.5vw;
-  padding-top: 0.35vw;
 }
 
 #next-blessing-cost {
@@ -530,22 +560,12 @@ div {
 }
 
 #mission {
-  position: absolute;
-  top: 27%;
-  width: 10vw;
+  width: auto;
   height: 6.6vw;
-  background-image: url('images/inventory_background/text_area.png');
-  background-size: 100% 100%;
   text-align: left;
   font-size: 0.5vw;
-  padding-top: 0.5vw;
-  padding-bottom: 0.5vw;
-  padding-left: 0.75vw;
-  padding-right: 0.75vw;
   overflow-wrap: break-word;
-  padding-bottom: 0.5vw;
   overflow: auto;
-  left: 1%;
   cursor: url('images/cursor/select.png') 10 0, auto;
 }
 
