@@ -257,19 +257,52 @@
     </div>
 
     <div id="blessings" class="hud">
-        <p style="text-align: center;">Blessings</p>
+        <p>Blessings</p>
         <div class="double-stats">
-            <div class="side-image bless-button" data-type="dex" data-blessing="afkGain" title=""><img src="images/attackSpeed.png" class="small-image" alt="dex"/><div id="blessingDex">DEX</div></div>
-            <div class="side-image"></div>
+            <div class="side-image bless-button" data-type="dex" data-blessing="afkGain" title="">
+                <button class="add-bless-button">+</button>
+                <img src="images/attackSpeed.png" class="small-image" alt="dex"/>
+                <div id="blessingDex">
+                    0
+                </div>
+            </div>
+            <div class="side-image">
+            </div>
         </div>
         <div class="double-stats">
-            <div class="side-image bless-button" data-type="str" data-blessing="damage" title=""><img src="images/damage.png" class="small-image" alt="str"/><div id="blessingStr">STR</div></div>
-            <div class="side-image bless-button" data-type="def" data-blessing="armor" title=""><img src="images/armor.png" class="small-image" alt="def"/><div id="blessingDef">DEF</div></div>
+            <div class="side-image bless-button" data-type="str" data-blessing="damage" title="">
+                <button class="add-bless-button">+</button>
+                <img src="images/damage.png" class="small-image" alt="str"/>
+                <div id="blessingStr">
+                    0
+                </div>
+            </div>
+            <div class="side-image bless-button" data-type="def" data-blessing="armor" title="">
+                <button class="add-bless-button">+</button>
+                <img src="images/armor.png" class="small-image" alt="def"/>
+                <div id="blessingDef">
+                    0
+                </div>
+            </div>
         </div>
         <div class="double-stats">
-            <div class="side-image bless-button" data-type="luck" data-blessing="luck" title=""><img src="images/luck.png" class="small-image" alt="luck"/><div id="blessingLuck">LUCK</div></div>
-            <div class="side-image bless-button" data-type="xp" data-blessing="xpGain" title=""><img src="images/xp.png" class="small-image" alt="xp"/><div id="blessingXp">XP</div></div>
+            <div class="side-image bless-button" data-type="luck" data-blessing="luck" title="">
+                <button class="add-bless-button">+</button>
+                <img src="images/luck.png" class="small-image" alt="luck"/>
+                <div id="blessingLuck">
+                    0
+                </div>
+            </div>
+            <div class="side-image bless-button" data-type="xp" data-blessing="xpGain" title="">
+                <button class="add-bless-button">+</button>
+                <img src="images/xp.png" class="small-image" alt="xp"/>
+                <div id="blessingXp">
+                    0
+                </div>
+            </div>
         </div>
+        <div id="next-blessing-cost"></div>
+        <button id="reset-blessings">Reset</button>
     </div>
 
     <div id="heal" class="hud"></div>
