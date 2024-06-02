@@ -93,12 +93,32 @@ function refreshSortableInventoryList() {
         connectWith: ['.inventory-cell', '.page-button'],
         placeholder: 'inventory-item-sortable-placeholder',
         sort: function(event, ui) {
+            //
+        },
+        start: function(event, ui) {
             $(this).attr('moving', 'true');
             $('.ui-tooltip').remove();
+
+            var senderItemElement = ui.item;
+            var senderDataFullItem = senderItemElement.attr('data-fullitem');
+            var senderIsEquipped = senderItemElement.attr('data-equipped');
+            var senderData = JSON.parse(senderDataFullItem);
+            var correctSlot = document.querySelector('#select-' + senderData.kind);
+            if (correctSlot && !senderIsEquipped){
+                correctSlot.classList.add('highlight-slot');
+            }
         },
         stop: function(event, ui) {
             $(this).removeAttr('moving');
             $(ui.sender).removeAttr('moving');
+            var senderItemElement = ui.item;
+            var senderDataFullItem = senderItemElement.attr('data-fullitem');
+            var senderIsEquipped = senderItemElement.attr('data-equipped');
+            var senderData = JSON.parse(senderDataFullItem);
+            var correctSlot = document.querySelector('#select-' + senderData.kind);
+            if (correctSlot && !senderIsEquipped){
+                correctSlot.classList.remove('highlight-slot');
+            }
         },
         receive: function (event, ui) {            
             var attrWhitelist = $(this).attr('data-item-filter-whitelist');
