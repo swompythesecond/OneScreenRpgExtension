@@ -411,17 +411,13 @@ function styleItem(item, itemElement, isDefault = false) {
             amountDisplay.classList.add('item-amount');
             itemElement.appendChild(amountDisplay);
         }
-
+        amountDisplay.classList.remove('item-amount-changed-up');
+        amountDisplay.classList.remove('item-amount-changed-down');        
+        void amountDisplay.offsetWidth;  
         if (item.changedAmount === 1) {
             amountDisplay.classList.add('item-amount-changed-up');
-            setTimeout(() => {
-                amountDisplay.classList.remove('item-amount-changed-up');
-            }, 2000);
         } else if (item.changedAmount === -1) {
             amountDisplay.classList.add('item-amount-changed-down');
-            setTimeout(() => {
-                amountDisplay.classList.remove('item-amount-changed-down');
-            }, 2000);
         }
 
         amountDisplay.innerHTML = formatItemAmount(item.amount);
@@ -1088,7 +1084,7 @@ function updateBlessing(blessing, total, force = false){
         total = total + 1;
     }
     tooltips['blessings'][blessing] = generateBlessingTooltip(blessing, total);
-    document.getElementById("blessing" + capitalizeFirstLetter(blessing)).innerHTML = "<div>" + blessing.toUpperCase() + "</div>" + "<div>" + total + "</div>";
+    document.getElementById("blessing" + capitalizeFirstLetter(blessing)).innerHTML = total;
 }
 
 function updateUI(user){
@@ -1119,6 +1115,7 @@ function updateUI(user){
     let _totalBlessing = (user.blessings.damage + user.blessings.afkGain + user.blessings.armor + user.blessings.xpGain + user.blessings.goldGain + user.stats.freeBlessings);
     freeBlessings = user.stats.freeBlessings;
     nextBlessingCost = _totalBlessing ** 3 + 500;
+    document.getElementById("next-blessing-cost").innerText = "Next bless: " + abbreviateNumber(nextBlessingCost);
     blessings = user.blessings;
     currentGold = user.stats.gold;
 
