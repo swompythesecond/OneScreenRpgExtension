@@ -770,22 +770,14 @@ window.addEventListener("DOMContentLoaded", function () {
     $('.expandable').click(function() {
         var collapsibleElement = $(this).next('.collapsible');
         var isCurrentlyVisible = collapsibleElement.is(":visible");
+        var buttonElement = $(this).children('.toggle-collapse-button');
+        console.log(buttonElement);
 
         // Log the action based on current visibility
         if (isCurrentlyVisible) {
-            if ($(this).is(':first-of-type')) {
-                $(this).removeClass('top');
-            } else {
-                $(this).removeClass('full');
-                $(this).addClass('bottom');
-            }            
+            buttonElement.text('+');
         } else {
-            $(this).removeClass('bottom');
-            if ($(this).is(':first-of-type')) {
-                $(this).addClass('top');
-            } else {
-                $(this).addClass('full');
-            }
+            buttonElement.text('-');
         }
 
         // Toggle the visibility
@@ -1139,7 +1131,7 @@ function updateUI(user){
     let _totalBlessing = (user.blessings.damage + user.blessings.afkGain + user.blessings.armor + user.blessings.xpGain + user.blessings.goldGain + user.stats.freeBlessings);
     freeBlessings = user.stats.freeBlessings;
     nextBlessingCost = _totalBlessing ** 3 + 500;
-    document.getElementById("next-blessing-cost").innerText = "Next bless: " + abbreviateNumber(nextBlessingCost);
+    document.getElementById("next-blessing-cost").innerText = abbreviateNumber(nextBlessingCost);
     blessings = user.blessings;
     currentGold = user.stats.gold;
 
