@@ -313,7 +313,7 @@ function generateBlessingTooltip(blessing, total) {
         `Next Blessing Cost: ${abbreviateNumber(nextBlessingCost)}<br><br>` +
         `Click to buy/assign 1 ${blessingName} blessing.<br>` +
         `CTRL + Click to buy/assign 100 ${blessingName} blessing.<br>` +
-        `SHIFT + Click to assign all free blessings to ${blessingName} blessing.`;
+        `SHIFT + Click to assign all free blessings to ${blessingName} blessing. <strong>WARNING:</strong> This will use all your money on blessings if you don't have any free blessings available.`;
 
     return blessingTooltip;
 }
@@ -910,6 +910,34 @@ function hideMarker() {
     marker.style.display = "none";
 }
 
+function getBlessingsCost(amount){
+    totalBlessingsCost = 0;
+
+    for (var i = 0; i < amount; i++) {
+        nextBlessCost = 500 + Math.pow(totalBlessings, 3);
+        totalBlessingsCost = totalBlessingsCost + nextBlessCost;
+        totalBlessings++;
+    }
+
+    return totalBlessingsCost;
+}
+
+function getMaxBlessings(currentGold) {
+    var totalBlessings = 0;
+    var totalBlessingsCost = 0;
+
+    while (true) {
+        var nextBlessCost = 500 + Math.pow(totalBlessings, 3);
+        if (totalBlessingsCost + nextBlessCost > currentGold) {
+            break;
+        }
+        totalBlessingsCost += nextBlessCost;
+        totalBlessings++;
+    }
+
+    return totalBlessings;
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     var blessButtons = document.querySelectorAll('.bless-button');
 
@@ -926,19 +954,36 @@ document.addEventListener('DOMContentLoaded', function () {
             void event.currentTarget.offsetWidth; // Trigger reflow to restart the animation
             if (freeBlessings > 0 || nextBlessingCost <= currentGold){
                 event.currentTarget.classList.add('blessed-success');
-
                 if (isCtrlHeld){
                     var amountToBless = 100;
                     if (freeBlessings < 100){
                         amountToBless = freeBlessings;
                     }
-                    blessBlessing(blessingType, amountToBless);
+                    if(amountToBless <= 0){
+                        totalBlessingsCost = getBlessingsCost(100);
+                        if (totalBlessingsCost <= currentGold){
+                            amountToBless = 100;
+                        }
+                    }
+                    if (amountToBless > 0){
+                        blessBlessing(blessingType, amountToBless);
+                    } else {
+                        event.currentTarget.classList.add('blessed-fail');
+                    }
                 } else if (isShiftHeld){
-                    blessBlessing(blessingType, freeBlessings);
+                    if (freeBlessings > 0){
+                        blessBlessing(blessingType, freeBlessings);
+                    } else {
+                        maxBlessings = getMaxBlessings(currentGold);
+                        if (maxBlessings > 0){
+                            blessBlessing(blessingType, maxBlessings);
+                        } else {
+                            event.currentTarget.classList.add('blessed-fail');
+                        }
+                    }
                 } else {
                     blessBlessing(blessingType);
-                }
-                
+                }                
             } else {
                 event.currentTarget.classList.add('blessed-fail');
             }
