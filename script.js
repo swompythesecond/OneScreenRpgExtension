@@ -311,7 +311,9 @@ function generateBlessingTooltip(blessing, total) {
         `${description}<br>` +
         `Current Blessings: ${total}<br>` +
         `Next Blessing Cost: ${abbreviateNumber(nextBlessingCost)}<br><br>` +
-        `Click to buy 1 ${blessingName} blessing.`;
+        `Click to buy/assign 1 ${blessingName} blessing.<br>` +
+        `CTRL + Click to buy/assign 100 ${blessingName} blessing.<br>` +
+        `SHIFT + Click to assign all free blessings to ${blessingName} blessing.`;
 
     return blessingTooltip;
 }
@@ -918,12 +920,25 @@ document.addEventListener('DOMContentLoaded', function () {
             event.currentTarget.classList.remove('blessed-success');
             event.currentTarget.classList.remove('blessed-fail');
 
+            var isCtrlHeld = event.ctrlKey;
+            var isShiftHeld = event.shiftKey;
+
             void event.currentTarget.offsetWidth; // Trigger reflow to restart the animation
             if (freeBlessings > 0 || nextBlessingCost <= currentGold){
-                //updateBlessing(type, blessings[blessingType], true);
-                //blessings[blessingType]++;
                 event.currentTarget.classList.add('blessed-success');
-                blessBlessing(blessingType);
+
+                if (isCtrlHeld){
+                    var amountToBless = 100;
+                    if (freeBlessings < 100){
+                        amountToBless = freeBlessings;
+                    }
+                    blessBlessing(blessingType, amountToBless);
+                } else if (isShiftHeld){
+                    blessBlessing(blessingType, freeBlessings);
+                } else {
+                    blessBlessing(blessingType);
+                }
+                
             } else {
                 event.currentTarget.classList.add('blessed-fail');
             }
@@ -1898,7 +1913,7 @@ function equipEmpty(_kind, _slot, _fromStash = false) {
 }
 
 
-function blessBlessing(kind) {
+function blessBlessing(kind, amount = 1) {
     event.stopPropagation();
     jwt = window.Twitch.ext.viewer.sessionToken;
     fetch(myServer + '/blessBlessings', {
@@ -1909,7 +1924,8 @@ function blessBlessing(kind) {
         body: JSON.stringify({
             jwt: jwt,
             kind: kind,
-            accessToken: accessToken
+            accessToken: accessToken,
+            amount: amount
         }),
     })
         .then(response => {
