@@ -42,7 +42,7 @@ body {
 }
 
 #selectedInventory {
-  margin-top: 1vw;
+  margin-top: 0.5vw;
   display: block;
 }
 
@@ -112,12 +112,12 @@ div {
 
 .item-amount-changed-up {
   color: #42b425;
-  animation: colorChangeUp 0.5s forwards;
+  animation: colorChangeUp 1.8s forwards;
 }
 
 .item-amount-changed-down {
   color: #e02e2e;
-  animation: colorChangeDown 0.5s forwards;
+  animation: colorChangeDown 1.8s forwards;
 }
 
 .blessed-success {
@@ -159,11 +159,17 @@ div {
 /* Color change animations */
 @keyframes colorChangeUp {
   0% { color: #42b425; }
+  25% { color: #6ecb66; }
+  50% { color: #9ae487; }
+  75% { color: #c5fdaa; }
   100% { color: white; }
 }
 
 @keyframes colorChangeDown {
   0% { color: #e02e2e; }
+  25% { color: #ea5a5a; }
+  50% { color: #f38484; }
+  75% { color: #fcaeae; }
   100% { color: white; }
 }
 
@@ -263,14 +269,14 @@ div {
 }
 
 .add-bless-button {
-  background-color: #7E4C34;
+  background-color: transparent;
   color: #2af32a;
   font-family: arcade;
   font-size: 0.5vw;
   width: 1.0vw;
   cursor: url(images/cursor/point.png) 10 0, auto !important;
   padding: 0;
-  margin-right: 4px;
+  margin-right: 0.2vw;
 }
 
 .add-bless-button:hover {
@@ -304,76 +310,9 @@ div {
   margin: 0;
 }
 
-.rpgui-button {
-    overflow: hidden;
-    background: url(images/button.png) center no-repeat no-repeat;
-    background-clip: padding-box;
-    background-origin: padding-box;
-    background-size: 100% 100%;
-    font-size: 1em;
-}
-
-.rpgui-button.hover,.rpgui-button:hover {
-    background-image: url(images/button-hover.png)
-}
-
-.rpgui-button.down,.rpgui-button:active {
-    background-image: url(images/button-down.png)
-}
-
-.rpgui-button.golden p {
-    display: inline-block
-}
-
-.rpgui-button.golden {
-    background: url(images/button-golden.png) center no-repeat no-repeat;
-    background-clip: padding-box;
-    background-origin: padding-box;
-    background-size: 100% 80%;
-    padding-top: 5px;
-    overflow: visible
-}
-
-.rpgui-button.golden:after,.rpgui-button.golden:before {
-    white-space: nowrap;
-    display: block;
-    content: "";
-    width: 34px;
-    height: 110%
-}
-
-.rpgui-button.golden.hover,.rpgui-button.golden:hover {
-    background-image: url(images/button-golden-hover.png)
-}
-
-.rpgui-button.golden.down,.rpgui-button.golden:active {
-    background-image: url(images/button-golden-down.png)
-}
-
-.rpgui-button.golden:before {
-    background: url(images/button-golden-left.png) right center no-repeat;
-    background-size: 100% 100%;
-    margin: -5% 0 0 -2px;
-    left: 0;
-    float: left
-}
-
-.rpgui-button.golden:after {
-    background: url(images/button-golden-right.png) left center no-repeat;
-    background-size: 100% 100%;
-    margin: -5% -2px 0 0;
-    right: 0;
-    float: right
-}
-
 .hud-container {
-  border-style: solid;
-  border-image-source: url(images/border-image.png);
-  border-image-repeat: repeat;
-  border-image-slice: 6 6 6 6;
-  border-image-width: 0.3vw;
-  border-width: 0.2vw;
-  background-color: #595652;
+  /*border-radius: 0.5vw;*/
+  background-color: rgba(89, 86, 82, 0.8);
 }
 
 #statsBars {
@@ -418,7 +357,7 @@ div {
   width: 100%;
 }
 
-#hpBar , #manaBar {
+#hpBar , #manaBar, #xpBar {
   position: relative; /* Ensure that the text position is absolute relative to these bars */
 }
 
@@ -459,7 +398,7 @@ div {
 
 #main-hud-container {
   position: absolute;
-  top: 8%;
+  top: 3%;
   left: 1%;
   width: 10vw;
 }
@@ -497,14 +436,15 @@ div {
 }
 
 .toggle-collapse-button {
-  background-color: #7E4C34;
+  /*background-color: #7E4C34;*/
+  background-color: transparent;
+  border: 0;
   color: white;
   font-family: arcade;
   font-size: 0.5vw;
   width: 1.0vw;
   cursor: url(images/cursor/point.png) 10 0, auto !important;
   padding: 0;
-  margin-right: 4px;
 }
 
 .toggle-collapse-button:hover {
@@ -512,12 +452,7 @@ div {
 }
 
 .collapsible:not(.no-padding) {
-  border-top-style: solid;
-  border-image-source: url(images/border-image.png);
-  border-image-repeat: repeat;
-  border-image-slice: 6 6 6 6;
-  border-top-image-width: 0.3vw;
-  border-top-width: 0.2vw;
+  border-top: 0.1vw solid rgb(255 255 255 / 40%);
   padding: 0.3vw;
 }
 
@@ -536,7 +471,6 @@ div {
 }
 
 #next-blessing-cost {
-  margin-top: 5px;
   font-size: 0.45vw;
 }
 
@@ -619,7 +553,7 @@ div {
 .small-image {
   width: 0.8vw;
   height: 0.8vw;
-  margin-right: 5px;
+  margin-right: 0.2vw;
 }
 
 #heal {
@@ -1058,14 +992,14 @@ input[type="range"] {
 }
 
 #reset-blessings {
-  background-color: #7E4C34;
+  background-color: #53535f7a;
   color: white;
   font-family: arcade;
   font-size: 0.5vw;
   cursor: url(images/cursor/point.png) 10 0, auto !important;
   width: 100%;
   height: 1.5vw;
-  margin-top: 2px;
+  margin-top: 0.2vw;
 }
 
 #reset-blessings:hover {
@@ -1298,7 +1232,7 @@ ui-tooltip::before,
 
 .rpgui-progress-fill {
     top: 0.2vw;
-    bottom: 8px;
+    bottom: 0.3vw;
     left: 0;
     width: 100%;
     height: 0.7vw; /* 12px / 2 */
