@@ -444,8 +444,6 @@ function styleItem(item, itemElement, isDefault = false, swapped = false) {
         amountDisplay.classList.remove('item-amount-changed-up');
         amountDisplay.classList.remove('item-amount-changed-down');
         
-
-        console.log('swapped: ' + swapped);
         if (!swapped) {                    
             if (item.amount !== item.previousAmount && item.amount > item.previousAmount && item.previousAmount !== undefined) {
                 amountDisplay.classList.add('item-amount-changed-up');
@@ -804,13 +802,24 @@ window.addEventListener("DOMContentLoaded", function () {
     let stashInventoryDivs = document.querySelectorAll("#stashInventory");
     stashInventoryDivs.forEach(function (div) {
         div.style.display = "none";
-    }
-    );
-    $('.expandable').click(function() {
+    });
+
+    // Restore the state from localStorage or default to visible
+    $('.collapsible').each(function (index) {
+        var collapsibleElement = $(this);
+        var state = localStorage.getItem('collapsible_' + index);
+        var buttonElement = $(this).prev('.expandable').children('.toggle-collapse-button');
+
+        if (state === 'hidden') {
+            collapsibleElement.hide();
+            buttonElement.text('+');
+        }
+    });
+
+    $('.expandable').click(function () {
         var collapsibleElement = $(this).next('.collapsible');
         var isCurrentlyVisible = collapsibleElement.is(":visible");
         var buttonElement = $(this).children('.toggle-collapse-button');
-        console.log(buttonElement);
 
         // Log the action based on current visibility
         if (isCurrentlyVisible) {
@@ -820,26 +829,37 @@ window.addEventListener("DOMContentLoaded", function () {
         }
 
         // Toggle the visibility
-        if (!$(collapsibleElement).hasClass('special')){
-            console.log('teste');
+        var collapsibleIndex = $('.collapsible').index(collapsibleElement);
+        if (!$(collapsibleElement).hasClass('special')) {
+            if (isCurrentlyVisible) {
+                localStorage.setItem('collapsible_' + collapsibleIndex, 'hidden');
+            } else {
+                localStorage.setItem('collapsible_' + collapsibleIndex, 'visible');
+            }
             collapsibleElement.slideToggle();
         } else {
-            if (collapsibleElement.is(':visible')) {
-              // If the element is visible, slide up
-              collapsibleElement.animate({
-                height: 'toggle'
-              }, 400, function() {
-                // Ensure the margin-top is reapplied after animation
-                collapsibleElement.css('margin-top', '-0.2vw');
-              });
+            if (isCurrentlyVisible) {
+                localStorage.setItem('collapsible_' + collapsibleIndex, 'hidden');
+                // If the element is visible, slide up
+                collapsibleElement.animate({
+                    height: 'toggle'
+                }, 400, function () {
+                    // Ensure the margin-top is reapplied after animation
+                    collapsibleElement.css('margin-top', '-0.2vw');
+                });
             } else {
-              // If the element is hidden, slide down
-              collapsibleElement.css('margin-top', '-0.2vw'); // Set the margin before animation
-              collapsibleElement.animate({
-                height: 'toggle'
-              }, 400);
+                localStorage.setItem('collapsible_' + collapsibleIndex, 'visible');
+                // If the element is hidden, slide down
+                collapsibleElement.css('margin-top', '-0.2vw'); // Set the margin before animation
+                collapsibleElement.animate({
+                    height: 'toggle'
+                }, 400);
             }
         }
+
+        // Save the state to localStorage
+        
+        
     });
 }, false);
 
