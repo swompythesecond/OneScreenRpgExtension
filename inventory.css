@@ -280,7 +280,8 @@ div {
 }
 
 .add-bless-button:hover {
-  color: #C0C146;
+  color: white;
+  background-color: #6f6f7f8c;
 }
 
 #namePlate {
