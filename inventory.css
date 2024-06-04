@@ -1015,6 +1015,7 @@ input[type="range"] {
 
 #reset-blessings:hover {
   color: #C0C146;
+  background-color: #6f6f7f8c;
   text-shadow: -0.052vw 0 black, 0 0.052vw black, 0.052vw 0 black, 0 -0.052vw black; 
 }
 
