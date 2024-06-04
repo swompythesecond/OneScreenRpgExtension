@@ -908,7 +908,7 @@ window.addEventListener("DOMContentLoaded", function () {
     // Add click event for the close button
     $('.action-button.close').click(function () {
         if ($(this).hasClass('dry')) {
-            $(this).parent().parent().hide();
+            $(this).parent().parent().parent().hide();
         } else {
             var parentElement = $(this).closest('.expandable').parent();
             var collapsibleIndex = $('.collapsible').index(parentElement.find('.collapsible'));
