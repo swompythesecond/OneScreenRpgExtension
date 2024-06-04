@@ -321,6 +321,10 @@ div {
   background-color: rgba(89, 86, 82, 0.8);
 }
 
+.special {
+  margin-top: -0.2vw;
+}
+
 #statsBars {
   width: auto;
   text-align: center;
@@ -377,13 +381,28 @@ div {
   transform: translate(-50%, -50%);
   z-index: 1;
   color: white; /* or another contrasting color */
-  pointer-events: none; /* if you want to make sure it's not interactive */
+  /* pointer-events: none; */ /* if you want to make sure it's not interactive */
   font-size: 0.45vw;
   margin: 0;
   height: 100%;
   width: 100%; /* Ensure it covers the full width */
   text-align: center; /* Center text */
 }
+
+/*#hpBar .text:hover, #manaBar .text:hover {
+  display: none;
+} 
+
+#hpBar:hover::after, #manaBar:hover::after {
+  content: "Click to Heal";
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  flex-wrap: wrap;
+  height: 100%;
+  cursor: url(images/cursor/point.png) 10 0, auto !important;
+}*/
 
 .statBar>span {
   position: relative;
