@@ -694,7 +694,7 @@ try {
     });
 }
 catch (error) {
-    console.log("Share button not found")
+    //console.log("Share button not found")
 }
 
 let tooltipTimeout;
