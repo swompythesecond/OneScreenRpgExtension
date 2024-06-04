@@ -412,17 +412,22 @@ function animateAmount(element, oldValue, newValue, duration = 1800) {
     const steps = duration / stepTime;
     const increment = range / steps;
 
-    const timer = setInterval(() => {
+    if (element.animationTimer) {
+        clearInterval(element.animationTimer);
+    }
+
+    element.animationTimer = setInterval(() => {
         current += increment;
         element.innerHTML = formatItemAmount(Math.floor(current));
         if ((increment > 0 && current >= newValue) || (increment < 0 && current <= newValue)) {
             element.innerHTML = formatItemAmount(newValue);
-            clearInterval(timer);
+            clearInterval(element.animationTimer);
+            element.animationTimer = null;
         }
     }, stepTime);
 }
 
-function styleItem(item, itemElement, isDefault = false) {
+function styleItem(item, itemElement, isDefault = false, swapped = false) {
     // Check if itemElement already has a .item-amount element
     let amountDisplay = itemElement.querySelector('.item-amount');
     if (item.amount > 0) {
@@ -431,19 +436,30 @@ function styleItem(item, itemElement, isDefault = false) {
             amountDisplay.classList.add('item-amount');
             itemElement.appendChild(amountDisplay);
         }
+
+        // Stop any ongoing animation
+        clearInterval(amountDisplay.animationTimer);
+        amountDisplay.animationTimer = null;
+
         amountDisplay.classList.remove('item-amount-changed-up');
-        amountDisplay.classList.remove('item-amount-changed-down');        
-        void amountDisplay.offsetWidth;  
-        if (item.amount !== item.previousAmount && item.amount > item.previousAmount && item.previousAmount !== undefined) {
-            amountDisplay.classList.add('item-amount-changed-up');
-        } else if (item.amount !== item.previousAmount && item.amount < item.previousAmount && item.previousAmount !== undefined) {
-            amountDisplay.classList.add('item-amount-changed-down');
+        amountDisplay.classList.remove('item-amount-changed-down');
+        
+
+        console.log('swapped: ' + swapped);
+        if (!swapped) {                    
+            if (item.amount !== item.previousAmount && item.amount > item.previousAmount && item.previousAmount !== undefined) {
+                amountDisplay.classList.add('item-amount-changed-up');
+                animateAmount(amountDisplay, item.previousAmount, item.amount, 1800);
+            } else if (item.amount !== item.previousAmount && item.amount < item.previousAmount && item.previousAmount !== undefined) {
+                amountDisplay.classList.add('item-amount-changed-down');
+                animateAmount(amountDisplay, item.previousAmount, item.amount, 1800);
+            } else {
+                amountDisplay.innerHTML = formatItemAmount(item.amount);
+            }
+        } else {
+            amountDisplay.innerHTML = formatItemAmount(item.amount);
         }
 
-        if (item.amount !== item.previousAmount && item.previousAmount !== undefined)
-            animateAmount(amountDisplay, item.previousAmount, item.amount, 1800);
-        else
-            amountDisplay.innerHTML = formatItemAmount(item.amount);
     } else {
         if (amountDisplay) {
             itemElement.removeChild(amountDisplay);
@@ -804,7 +820,26 @@ window.addEventListener("DOMContentLoaded", function () {
         }
 
         // Toggle the visibility
-        collapsibleElement.slideToggle();
+        if (!$(collapsibleElement).hasClass('special')){
+            console.log('teste');
+            collapsibleElement.slideToggle();
+        } else {
+            if (collapsibleElement.is(':visible')) {
+              // If the element is visible, slide up
+              collapsibleElement.animate({
+                height: 'toggle'
+              }, 400, function() {
+                // Ensure the margin-top is reapplied after animation
+                collapsibleElement.css('margin-top', '-0.2vw');
+              });
+            } else {
+              // If the element is hidden, slide down
+              collapsibleElement.css('margin-top', '-0.2vw'); // Set the margin before animation
+              collapsibleElement.animate({
+                height: 'toggle'
+              }, 400);
+            }
+        }
     });
 }, false);
 
@@ -1267,7 +1302,7 @@ function createItemElement(itemObj, type) {
     return newItemElement;
 }
 
-function updateItemElement(itemElement, itemObj, type) {
+function updateItemElement(itemElement, itemObj, type, swapped) {
     const item = itemObj.fullItem;
     const position = itemObj.position;
     itemElement.className = `inventory-item ${item.name.replace(/\s+/g, '')}`;
@@ -1288,7 +1323,7 @@ function updateItemElement(itemElement, itemObj, type) {
     }
 
     item.previousAmount = itemObj.previousAmount;
-    styleItem(item, itemElement);
+    styleItem(item, itemElement, false, swapped);
     tooltips[type][type === 'selectedItems' ? item.kind : position] = generateItemTooltip(item, itemElement.style.backgroundImage);
 
     const imageName = getImageName(item);
@@ -1389,7 +1424,7 @@ function loadInventory(user, force = false) {
             if (existingItemElement) {
                 if (!compareItems(currentItem.fullItem, prevItem)) {
                     currentItem.previousAmount = prevItem.amount;
-                    updateItemElement(existingItemElement, currentItem, 'inventory');
+                    updateItemElement(existingItemElement, currentItem, 'inventory', prevItem.swapped === true);
                 }
             } else {
                 const newInventoryItem = createItemElement(currentItem, 'inventory');
@@ -1456,7 +1491,7 @@ function loadInventory(user, force = false) {
                 if (existingItemElement) {
                     if (!compareItems(currentItem.fullItem, prevItem)) {
                         currentItem.previousAmount = prevItem.amount;
-                        updateItemElement(existingItemElement, currentItem, 'stash');
+                        updateItemElement(existingItemElement, currentItem, 'stash', prevItem.swapped === true);
                     }
                 } else {
                     const newStashItem = createItemElement(currentItem, 'stash');
@@ -1465,7 +1500,7 @@ function loadInventory(user, force = false) {
             } else if (existingItemElement) {
                 existingItemElement.remove();
             }
-
+                
             // Update the previous state for this item
             previousStashState[i] = {...currentItem};
         }
@@ -1502,7 +1537,7 @@ function loadInventory(user, force = false) {
                 if (existingItemElement) {
                     if (!compareItems(currentItem.fullItem, prevItem)) {
                         currentItem.previousAmount = prevItem.amount;
-                        updateItemElement(existingItemElement, currentItem, 'selectedItems');
+                        updateItemElement(existingItemElement, currentItem, 'selectedItems', prevItem.swapped === true);
                     }
                 } else {
                     const newSelectedItem = createItemElement(currentItem, 'selectedItems');
@@ -1511,7 +1546,7 @@ function loadInventory(user, force = false) {
             } else if (existingItemElement) {
                 existingItemElement.remove();
             }
-
+                
             // Update the previous state for this item
             previousSelectedItemsState[item] = {...currentItem};
         }
@@ -2102,7 +2137,7 @@ function sellItem(slotNumber, isStash, item, amount = -1, callback = false) {
         })
         .then(data => {
             if (data.user.stats !== undefined){
-                loadInventory(data.user, true);
+                loadInventory(data.user);
                 $('#delete-item').addClass('sold-item');
                 setTimeout(() => {
                     $('#delete-item').removeClass('sold-item');
@@ -2113,7 +2148,9 @@ function sellItem(slotNumber, isStash, item, amount = -1, callback = false) {
                     $('#delete-item').removeClass('cannot-sell');
                 }, 1500);
             }
-            callback(data.user.stats !== undefined);
+            if (typeof callback === 'function') {
+                callback(data.user.stats !== undefined);
+            }
         })
         .catch(error => {
             console.error(error);
