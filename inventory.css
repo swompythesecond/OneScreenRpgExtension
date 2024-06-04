@@ -321,6 +321,24 @@ div {
   background-color: rgba(89, 86, 82, 0.8);
 }
 
+.hud-container.settings {
+  position: absolute;
+  top: calc(50% - 15vw);
+  left: calc(50% - 15vw);
+  width: 30vw;
+  height: 30vw;
+}
+
+#settings {
+  border-top-style: solid;
+  border-image-source: url(images/border-image.png);
+  border-image-repeat: repeat;
+  border-image-slice: 6 6 6 6;
+  border-top-image-width: 0.3vw;
+  border-top-width: 0.2vw;
+  /* padding: 0.3vw; */
+}
+
 .special {
   margin-top: -0.2vw;
 }
@@ -369,9 +387,10 @@ div {
 
 #hpBar , #manaBar, #xpBar {
   position: relative; /* Ensure that the text position is absolute relative to these bars */
+  cursor: url(images/cursor/point.png) 10 0, auto !important;
 }
 
-#hpBar .text, #manaBar .text, #xpBar .text {
+#hpBar .text, #hpBar .heal, #manaBar .text, #manaBar .heal, #xpBar .text {
   display: flex; /* Enable Flexbox */
   justify-content: center; /* Center horizontally */
   align-items: center; /* Center vertically */
@@ -381,7 +400,6 @@ div {
   transform: translate(-50%, -50%);
   z-index: 1;
   color: white; /* or another contrasting color */
-  /* pointer-events: none; */ /* if you want to make sure it's not interactive */
   font-size: 0.45vw;
   margin: 0;
   height: 100%;
@@ -389,8 +407,13 @@ div {
   text-align: center; /* Center text */
 }
 
-/*#hpBar .text:hover, #manaBar .text:hover {
+#hpBar div, #manaBar div, #hpBar p, #manaBar p {
+  pointer-events: none;
+}
+
+/*#hpBar:hover .text, #manaBar:hover .text {
   display: none;
+  cursor: url(images/cursor/point.png) 10 0, auto !important;
 } 
 
 #hpBar:hover::after, #manaBar:hover::after {
@@ -437,7 +460,7 @@ div {
   padding: 0.3vw;
 }
 
-.expandable.header {
+.header {
   text-align: left;
   font-size: 0.5vw;
   overflow-wrap: break-word;
@@ -452,27 +475,29 @@ div {
   align-items: center;
 }
 
-.expandable.header p {
+.header p {
   margin: 0;
 }
 
-.expandable.header .toggle-collapse-button {
+.action-buttons {
   margin-left: auto;
   margin-right: 0;
+  display: flex;
+  gap: 0;
 }
 
-.toggle-collapse-button {
+.action-buttons .action-button {
   background-color: transparent;
   border: 0;
   color: white;
   font-family: arcade;
-  font-size: 0.5vw;
+  font-size: 0.6vw;
   width: 1.0vw;
   cursor: url(images/cursor/point.png) 10 0, auto !important;
   padding: 0;
 }
 
-.toggle-collapse-button:hover {
+.action-buttons .action-button:hover {
   color: #C0C146;
 }
 
@@ -643,6 +668,19 @@ div {
   position: absolute;
   top: 95%;
   left: 16%;
+  width: 2vw;
+  height: 2vw;
+  background-image: url('images/inventory_background/stash.png');
+  background-size: cover;
+  display: block;
+  cursor: url(images/cursor/point.png) 10 0, auto !important;
+  font-size: 0.5vw;
+}
+
+#settings-button {
+  position: absolute;
+  top: 95%;
+  left: 20%;
   width: 2vw;
   height: 2vw;
   background-image: url('images/inventory_background/stash.png');
@@ -1284,4 +1322,98 @@ ui-tooltip::before,
 .highlight-slot {
     border: 2px solid #FFD700; /* Gold color for highlight */
     background-color: rgba(255, 215, 0, 0.2); /* Light gold background */
+}
+
+.rpgui-container {
+  font-size: 0.5vw;
+  padding: 0.3vw;
+}
+
+/* Tab list styling */
+.rpgui-tabs-list {
+    display: flex;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.rpgui-tab {
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: #444;
+    /*border: 2px solid #777;
+    border-bottom: none;
+    border-radius: 5px 5px 0 0;*/
+    margin-right: 5px;
+    transition: background-color 0.3s, border-color 0.3s;
+    border-image-source: url(images/border-image.png);
+    border-image-repeat: repeat;
+    border-image-slice: 6 6 6 6;
+    border-top-style: solid;
+    border-top-image-width: 0.3vw;
+    border-top-width: 0.2vw;
+    border-left-style: solid;
+    border-left-image-width: 0.3vw;
+    border-left-width: 0.2vw;
+    border-right-style: solid;
+    border-right-image-width: 0.3vw;
+    border-right-width: 0.2vw;
+    border-bottom: none;
+}
+
+.rpgui-tab:hover {
+    background-color: #555;
+    border-color: #888;
+}
+
+.rpgui-tab.active {
+    background-color: #222;
+    color: yellow
+}
+
+/* Tab content styling */
+.rpgui-tab-content {
+    background-color: #333;
+    border-image-source: url(images/border-image.png);
+    border-image-repeat: repeat;
+    border-image-slice: 6 6 6 6;
+    border-style: solid;
+    border-image-width: 0.3vw;
+    border-width: 0.2vw;
+    height: 25.5vw;
+    padding: 0.2vw 0.5vw;
+}
+
+input[type=checkbox].rpgui-checkbox {
+    display: none;
+}
+
+.rpgui-tab-content p {
+  margin-left: 0.2vw;
+}
+
+.checkbox-group > div {
+    margin-bottom: 0.2vw; /* Adjust the value as needed */
+}
+
+.checkbox-group > div:last-child {
+    margin-bottom: 0;
+}
+
+input[type=checkbox].rpgui-checkbox+label {
+    background: url(images/checkbox-off.png) no-repeat;
+    line-height: 1.5vw;
+    display: inline-block;
+    background-size: auto 100%;
+    padding-left: 2vw;
+    height: 1.5vw;
+}
+
+input[type=checkbox].rpgui-checkbox:checked+label {
+    background: url(images/checkbox-on.png) no-repeat;
+    line-height: 1.5vw;
+    display: inline-block;
+    background-size: auto 100%;
+    padding-left: 2vw;
+    height: 1.5vw;
 }
