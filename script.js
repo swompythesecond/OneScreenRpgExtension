@@ -833,36 +833,6 @@ window.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Update checkboxes based on localStorage
-    $(".rpgui-checkbox").each(function () {
-        var checkbox = $(this);
-        var dataId = checkbox.data("id");
-        var closeState = localStorage.getItem('close_' + dataId);
-
-        if (closeState === 'closed') {
-            checkbox.prop('checked', false);
-            $('[data-id="' + dataId + '"]').closest('.movable').hide();
-        } else {
-            checkbox.prop('checked', true);
-            $('[data-id="' + dataId + '"]').closest('.movable').show();
-        }
-    });
-
-    // Handle checkbox changes
-    $(".rpgui-checkbox").change(function () {
-        var checkbox = $(this);
-        var dataId = checkbox.data("id");
-        var parentElement = $('[data-id="' + dataId + '"]').closest('.movable');
-
-        if (checkbox.is(':checked')) {
-            parentElement.show();
-            localStorage.setItem('close_' + dataId, 'visible');
-        } else {
-            parentElement.hide();
-            localStorage.setItem('close_' + dataId, 'closed');
-        }
-    });
-
     $('.action-button.collapse').click(function () {
         var collapsibleElement = $(this).parent().parent().next('.collapsible');
         var isCurrentlyVisible = collapsibleElement.is(":visible");
@@ -906,21 +876,18 @@ window.addEventListener("DOMContentLoaded", function () {
     });
 
     // Add click event for the close button
-    $('.action-button.close').click(function () {
-        if ($(this).hasClass('dry')) {
-            $(this).parent().parent().parent().hide();
-        } else {
-            var parentElement = $(this).closest('.expandable').parent();
-            var collapsibleIndex = $('.collapsible').index(parentElement.find('.collapsible'));
-    
-            // Hide the element and save the state
-            parentElement.hide();
-            localStorage.setItem('close_' + collapsibleIndex, 'closed');
-        }
+    $('.action-button.close:not(.dry)').click(function () {
+        var parentElement = $(this).closest('.expandable').parent();
+        var collapsibleIndex = $('.collapsible').index(parentElement.find('.collapsible'));
+
+        // Hide the element and save the state
+        parentElement.hide();
+        localStorage.setItem('close_' + collapsibleIndex, 'closed');
+        $('#chk-' + parentElement.attr('data-id')).prop('checked', false);
     });
 
     $('.action-button.close.dry').click(function () {
-        $(this).parent().parent().hide();
+        $(this).parent().parent().parent().hide();
     });
 
     // Make .movable elements sortable
@@ -957,6 +924,41 @@ window.addEventListener("DOMContentLoaded", function () {
             });
         }
     }
+
+    // Restore the checkbox states
+    function restoreCheckboxStates() {
+        $('.hud-settings .rpgui-checkbox').each(function () {
+            var containerId = $(this).attr('id');
+            var value = $(this).val();
+            var state = localStorage.getItem(value);
+
+            if (state === 'closed') {
+                $(this).prop('checked', false);
+            } else {
+                $(this).prop('checked', true);
+            }
+        });
+    }
+
+    restoreCheckboxStates();
+
+    // Add event listeners to the checkboxes
+    $('.hud-settings .rpgui-checkbox').change(function () {
+        var containerId = $(this).attr('id');
+        containerId = containerId.replace('chk-', '');
+        var value = $(this).val();
+        var isChecked = $(this).is(':checked');
+
+        const hudContainer = $(`.movable[data-id='${containerId}']`);
+
+        if (isChecked) {
+            hudContainer.show();
+            localStorage.removeItem(value);
+        } else {
+            hudContainer.hide()
+            localStorage.setItem(value, 'closed');
+        }
+    });
 }, false);
 
 document.querySelector("#craft").addEventListener("click", function () {
@@ -1039,6 +1041,11 @@ $(document).on('click', '#hpBar, #manaBar', function (event) {
     event.stopPropagation();
     $('.context-menu-list').trigger('contextmenu:hide');
     heal($(event.target).attr('id'));
+});
+
+document.querySelector("#heal").addEventListener("click", function () {
+    event.stopPropagation();
+    heal();
 });
 
 $(document).on('mouseover', '#hpBar, #manaBar', function (event) {
