@@ -443,6 +443,7 @@ function styleItem(item, itemElement, isDefault = false, swapped = false) {
 
         amountDisplay.classList.remove('item-amount-changed-up');
         amountDisplay.classList.remove('item-amount-changed-down');
+        void amountDisplay.offsetWidth;
         
         if (!swapped) {                    
             if (item.amount !== item.previousAmount && item.amount > item.previousAmount && item.previousAmount !== undefined) {
@@ -664,6 +665,7 @@ function initExtension() {
             }
         }, 1000);
         initializeContextMenu();
+        $('#settings-tabs').tabs();
     }).catch(error => {
         console.error('Initial inventory retrieval failed:', error);
         // Optionally start the interval even if the initial call fails
@@ -721,6 +723,16 @@ document.addEventListener('mouseup', function (event) {
         clearTimeout(mouseReleaseTimer);
         mouseReleaseTimer = setTimeout(setIsLeftMouseButtonPressedToFalse, 200)
     }
+});
+
+document.querySelectorAll('.rpgui-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        document.querySelectorAll('.rpgui-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.rpgui-tab-content').forEach(content => content.style.display = 'none');
+        
+        this.classList.add('active');
+        document.getElementById(this.getAttribute('data-tab')).style.display = 'block';
+    });
 });
 
 function setIsLeftMouseButtonPressedToFalse() {
@@ -808,18 +820,53 @@ window.addEventListener("DOMContentLoaded", function () {
     $('.collapsible').each(function (index) {
         var collapsibleElement = $(this);
         var state = localStorage.getItem('collapsible_' + index);
-        var buttonElement = $(this).prev('.expandable').children('.toggle-collapse-button');
+        var buttonElement = $(this).prev('.expandable').children().find('.action-button.collapse');
 
         if (state === 'hidden') {
             collapsibleElement.hide();
             buttonElement.text('+');
         }
+
+        var closeState = localStorage.getItem('close_' + index);
+        if (closeState === 'closed') {
+            collapsibleElement.parent().hide(); // Hide the entire section including expandable button
+        }
     });
 
-    $('.expandable').click(function () {
-        var collapsibleElement = $(this).next('.collapsible');
+    // Update checkboxes based on localStorage
+    $(".rpgui-checkbox").each(function () {
+        var checkbox = $(this);
+        var dataId = checkbox.data("id");
+        var closeState = localStorage.getItem('close_' + dataId);
+
+        if (closeState === 'closed') {
+            checkbox.prop('checked', false);
+            $('[data-id="' + dataId + '"]').closest('.movable').hide();
+        } else {
+            checkbox.prop('checked', true);
+            $('[data-id="' + dataId + '"]').closest('.movable').show();
+        }
+    });
+
+    // Handle checkbox changes
+    $(".rpgui-checkbox").change(function () {
+        var checkbox = $(this);
+        var dataId = checkbox.data("id");
+        var parentElement = $('[data-id="' + dataId + '"]').closest('.movable');
+
+        if (checkbox.is(':checked')) {
+            parentElement.show();
+            localStorage.setItem('close_' + dataId, 'visible');
+        } else {
+            parentElement.hide();
+            localStorage.setItem('close_' + dataId, 'closed');
+        }
+    });
+
+    $('.action-button.collapse').click(function () {
+        var collapsibleElement = $(this).parent().parent().next('.collapsible');
         var isCurrentlyVisible = collapsibleElement.is(":visible");
-        var buttonElement = $(this).children('.toggle-collapse-button');
+        var buttonElement = $(this);
 
         // Log the action based on current visibility
         if (isCurrentlyVisible) {
@@ -856,11 +903,56 @@ window.addEventListener("DOMContentLoaded", function () {
                 }, 400);
             }
         }
-
-        // Save the state to localStorage
-        
-        
     });
+
+    // Add click event for the close button
+    $('.action-button.close:not(.dry)').click(function () {
+        var parentElement = $(this).closest('.expandable').parent();
+        var collapsibleIndex = $('.collapsible').index(parentElement.find('.collapsible'));
+
+        // Hide the element and save the state
+        parentElement.hide();
+        localStorage.setItem('close_' + collapsibleIndex, 'closed');
+    });
+
+    $('.action-button.close.dry').click(function () {
+        $(this).parent().parent().hide();
+    });
+
+    // Make .movable elements sortable
+    $("#main-hud-container").sortable({
+        items: ".movable",
+        update: function(event, ui) {
+            saveOrder();
+        }
+    });
+
+    // Restore the saved order
+    restoreOrder();
+
+    function saveOrder() {
+        var order = $(".movable").map(function() {
+            return $(this).data("id");
+        }).get();
+        localStorage.setItem('sortableOrder', JSON.stringify(order));
+    }
+
+    function restoreOrder() {
+        var order = JSON.parse(localStorage.getItem('sortableOrder'));
+        var defaultOrder = ["health", "stats", "mission", "blessings", "inventory"];
+        
+        if (!order || order.length === 0 || order == defaultOrder) {
+            order = defaultOrder;
+        }
+
+        if (order != defaultOrder){        
+            var container = $("#main-hud-container");
+            $.each(order, function(index, value) {
+                var item = $('[data-id="' + value + '"]');
+                container.append(item);
+            });
+        }
+    }
 }, false);
 
 document.querySelector("#craft").addEventListener("click", function () {
@@ -901,10 +993,7 @@ document.querySelector("#stash").addEventListener("click", function () {
     }
 });
 
-
-document.querySelector("#heal").addEventListener("click", function () {
-    event.stopPropagation();
-    $('.context-menu-list').trigger('contextmenu:hide');
+function heal(element = false){
     jwt = window.Twitch.ext.viewer.sessionToken;
 
     fetch(myServer + '/heal', {
@@ -916,19 +1005,46 @@ document.querySelector("#heal").addEventListener("click", function () {
             jwt: jwt,
             accessToken: accessToken
         }),
-    })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error(response.statusText);
+    }).then(response => {
+        if (response.ok) {
+            if (element){
+                $('#' + element + ' .heal').text('Healed');
+                setTimeout(() => {
+                    $('#' + element + ' .heal').text('Click to Heal');
+                }, 1000);
             }
-        })
-        .then(data => {
-        })
-        .catch(error => {
-            console.error(error);
-        });
+        } else {
+            if (element){
+                $('#' + element + ' .heal').text('Fail to Heal');
+                setTimeout(() => {
+                    $('#' + element + ' .heal').text('Click to Heal');
+                }, 1000);
+            }
+        }
+    })
+    .catch(error => {
+        console.error(error);
+    });
+}
+
+$(document).on('click', '#settings-button', function (event) {
+    $('.hud-container.settings').toggle();
+});
+
+$(document).on('click', '#hpBar, #manaBar', function (event) {
+    event.stopPropagation();
+    $('.context-menu-list').trigger('contextmenu:hide');
+    heal($(event.target).attr('id'));
+});
+
+$(document).on('mouseover', '#hpBar, #manaBar', function (event) {
+    $(event.target).children().find('.text').hide();
+    $(event.target).children().find('.heal').css('display', 'flex');
+});
+
+$(document).on('mouseout', '#hpBar, #manaBar', function (event) {
+    $(event.target).children().find('.text').css('display', 'flex');
+    $(event.target).children().find('.heal').hide();
 });
 
 document.querySelector("#quit").addEventListener("click", function () {
@@ -1062,7 +1178,7 @@ document.addEventListener('contextmenu', function (event) {
 document.addEventListener('click', function (event) {
     $('.ui-tooltip').remove();
     // Array of selectors to check
-    var selectors = ['#fullInventory', '#craftInventory', '#craftPreview', '#selectedInventory', '.context-menu-list', '#stashInventory', '#statsBars', '#stats', '#mission', '#blessings', '#blessBlessings', '.submenuSpan', '.stash-pagination', '.page-button', '.page-image', '#main-hud-container'];
+    var selectors = ['#fullInventory', '#craftInventory', '#craftPreview', '#selectedInventory', '.context-menu-list', '#stashInventory', '#statsBars', '#stats', '#mission', '#blessings', '#blessBlessings', '.submenuSpan', '.stash-pagination', '.page-button', '.page-image', '#main-hud-container', '.settings', '#settings-button'];
 
     // Check if click is inside any specified and visible elements
     let isContextMenu = event.target.closest('.context-menu-list');
@@ -1191,9 +1307,24 @@ function updateBars(hp, maxHp, mana, maxMana, xp, maxXp) {
     document.querySelector('#xpBar .progress').style.width = `${xpPercentage}%`;
 
     // Update the text content for hp and mana
-    document.querySelector('#hpBar .text').innerText = `${hp}/${maxHp}`;
-    document.querySelector('#manaBar .text').innerText = `${mana}/${maxMana}`;
-    document.querySelector('#xpBar .text').innerText = `${abbreviateNumber(xp)}/${abbreviateNumber(maxXp)}`;
+    const hpTextElement = document.querySelector('#hpBar .text');
+    const hpTextElementVisible = window.getComputedStyle(hpTextElement, null).display !== 'none';
+    
+    if (hpTextElementVisible){
+        hpTextElement.innerText = `${hp}/${maxHp}`;
+    }
+
+    const mpTextElement = document.querySelector('#manaBar .text');
+    const mpTextElementVisible = window.getComputedStyle(mpTextElement, null).display !== 'none';
+
+    if (mpTextElementVisible)
+        mpTextElement.innerText = `${mana}/${maxMana}`;
+
+    const xpTextElement = document.querySelector('#xpBar .text');
+    const xpTextElementVisible = window.getComputedStyle(xpTextElement, null).display !== 'none';
+    
+    if (xpTextElementVisible)
+        xpTextElement.innerText = `${abbreviateNumber(xp)}/${abbreviateNumber(maxXp)}`;
 }
 
 function changePage(newPage) {
