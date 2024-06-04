@@ -906,13 +906,17 @@ window.addEventListener("DOMContentLoaded", function () {
     });
 
     // Add click event for the close button
-    $('.action-button.close:not(.dry)').click(function () {
-        var parentElement = $(this).closest('.expandable').parent();
-        var collapsibleIndex = $('.collapsible').index(parentElement.find('.collapsible'));
-
-        // Hide the element and save the state
-        parentElement.hide();
-        localStorage.setItem('close_' + collapsibleIndex, 'closed');
+    $('.action-button.close').click(function () {
+        if ($(this).hasClass('dry')) {
+            $(this).parent().parent().hide();
+        } else {
+            var parentElement = $(this).closest('.expandable').parent();
+            var collapsibleIndex = $('.collapsible').index(parentElement.find('.collapsible'));
+    
+            // Hide the element and save the state
+            parentElement.hide();
+            localStorage.setItem('close_' + collapsibleIndex, 'closed');
+        }
     });
 
     $('.action-button.close.dry').click(function () {
