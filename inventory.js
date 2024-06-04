@@ -88,9 +88,11 @@ function preventAnimationWhenMoving(senderItemElement, receiverItemElement){
         var stashPosition = senderItemElement.attr('data-stashposition');
 
         if (inventoryPosition !== undefined && inventoryPosition > -1) {
-            previousInventoryState[inventoryPosition].fullItem.swapped = true;
+            if (previousInventoryState[inventoryPosition] && previousInventoryState[inventoryPosition].fullItem !== undefined)
+                previousInventoryState[inventoryPosition].fullItem.swapped = true;
         } else {
-            previousStashState[stashPosition].fullItem.swapped = true;
+            if (previousStashState[stashPosition] && previousStashState[stashPosition].fullItem !== undefined)
+                previousStashState[stashPosition].fullItem.swapped = true;
         }                        
     }
     if ($(receiverItemElement).hasClass('inventory-item')){
@@ -98,9 +100,11 @@ function preventAnimationWhenMoving(senderItemElement, receiverItemElement){
         var stashPosition = receiverItemElement.attr('data-stashposition');
         
         if (inventoryPosition !== undefined && inventoryPosition > -1) {
-            previousInventoryState[inventoryPosition].fullItem.swapped = true;
+            if (previousInventoryState[inventoryPosition] && previousInventoryState[inventoryPosition].fullItem !== undefined)
+                previousInventoryState[inventoryPosition].fullItem.swapped = true;
         } else {
-            previousStashState[stashPosition].fullItem.swapped = true;
+            if (previousStashState[stashPosition] && previousStashState[stashPosition].fullItem !== undefined)
+                previousStashState[stashPosition].fullItem.swapped = true;
         }
     }
 }
