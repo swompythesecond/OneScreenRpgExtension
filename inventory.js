@@ -122,7 +122,8 @@ function refreshSortableInventoryList() {
         },
         start: function(event, ui) {
             $(this).attr('moving', 'true');
-            $('.ui-tooltip').remove();
+            //$('.ui-tooltip').remove();
+            $(document).tooltip("disable");
 
             var senderItemElement = ui.item;
             var senderDataFullItem = senderItemElement.attr('data-fullitem');
@@ -136,6 +137,8 @@ function refreshSortableInventoryList() {
         stop: function(event, ui) {
             $(this).removeAttr('moving');
             $(ui.sender).removeAttr('moving');
+            $(document).tooltip("enable");
+            initTooltips();
             var senderItemElement = ui.item;
             var senderDataFullItem = senderItemElement.attr('data-fullitem');
             var senderIsEquipped = senderItemElement.attr('data-equipped');
