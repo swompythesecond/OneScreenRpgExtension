@@ -312,8 +312,8 @@ function generateBlessingTooltip(blessing, total) {
         `Current Blessings: ${total}<br>` +
         `Next Blessing Cost: ${abbreviateNumber(nextBlessingCost)}<br><br>` +
         `Click to buy/assign 1 ${blessingName} blessing.<br>` +
-        `CTRL + Click to buy/assign 100 ${blessingName} blessing.<br>` +
-        `SHIFT + Click to assign all free blessings to ${blessingName} blessing. <strong>WARNING:</strong> This will use all your money on blessings if you don't have any free blessings available.`;
+        `<span style="color: green;">CTRL</span> + <span style="color: lightblue;">Click</span> to buy/assign 100 ${blessingName} blessing.<br>` +
+        `<span style="color: purple;">SHIFT</span> + <span style="color: lightblue;">Click</span> to assign all free blessings to ${blessingName} blessing.<br><span style="color: red;">WARNING</span> If you don't have free blessings all your money will be used.`;
 
     return blessingTooltip;
 }
@@ -441,16 +441,21 @@ function styleItem(item, itemElement, isDefault = false, swapped = false) {
         clearInterval(amountDisplay.animationTimer);
         amountDisplay.animationTimer = null;
 
-        amountDisplay.classList.remove('item-amount-changed-up');
-        amountDisplay.classList.remove('item-amount-changed-down');
-        void amountDisplay.offsetWidth;
-        
-        if (!swapped) {                    
+        if (!swapped) {                 
+            amountDisplay.classList.remove('item-amount-changed-up');
+            amountDisplay.classList.remove('item-amount-changed-down');
+            void amountDisplay.offsetWidth;
             if (item.amount !== item.previousAmount && item.amount > item.previousAmount && item.previousAmount !== undefined) {
                 amountDisplay.classList.add('item-amount-changed-up');
+                setTimeout(() => {
+                    amountDisplay.classList.remove('item-amount-changed-up');
+                }, 2000);
                 animateAmount(amountDisplay, item.previousAmount, item.amount, 1800);
             } else if (item.amount !== item.previousAmount && item.amount < item.previousAmount && item.previousAmount !== undefined) {
                 amountDisplay.classList.add('item-amount-changed-down');
+                setTimeout(() => {
+                    amountDisplay.classList.remove('item-amount-changed-down');
+                }, 2000);
                 animateAmount(amountDisplay, item.previousAmount, item.amount, 1800);
             } else {
                 amountDisplay.innerHTML = formatItemAmount(item.amount);
@@ -620,7 +625,7 @@ function initExtension() {
             }
             else {
                 type = 'selectedItems';
-                position = $(this).attr('data-itemType');
+                position = $(this).attr('data-item-type');
             }
             // Fetch the tooltip content from the global tooltips object
             return tooltips[type][position] || '';
@@ -694,7 +699,7 @@ try {
     });
 }
 catch (error) {
-    //console.log("Share button not found")
+    console.log("Share button not found")
 }
 
 let tooltipTimeout;
@@ -942,7 +947,7 @@ window.addEventListener("DOMContentLoaded", function () {
 
     restoreCheckboxStates();
 
-    // Add event listeners to the checkboxes
+    // Add event listeners to hud checkboxes
     $('.hud-settings .rpgui-checkbox').change(function () {
         var containerId = $(this).attr('id');
         containerId = containerId.replace('chk-', '');
@@ -959,7 +964,33 @@ window.addEventListener("DOMContentLoaded", function () {
             localStorage.setItem(value, 'closed');
         }
     });
+
+    // Add event listeners to autolock checkboxes
+    $('.autolock-settings .rpgui-checkbox').change(function () {
+        var value = $(this).val();
+        autolock(value);
+    });
+    
 }, false);
+
+function autolock(type){
+    jwt = window.Twitch.ext.viewer.sessionToken;
+
+    fetch(myServer + '/setAutolock', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            jwt: jwt,
+            accessToken: accessToken,
+            autoLock: type
+        }),
+    })
+    .catch(error => {
+        console.error(error);
+    });
+}
 
 document.querySelector("#craft").addEventListener("click", function () {
     event.stopPropagation();
@@ -1033,8 +1064,31 @@ function heal(element = false){
     });
 }
 
+function resetBlessings(){
+    jwt = window.Twitch.ext.viewer.sessionToken;
+
+    fetch(myServer + '/resetBlessings', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            jwt: jwt,
+            accessToken: accessToken
+        }),
+    })
+    .catch(error => {
+        console.error(error);
+    });
+}
+
 $(document).on('click', '#settings-button', function (event) {
     $('.hud-container.settings').toggle();
+});
+
+$(document).on('click', '#reset-blessings', function (event) {
+    console.log('test');
+    resetBlessings();
 });
 
 $(document).on('click', '#hpBar, #manaBar', function (event) {
@@ -1293,20 +1347,6 @@ function findFirstCraftableItem(craftingTable) {
     return null;
 }
 
-function adjustPlayerFontSize() {
-  const namePlate = document.getElementById('namePlate');
-  const playerName = document.getElementById('playerName');
-
-  let fontSize = parseFloat(window.getComputedStyle(playerName).fontSize);
-  const namePlateWidth = namePlate.clientWidth - parseFloat(window.getComputedStyle(namePlate).paddingLeft) - parseFloat(window.getComputedStyle(namePlate).paddingRight);
-
-  // Adjust the font size until the text fits within the namePlate
-  while (playerName.scrollWidth > namePlateWidth && fontSize > 0) {
-    fontSize -= 0.1;
-    playerName.style.fontSize = fontSize + 'px';
-  }
-}
-
 function updateBars(hp, maxHp, mana, maxMana, xp, maxXp) {
     const hpPercentage = (hp / maxHp) * 100;
     const manaPercentage = (mana / maxMana) * 100;
@@ -1381,6 +1421,12 @@ function updateBlessing(blessing, total, force = false){
     document.getElementById("blessing" + capitalizeFirstLetter(blessing)).innerHTML = total;
 }
 
+function updateAutoLockSettings(autolock){
+    Object.keys(autolock).forEach(key => {
+      $('#autolock-' + key).prop('checked', autolock[key]);
+    });
+}
+
 function updateUI(user){
     if (user === undefined){
         console.error('Error updating the UI');
@@ -1390,16 +1436,19 @@ function updateUI(user){
     let _mission = user.mission;
 
     if (user.metaData.hp !== undefined) {
-        updateBars(user.metaData.hp, user.metaData.maxHp, user.metaData.mana, user.metaData.maxMana, _stats.xp, Math.floor((50 * (_stats.lvl ** 2))));
+        _metaData = user.metaData;
+        
+        updateBars(_metaData.hp, _metaData.maxHp, _metaData.mana, _metaData.maxMana, _stats.xp, Math.floor((50 * (_stats.lvl ** 2))));
+
+        document.getElementById("statsDamage").innerText = abbreviateNumber(_metaData.damage);
+        document.getElementById("statsAttackSpeed").innerText = (_metaData.attackSpeed + "/S");
+        document.getElementById("statsArmor").innerText = abbreviateNumber(_metaData.armor);
+        document.getElementById("statsMagicResistance").innerText = abbreviateNumber(_metaData.magicResist);
     }
 
     document.getElementById("statsLvl").innerText = "Level: " + _stats.lvl;
     document.getElementById("statsGold").innerText = abbreviateNumber(_stats.gold);
     document.getElementById("statsPremiumCurrency").innerText = _stats.premiumCurrency ?? 0;
-    document.getElementById("statsDamage").innerText = abbreviateNumber(_stats.damage);
-    document.getElementById("statsAttackSpeed").innerText = (_stats.attackSpeed ? _stats.attackSpeed + "/SEC" : 0);
-    document.getElementById("statsArmor").innerText = abbreviateNumber(_stats.armor);
-    document.getElementById("statsMagicResistance").innerText = abbreviateNumber(_stats.magicResistance ?? 0);
 
     document.getElementById("missionTitle").style.display = "block";
     document.getElementById("missionText").innerText = _mission.text;
@@ -1419,7 +1468,10 @@ function updateUI(user){
     updateBlessing("xp", user.blessings.xpGain);
 
     document.getElementById('playerName').innerText = `${user.username}`;
-    //adjustPlayerFontSize();
+
+    if (user.metaData.autolock !== undefined) {
+        updateAutoLockSettings(user.metaData.autolock);
+    }    
 }
 
 function createItemElement(itemObj, type) {
