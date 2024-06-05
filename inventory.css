@@ -952,8 +952,8 @@ input[type="range"] {
 
 .inventory-item {
   position: relative;
-  width: 1.8vw;
-  height: 1.8vw;
+  width: 1.8vw !important;
+  height: 1.8vw !important;
   background-repeat: no-repeat;
   cursor: url(images/cursor/point.png) 10 0, auto !important;
   -webkit-transition: opacity 0.3s ease;
