@@ -470,7 +470,6 @@ div {
   padding-right: 0.3vw;
   padding-top: 0.2vw;
   padding-bottom: 0.1vw;
-  cursor: url(images/cursor/point.png) 10 0, auto !important;
   display: flex;
   align-items: center;
 }
@@ -683,7 +682,7 @@ div {
   left: 20%;
   width: 2vw;
   height: 2vw;
-  background-image: url('images/inventory_background/stash.png');
+  background-image: url('images/inventory_background/settings.png');
   background-size: cover;
   display: block;
   cursor: url(images/cursor/point.png) 10 0, auto !important;
@@ -935,7 +934,7 @@ input[type="range"] {
 }
 
 .context-menu-item.osrsubmenu > span:after {
-  content: "Ã¢â€“Â¶";
+  content: "ÃƒÂ¢Ã¢â‚¬â€œÃ‚Â¶";
   float: right;
   margin-left: 0.52vw; 
   color: white;
@@ -991,7 +990,12 @@ input[type="range"] {
   width: 2.8vw; 
   height: 2.8vw; 
   background-size: cover;
-  border: 0.052vw solid #351100; 
+  border-image-source: url(images/border-image.png);
+  border-image-repeat: repeat;
+  border-image-slice: 6 6 6 6;
+  border-style: solid;
+  border-image-width: 0.3vw;
+  border-width: 0.2vw;
   background-color: linear-gradient(145deg, #7A7875, #595652);
   border-radius: 0.52vw; 
 }
@@ -1094,38 +1098,17 @@ input[type="range"] {
 }
 
 .ui-tooltip {
-  background-color: #595652;
-  border: 0.42vw solid #ae6834; 
-  border-radius: 0.52vw; 
-  background-size: 100% 100% !important;
-  background-position: center center !important;
+  background-color: rgba(89, 86, 82, 0.9);
+  border-image-source: url(images/border-image.png);
+  border-image-repeat: repeat;
+  border-image-slice: 6 6 6 6;
+  border-style: solid;
+  border-image-width: 0.3vw;
+  border-width: 0.2vw; 
   color: white;
   width: 18.2vw; 
   padding: 0.26vw 3.33vw 0.26vw 0.52vw; 
   z-index: 101;
-}
-
-ui-tooltip::before,
-.ui-tooltip::after {
-  content: "";
-  position: absolute;
-  top: -0.1vw;
-  left: -0.1vw; 
-  right: -0.1vw; 
-  bottom: -0.1vw;
-  border-radius: 0.52vw;
-}
-
-.ui-tooltip::before {
-  border: 0.15vw solid black !important;
-  top: -0.42vw; 
-  left: -0.42vw; 
-  right: -0.42vw;
-  bottom: -0.42vw; 
-}
-
-.ui-tooltip::after {
-  border: 0.15vw solid black;
 }
 
 .ui-tooltip-content {
@@ -1320,8 +1303,8 @@ ui-tooltip::before,
 }
 
 .highlight-slot {
-    border: 2px solid #FFD700; /* Gold color for highlight */
-    background-color: rgba(255, 215, 0, 0.2); /* Light gold background */
+  border: 0.2vw solid #FFD700; /* Gold color for highlight */
+  background-color: rgba(255, 215, 0, 0.2); /* Light gold background */
 }
 
 .rpgui-container {
