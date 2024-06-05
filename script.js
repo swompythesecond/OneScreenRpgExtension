@@ -34,6 +34,19 @@ const itemsPerPage = 50;
 let previousInventoryState = {};
 let previousStashState = {};
 let previousSelectedItemsState = {};
+let meterRunning = false;
+var xpMeter = {
+    cumulativeXpCache: 0,
+    lastLevelChecked: 0,
+    xp: 0,
+    startingXp: 0,
+    startingXpPerMinute: 0,
+    minuteCount: 0,
+    startingLevelsMinute: 0,
+    startingLevelsTotal: 0
+}
+var meterMinuteTimer;
+var updateMeterInfo = false;
 
 class RequestQueue {
     constructor() {
@@ -668,7 +681,7 @@ function initExtension() {
             if (settingInventory){
                 getUIInfo().catch(err => console.error('Failed to get UI Info:', err));
             }
-        }, 1000);
+        }, 2000);
         initializeContextMenu();
         $('#settings-tabs').tabs();
     }).catch(error => {
@@ -858,6 +871,9 @@ window.addEventListener("DOMContentLoaded", function () {
             } else {
                 localStorage.setItem('collapsible_' + collapsibleIndex, 'visible');
             }
+            if (isCurrentlyVisible && buttonElement.prev('.expand')){
+                buttonElement.prev('.expand').trigger('click');
+            }
             collapsibleElement.slideToggle();
         } else {
             if (isCurrentlyVisible) {
@@ -889,6 +905,27 @@ window.addEventListener("DOMContentLoaded", function () {
         parentElement.hide();
         localStorage.setItem('close_' + collapsibleIndex, 'closed');
         $('#chk-' + parentElement.attr('data-id')).prop('checked', false);
+    });
+
+    $('.action-button.expand').click(function () {
+        var buttonElement = $(this);
+        var collapsibleElement = $(this).parent().parent().next('.collapsible');
+        var isCurrentlyVisible = collapsibleElement.is(":visible");
+      
+        if ($(this).parent().parent().parent().hasClass('expanded')) {
+            $('.stats-meter .meter' + meterRunning ? '.stopped' : '.running').hide();
+            $('.stats').removeClass('full');
+            $(this).parent().parent().parent().removeClass('expanded');
+            buttonElement.text('→');
+        } else {
+            $('.stats-meter .meter' +  meterRunning ? '.stopped' : '.running').show();
+            $('.stats').addClass('full');
+            $(this).parent().parent().parent().addClass('expanded');
+            buttonElement.text('←');
+            if (!isCurrentlyVisible){
+                buttonElement.next('.collapse').trigger('click');
+            }
+        }
     });
 
     $('.action-button.close.dry').click(function () {
@@ -970,8 +1007,45 @@ window.addEventListener("DOMContentLoaded", function () {
         var value = $(this).val();
         autolock(value);
     });
+
+    $('.start-session-button').click(function () {
+        $('.meter.stopped').hide();
+        $('.meter.running').show();
+        startXPMeter();
+    });
+
+    $('.stop-session-button').click(function () {
+        $('.meter.running').hide();
+        $('.meter.stopped').show();
+        stopXPMeter();
+    });
     
 }, false);
+
+function startXPMeter(){
+    meterRunning = true;
+    xpMeter = {
+        cumulativeXpCache: 0,
+        lastLevelChecked: xpMeter.lastLevelChecked,
+        xp: 0,
+        startingXp: 0,
+        startingXpPerMinute: 0,
+        minuteCount: 0,
+        startingLevelsMinute: 0,
+        startingLevelsTotal: 0
+    };
+    meterMinuteTimer = setInterval(function(){
+        xpMeter.minuteCount++;
+        if (xpMeter.minuteCount > 1){
+            updateMeterInfo = true;
+        }
+    }, 60000);
+}
+
+function stopXPMeter(){
+    meterRunning = false;
+    clearInterval(meterMinuteTimer);
+}
 
 function autolock(type){
     jwt = window.Twitch.ext.viewer.sessionToken;
@@ -1427,6 +1501,17 @@ function updateAutoLockSettings(autolock){
     });
 }
 
+function getTotalPlayerXP(level, currentXp) {
+    if (level !== xpMeter.lastLevelChecked) {
+        xpMeter.cumulativeXpCache = 0.0;
+        for (var i = 1; i <= level; i++) {
+            xpMeter.cumulativeXpCache += parseFloat(50 * Math.pow(i, 2));
+        }
+        xpMeter.lastLevelChecked = level;
+    }
+    return xpMeter.cumulativeXpCache + parseFloat(currentXp);
+}
+
 function updateUI(user){
     if (user === undefined){
         console.error('Error updating the UI');
@@ -1441,9 +1526,11 @@ function updateUI(user){
         updateBars(_metaData.hp, _metaData.maxHp, _metaData.mana, _metaData.maxMana, _stats.xp, Math.floor((50 * (_stats.lvl ** 2))));
 
         document.getElementById("statsDamage").innerText = abbreviateNumber(_metaData.damage);
-        document.getElementById("statsAttackSpeed").innerText = (_metaData.attackSpeed + "/S");
+        document.getElementById("statsAttackSpeed").innerText = abbreviateNumber(_metaData.attackSpeed).toFixed(2) + "/S";
         document.getElementById("statsArmor").innerText = abbreviateNumber(_metaData.armor);
         document.getElementById("statsMagicResistance").innerText = abbreviateNumber(_metaData.magicResist);
+    } else {
+        console.log('Error updating bars!');
     }
 
     document.getElementById("statsLvl").innerText = "Level: " + _stats.lvl;
@@ -1472,6 +1559,52 @@ function updateUI(user){
     if (user.metaData.autolock !== undefined) {
         updateAutoLockSettings(user.metaData.autolock);
     }    
+
+    if (meterRunning){
+        if (xpMeter.xp != 0){
+            if (updateMeterInfo){
+                updateMeterInfo = false;
+                var currentXP = parseFloat(user.stats.xp);
+                var nextLevelXp = (50 * Math.pow(user.stats.lvl, 2));
+                var remainingXp = nextLevelXp - currentXP;
+                var currentTotalXP = getTotalPlayerXP(user.stats.lvl, currentXP);
+                var xpMinute = currentTotalXP - xpMeter.startingXpPerMinute;
+                var averageXpMinute = ((currentTotalXP - xpMeter.startingXp) / xpMeter.minuteCount);
+                var xpHour = xpMinute * 60;
+                var xpHourAverage = averageXpMinute * 60;
+    
+                var timeToLevel = (remainingXp / xpMinute).toFixed(1);
+    
+                var levelsGainedMinute = (user.stats.lvl - xpMeter.startingLevelsMinute);
+                var levelsGainedTotal = (user.stats.lvl - xpMeter.startingLevelsTotal);
+                
+                $('#xpMinute').text(formatMoney(xpMinute));
+                $('#xpMinuteAverage').text(formatMoney(averageXpMinute));
+                $('#xpHour').text(formatMoney(xpHour));
+                $('#xpHourAverage').text(formatMoney(xpHourAverage));
+                $('#levelsGained').text(levelsGainedMinute);
+                $('#totalLevelsGained').text(levelsGainedTotal);
+                $('#nextLevel').text(timeToLevel + ' minutes');
+    
+                xpMeter.xp = parseFloat(user.stats.xp);
+                xpMeter.startingXpPerMinute = getTotalPlayerXP(user.stats.lvl, xpMeter.xp);
+                xpMeter.startingLevelsMinute = user.stats.lvl;
+            }
+        } else {
+            xpMeter.xp = parseFloat(user.stats.xp);
+            xpMeter.startingXp = getTotalPlayerXP(user.stats.lvl, xpMeter.xp);
+            xpMeter.startingXpPerMinute = getTotalPlayerXP(user.stats.lvl, xpMeter.xp);
+            xpMeter.startingLevelsMinute = user.stats.lvl;
+            xpMeter.startingLevelsTotal = user.stats.lvl;
+            $('#xpMinute').text('...');
+            $('#xpMinuteAverage').text('...');
+            $('#xpHour').text('...');
+            $('#xpHourAverage').text('...');
+            $('#levelsGained').text('0');
+            $('#totalLevelsGained').text('0');
+            $('#nextLevel').text('Calculating...');
+        }
+    }
 }
 
 function createItemElement(itemObj, type) {
