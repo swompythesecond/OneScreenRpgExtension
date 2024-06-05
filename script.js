@@ -1,4 +1,3 @@
-myServer = "https://germany.pauledevelopment.com:8051";
 let onAuth = {}; loggedOut
 let inventory = [];
 let hideMarkerTimer;
@@ -1026,15 +1025,15 @@ window.addEventListener("DOMContentLoaded", function () {
     });
 
     $('.start-session-button').click(function () {
-        $('.meter.stopped').hide();
-        $('.meter.running').show();
         startXPMeter();
+        $('.meter.stopped').hide();
+        $('.meter.running').show();        
     });
 
     $('.stop-session-button').click(function () {
-        $('.meter.running').hide();
-        $('.meter.stopped').show();
         stopXPMeter();
+        $('.meter.running').hide();
+        $('.meter.stopped').show();        
     });
     
 }, false);
@@ -1053,7 +1052,7 @@ function startXPMeter(){
     };
     meterMinuteTimer = setInterval(function(){
         xpMeter.minuteCount++;
-        if (xpMeter.minuteCount > 1){
+        if (xpMeter.minuteCount > 0){
             updateMeterInfo = true;
         }
     }, 60000);
