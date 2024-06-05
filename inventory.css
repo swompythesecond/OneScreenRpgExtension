@@ -50,7 +50,7 @@ body {
   margin-left: 1vw;
 }
 
-#craftInventory .side {
+.side {
   display: flex;
 }
 
@@ -284,29 +284,6 @@ div {
   background-color: #6f6f7f8c;
 }
 
-#namePlate {
-  position: absolute;
-  top: 4%;
-  left: 1%;
-  width: 10vw;
-  height: 2vw;
-  text-align: center;
-  overflow: hidden; /* Change this to hidden to prevent scroll */
-  background: url('images/namePlate.png') no-repeat;
-  background-size: 100% 100%;
-  background-position: center center;
-  font-size: 0.7vw;
-  padding-left: 1.75vw;
-  padding-right: 1.75vw;
-}
-
-#namePlate .inner {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%; /* Ensure .inner matches parent's height */
-}
-
 #playerName {
   margin: 0;
 }
@@ -510,8 +487,124 @@ div {
   padding: 0.3vw;
 }
 
-.inventory-stash {
+.inventory-stash, .stats-meter {
   display: flex;
+}
+
+.stats {
+  width: 10vw;
+}
+
+.stats.full {
+  border-right-style: solid;
+  border-image-source: url(images/border-image.png);
+  border-image-repeat: repeat;
+  border-image-slice: 6 6 6 6;
+  border-right-image-width: 0.3vw;
+  border-right-width: 0.2vw;
+  padding-right: 0.3vw;
+}
+
+.meter {
+  padding-left: 0.3vw;
+  width: 20vw;
+  text-align: center;
+  display: flex;
+}
+
+.meter > div {
+  width: 50%;
+  position: relative;
+}
+
+.meter.stopped > div {
+  width: 100%;
+}
+
+.meter > div:first-child {
+  border-right-style: solid;
+  border-image-source: url(images/border-image.png);
+  border-image-repeat: repeat;
+  border-image-slice: 6 6 6 6;
+  border-right-image-width: 0.3vw;
+  border-right-width: 0.2vw;
+  padding-right: 0.3vw;
+}
+
+.meter .side {
+  justify-content: center;
+}
+
+.meter-header {
+  margin-bottom: 0.2vw;
+}
+
+.meter-header:not(:first-child){
+  margin-top: 0.8vw;
+}
+
+.stop-session-button {
+  color: #f93636;
+  background-color: #4d4c4f;
+  width: 4vw;
+  /* margin: 0 auto; */
+  height: 1vw;
+  font-size: 0.5vw;
+  font-family: inherit;
+  cursor: url(images/cursor/point.png) 10 0, auto !important;
+  position: absolute;
+  bottom: 0;
+  left: 3vw;
+}
+
+.meter.stopped, .meter.running {
+  height: 5vw;
+  overflow: hidden;
+}
+
+.stop-session-button:hover {
+  font-weight: bold;
+  color: red;
+}
+
+.start-session-button {
+  color: #2af32a;
+  background-color: #4d4c4f;
+  width: 4vw;
+  margin: 0 auto;
+  margin-top: 0.35vw;
+  height: 1vw;
+  font-size: 0.5vw;
+  font-family: inherit;
+  cursor: url(images/cursor/point.png) 10 0, auto !important;
+  position: absolute;
+  bottom: 0;
+  left: 3vw;
+}
+
+.start-session-button:hover {
+  font-weight: bold;
+  color: white;
+}
+
+.nextLevels {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.2vw;
+}
+
+.side-info {
+  display: flex;
+}
+
+.side-info > div {
+  width: 50%; /* Set each child to take 50% width */
+  display: flex;
+  justify-content: center;
+}
+
+.expanded {
+  width: 30vw;
 }
 
 #stats {
