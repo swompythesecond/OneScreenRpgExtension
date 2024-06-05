@@ -1,3 +1,4 @@
+myServer = "https://germany.pauledevelopment.com:8051";
 let onAuth = {}; loggedOut
 let inventory = [];
 let hideMarkerTimer;
@@ -553,73 +554,85 @@ function abbreviateNumber(value) {
     return newValue;
 }
 
-function appendPaginationControls() {
+function updatePaginationControls() {
     const stashInventoryContainer = document.getElementById('stashInventory');
     
-    // Remove existing pagination controls if they exist
-    const existingPaginationControls = document.querySelector('.stash-pagination');
-    if (existingPaginationControls) {
-        existingPaginationControls.remove();
+    // Check if pagination controls already exist
+    let paginationControls = document.querySelector('.stash-pagination');
+    if (!paginationControls) {
+        // Create a div for pagination controls if it doesn't exist
+        paginationControls = document.createElement('div');
+        paginationControls.classList.add('stash-pagination');
+        stashInventoryContainer.appendChild(paginationControls);
     }
 
-    // Create a div for pagination controls
-    const paginationControls = document.createElement('div');
-    paginationControls.classList.add('stash-pagination');
-
-    // Create numbered buttons
+    // Loop through 10 pages
     for (let page = 1; page <= 10; page++) {
-        const pageButton = document.createElement('div');
-        pageButton.classList.add('page-button');
-        pageButton.innerText = page;
-        pageButton.dataset.page = page;
+        let pageButton = document.querySelector(`.page-button[data-page='${page}']`);
+        if (!pageButton) {
+            // Create page button if it doesn't exist
+            pageButton = document.createElement('div');
+            pageButton.classList.add('page-button');
+            pageButton.dataset.page = page;
+            pageButton.innerText = page;  // Set the initial text when creating the button
+            paginationControls.appendChild(pageButton);
+        }
 
+        // Update button properties
         if (page <= totalPages) {
             if (page === currentPage) {
                 pageButton.disabled = true;
                 pageButton.classList.add('active');
             } else {
+                pageButton.disabled = false;
+                pageButton.classList.remove('active');
                 pageButton.onclick = () => changePage(page);
+            }
+
+            // Update or create pageImage
+            let pageImage = pageButton.querySelector('.page-image');            
+            var firstCell = $('#stash-inventory-' + page + ' .inventory-row:first .inventory-cell:first');
+            var firstInventoryItem = firstCell.find('.inventory-item:first');
+
+            if (firstInventoryItem.length > 0) {
+                var backgroundImage = firstInventoryItem.css('background-image');
+                const urls = backgroundImage.match(/url\(["']?([^"']*)["']?\)/g);
+                if (urls && urls.length > 0) {
+                    const lastUrl = urls[urls.length - 1].replace(/url\(["']?([^"']*)["']?\)/, '$1');
+                    if (!pageImage) {
+                        pageImage = document.createElement('div');
+                        pageImage.classList.add('page-image');
+                        pageButton.innerText = "";  // Clear the text when adding an image
+                        pageButton.appendChild(pageImage);
+                    }
+                    pageImage.style.backgroundImage = `url(${lastUrl})`;
+                } else if (pageImage) {
+                    pageImage.remove();
+                    pageButton.innerText = page;  // Restore the text if no image
+                }
+            } else if (pageImage) {
+                pageImage.remove();
+                pageButton.innerText = page;  // Restore the text if no image
             }
         } else {
             pageButton.classList.add('disabled');
             pageButton.disabled = true;
             pageButton.onclick = null;
             pageButton.title = "Buy more stash pages on the shop.";
-        }
-
-        paginationControls.appendChild(pageButton);
-    }
-
-    // Append pagination controls to the stash inventory container
-    stashInventoryContainer.appendChild(paginationControls);
-
-    // Now loop again to set the background image
-    $('.stash-pagination .page-button').each(function(index) {
-        var page = $(this).attr('data-page');
-
-        if (page <= totalPages) {
-            var firstCell = $('#stash-inventory-' + page + ' .inventory-row:first .inventory-cell:first');
-            var firstInventoryItem = firstCell.find('.inventory-item:first');
-
-            if (firstInventoryItem.length > 0) {
-                var backgroundImage = firstInventoryItem.css('background-image');
-                var urls = backgroundImage.match(/url\(["']?([^"']*)["']?\)/g);
-                if (urls && urls.length > 0) {
-                    var lastUrl = urls[urls.length - 1];
-                    lastUrl = lastUrl.replace(/url\(["']?([^"']*)["']?\)/, '$1');
-                    const pageImage = document.createElement('div');
-                    pageImage.classList.add('page-image');
-                    pageImage.style.backgroundImage = "url(" + lastUrl + ")";
-                    this.innerText = "";
-                    this.appendChild(pageImage);
-                }
+            
+            // Remove the pageImage if it exists for pages that exceed totalPages
+            let pageImage = pageButton.querySelector('.page-image');
+            if (pageImage) {
+                pageImage.remove();
+                pageButton.innerText = page;  // Restore the text if no image
             }
         }
-    });
+    }
 }
 
-function initExtension() {
+function initTooltips(){
     $(document).tooltip({
+        items: ".inventory-item, .bless-button",
         track: true,
         content: function () {
             if ($(this).hasClass('bless-button')) { //Bless tooltip
@@ -673,6 +686,10 @@ function initExtension() {
             currentTooltipText = "";
         }
     });
+}
+
+function initExtension() {
+    initTooltips();
     getInventory().then(() => {
         loadLoop = setInterval(() => {
             getInventory().catch(err => console.error('Failed to get inventory:', err));
@@ -1644,7 +1661,7 @@ function createItemElement(itemObj, type) {
         });
     }
 
-    newItemElement.setAttribute('title', '');
+    //newItemElement.setAttribute('title', 'test');
 
     return newItemElement;
 }
@@ -1686,7 +1703,7 @@ function updateItemElement(itemElement, itemObj, type, swapped) {
         });
     }
 
-    itemElement.setAttribute('title', '');
+    //itemElement.setAttribute('title', '');
 }
 
 function removeItemElement(itemElement) {
@@ -1856,7 +1873,7 @@ function loadInventory(user, force = false) {
     oldTotalPages = totalPages;
 
     if (user.username == "mantegudo" || user.username == "hydranime" || user.username == "onestreamrpg") {
-        appendPaginationControls();
+        updatePaginationControls();
     }
     refreshSortableInventoryList();
 
