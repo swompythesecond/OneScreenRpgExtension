@@ -12,7 +12,6 @@
     <script src="jquery-ui.min.js"></script>
     <script src="jquery.contextMenu.min.js"></script>
     <link rel="stylesheet" href="jquery.contextMenu.min.css" />
-    <link rel="stylesheet" href="jquery-ui.css" />
     <script src="rpgui.js"></script>
 </head>
 
@@ -64,30 +63,78 @@
             <div class="header expandable">
                 <p id="statsLvl"></p>
                 <div class="action-buttons">
+                    <button class="action-button expand">→</button>
                     <button class="action-button collapse">-</button>
                     <button class="action-button close">X</button>
                 </div>
             </div>            
             <div id="stats" class="collapsible">
-                <div id="xpBar" class="rpgui-progress purple">
-                   <div class="rpgui-progress-track">
-                    <p class="text"></p>
-                    <div class="rpgui-progress-fill purple progress" style="left: 0px;"></div>
-                   </div>
-                   <div class=" rpgui-progress-left-edge"></div>
-                   <div class=" rpgui-progress-right-edge"></div>
-                </div>
-                <div class="double-stats">
-                    <div class="side-image"><img src="images/gold.png" class="small-image" alt="gold"/><p id="statsGold"></p></div>            
-                    <div class="side-image"><img src="images/premiumCurrency.png" class="small-image" alt="premium currency"/><p id="statsPremiumCurrency"></p></div>
-                </div>
-                <div class="double-stats">
-                    <div class="side-image"><img src="images/damage.png" class="small-image" alt="damage"/><p id="statsDamage"></p></div>
-                    <div class="side-image"><img src="images/attackSpeed.png" class="small-image" alt="attack speed"/><p id="statsAttackSpeed"></p></div>
-                </div>
-                <div class="double-stats">
-                    <div class="side-image"><img src="images/armor.png" class="small-image" alt="armor"/><p id="statsArmor"></p></div>
-                    <div class="side-image"><img src="images/magicResistance.png" class="small-image" alt="magic resistance"/><p id="statsMagicResistance"></p></div>
+                <div class="stats-meter">
+                    <div class="stats">
+                        <div id="xpBar" class="rpgui-progress purple">
+                           <div class="rpgui-progress-track">
+                            <p class="text"></p>
+                            <div class="rpgui-progress-fill purple progress" style="left: 0px;"></div>
+                           </div>
+                           <div class=" rpgui-progress-left-edge"></div>
+                           <div class=" rpgui-progress-right-edge"></div>
+                        </div>
+                        <div class="double-stats">
+                            <div class="side-image"><img src="images/gold.png" class="small-image" alt="gold"/><p id="statsGold"></p></div>            
+                            <div class="side-image"><img src="images/premiumCurrency.png" class="small-image" alt="premium currency"/><p id="statsPremiumCurrency"></p></div>
+                        </div>
+                        <div class="double-stats">
+                            <div class="side-image"><img src="images/damage.png" class="small-image" alt="damage"/><p id="statsDamage">0</p></div>
+                            <div class="side-image"><img src="images/attackSpeed.png" class="small-image" alt="attack speed"/><p id="statsAttackSpeed">0/S</p></div>
+                        </div>
+                        <div class="double-stats">
+                            <div class="side-image"><img src="images/armor.png" class="small-image" alt="armor"/><p id="statsArmor">0</p></div>
+                            <div class="side-image"><img src="images/magicResistance.png" class="small-image" alt="magic resistance"/><p id="statsMagicResistance">0</p></div>
+                        </div>
+                    </div>
+                    <div class="meter running" style="display: none;">
+                        <div>
+                            <div class="side-info">
+                                <div>XP/MIN</div>
+                                <div>AVG</div>
+                            </div>
+                            <div class="side-info">
+                                <div id="xpMinute">...</div>
+                                <div id="xpMinuteAverage">...</div>
+                            </div>
+                            <div class="side-info" style="margin-top: 0.8vw;">
+                                <div>XP/HOUR</div>
+                                <div>AVG</div>
+                            </div>
+                            <div class="side-info">
+                                <div id="xpHour">...</div>
+                                <div id="xpHourAverage">...</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="meter-header">Levels Gained</div>
+                            <div class="side-info">
+                                <div>1 MIN: <div id="levelsGained">0</div></div>
+                                <div>TOTAL: <div id="totalLevelsGained">0</div></div>
+                            </div>
+                            <div class="meter-header">Next Level</div>
+                            <div class="nextLevels">
+                                <div id="nextLevel">CALCULATING...</div>
+                            </div>
+                            <button class="stop-session-button">STOP</button>
+                        </div>
+                    </div>
+                    <div class="meter stopped" style="display: none;">
+                        <div>
+                            <div class="meter-header">XP Meter</div>
+                            <div>This will display your xp rate every minute.</div>
+                        </div>
+                        <div>
+                            <div class="meter-header">Be patient</div>
+                            <div>It only updates after 1 minute has passed.</div>
+                            <button class="start-session-button">START</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
