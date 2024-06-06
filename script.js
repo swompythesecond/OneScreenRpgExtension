@@ -1,3 +1,4 @@
+myServer = "https://germany.pauledevelopment.com:8051";
 let onAuth = {}; loggedOut
 let inventory = [];
 let hideMarkerTimer;
@@ -199,6 +200,23 @@ function formatItemAmount(amount) {
 
 function formatMoney(number) {
     return String(new Intl.NumberFormat('en-US', { maximumFractionDigits: 1, notation: "compact", compactDisplay: "short" }).format(number));
+}
+
+function formatTime(minutes) {
+    // If the input is less than an hour, just return the minutes
+    if (minutes < 60) {
+        return `${Math.floor(minutes)} minutes`;
+    }
+
+    // Calculate hours and remaining minutes
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+
+    // Format hours and remaining minutes
+    const formattedMinutes = remainingMinutes < 10 ? `0${remainingMinutes}` : remainingMinutes;
+    
+    // Return the formatted time
+    return `${hours}:${formattedMinutes} hours`;
 }
 
 function formatNumber(number) {
@@ -871,24 +889,26 @@ window.addEventListener("DOMContentLoaded", function () {
         var collapsibleElement = $(this).parent().parent().next('.collapsible');
         var isCurrentlyVisible = collapsibleElement.is(":visible");
         var buttonElement = $(this);
-
+    
         // Log the action based on current visibility
         if (isCurrentlyVisible) {
             buttonElement.text('+');
+            // Check if the container is expanded, if so, trigger the expand button
+            var parentContainer = $(this).closest('.hud-container');
+            if (parentContainer.hasClass('expanded')) {
+                buttonElement.prev('.expand').trigger('click');
+            }
         } else {
             buttonElement.text('-');
         }
-
+    
         // Toggle the visibility
         var collapsibleIndex = $('.collapsible').index(collapsibleElement);
         if (!$(collapsibleElement).hasClass('special')) {
             if (isCurrentlyVisible) {
-                localStorage.setItem('collapsible_' + collapsibleIndex, 'hidden');
+                localStorage.setItem('collapsible_' + collapsibleIndex, 'hidden');               
             } else {
                 localStorage.setItem('collapsible_' + collapsibleIndex, 'visible');
-            }
-            if (isCurrentlyVisible && buttonElement.prev('.expand')){
-                buttonElement.prev('.expand').trigger('click');
             }
             collapsibleElement.slideToggle();
         } else {
@@ -910,6 +930,31 @@ window.addEventListener("DOMContentLoaded", function () {
                 }, 400);
             }
         }
+    
+    });
+    
+    $('.action-button.expand').click(function () {
+        var buttonElement = $(this);
+        var collapsibleElement = $(this).parent().parent().next('.collapsible');
+        var isCurrentlyVisible = collapsibleElement.is(":visible");
+    
+        if ($(this).parent().parent().parent().hasClass('expanded')) {
+            $('.stats-meter .meter.stopped').hide();
+            $('.stats-meter .meter.running').hide();
+            $('.stats').removeClass('full');
+            $(this).parent().parent().parent().removeClass('expanded');
+            buttonElement.text('→');
+        } else {
+            $('.stats-meter .meter' + (meterRunning ? '.running' : '.stopped')).show();
+            $('.stats').addClass('full');
+            $(this).parent().parent().parent().addClass('expanded');
+            buttonElement.text('←');
+    
+            // Check if the container is not showing, if so, trigger the collapse button
+            if (!isCurrentlyVisible) {
+                buttonElement.next('.collapse').trigger('click');
+            }
+        }
     });
 
     // Add click event for the close button
@@ -921,27 +966,6 @@ window.addEventListener("DOMContentLoaded", function () {
         parentElement.hide();
         localStorage.setItem('close_' + collapsibleIndex, 'closed');
         $('#chk-' + parentElement.attr('data-id')).prop('checked', false);
-    });
-
-    $('.action-button.expand').click(function () {
-        var buttonElement = $(this);
-        var collapsibleElement = $(this).parent().parent().next('.collapsible');
-        var isCurrentlyVisible = collapsibleElement.is(":visible");
-      
-        if ($(this).parent().parent().parent().hasClass('expanded')) {
-            $('.stats-meter .meter' + meterRunning ? '.stopped' : '.running').hide();
-            $('.stats').removeClass('full');
-            $(this).parent().parent().parent().removeClass('expanded');
-            buttonElement.text('→');
-        } else {
-            $('.stats-meter .meter' +  meterRunning ? '.stopped' : '.running').show();
-            $('.stats').addClass('full');
-            $(this).parent().parent().parent().addClass('expanded');
-            buttonElement.text('←');
-            if (!isCurrentlyVisible){
-                buttonElement.next('.collapse').trigger('click');
-            }
-        }
     });
 
     $('.action-button.close.dry').click(function () {
@@ -1589,7 +1613,7 @@ function updateUI(user){
                 var xpHour = xpMinute * 60;
                 var xpHourAverage = averageXpMinute * 60;
     
-                var timeToLevel = (remainingXp / xpMinute).toFixed(1);
+                var timeToLevel = (remainingXp / xpMinute);
     
                 var levelsGainedMinute = (user.stats.lvl - xpMeter.startingLevelsMinute);
                 var levelsGainedTotal = (user.stats.lvl - xpMeter.startingLevelsTotal);
@@ -1600,7 +1624,7 @@ function updateUI(user){
                 $('#xpHourAverage').text(formatMoney(xpHourAverage));
                 $('#levelsGained').text(levelsGainedMinute);
                 $('#totalLevelsGained').text(levelsGainedTotal);
-                $('#nextLevel').text(timeToLevel + ' minutes');
+                $('#nextLevel').text(formatTime(timeToLevel));
     
                 xpMeter.xp = parseFloat(user.stats.xp);
                 xpMeter.startingXpPerMinute = getTotalPlayerXP(user.stats.lvl, xpMeter.xp);
