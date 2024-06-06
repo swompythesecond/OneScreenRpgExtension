@@ -599,7 +599,7 @@ div {
 .nextLevels {
   display: flex;
   justify-content: center;
-  margin-bottom: 0.2vw;
+  margin-top: 0.2vw;
 }
 
 .side-info {
