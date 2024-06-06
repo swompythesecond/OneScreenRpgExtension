@@ -493,6 +493,7 @@ div {
 
 .stats {
   width: 10vw;
+  height: 5vw;
 }
 
 .stats.full {
@@ -503,6 +504,10 @@ div {
   border-right-image-width: 0.3vw;
   border-right-width: 0.2vw;
   padding-right: 0.3vw;
+}
+
+.stats-meter .stats > div:not(:last-child) {
+  margin-bottom: 0.3vw;
 }
 
 .meter {
@@ -519,6 +524,10 @@ div {
 
 .meter.stopped > div {
   width: 100%;
+}
+
+.meter.running .side-info:first-child {
+  margin-bottom: 0.2vw;
 }
 
 .meter > div:first-child {
