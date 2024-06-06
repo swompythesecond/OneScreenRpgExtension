@@ -1,4 +1,3 @@
-myServer = "https://germany.pauledevelopment.com:8051";
 let onAuth = {}; loggedOut
 let inventory = [];
 let hideMarkerTimer;
@@ -48,6 +47,7 @@ var xpMeter = {
 }
 var meterMinuteTimer;
 var updateMeterInfo = false;
+var unsavedChanges = false;
 
 class RequestQueue {
     constructor() {
@@ -1044,8 +1044,17 @@ window.addEventListener("DOMContentLoaded", function () {
 
     // Add event listeners to autolock checkboxes
     $('.autolock-settings .rpgui-checkbox').change(function () {
-        var value = $(this).val();
-        autolock(value);
+        unsavedChanges = true;
+    });
+
+    $('#save-settings').click(function () {
+        var autolockArray = {};
+        $('.autolock-settings .rpgui-checkbox').each(function() {
+            var isChecked = $(this).prop('checked');
+            var value = $(this).attr('value');
+            autolockArray[String(value)] = isChecked;
+        });
+        autolock(autolockArray);
     });
 
     $('.start-session-button').click(function () {
@@ -1087,7 +1096,7 @@ function stopXPMeter(){
     clearInterval(meterMinuteTimer);
 }
 
-function autolock(type){
+function autolock(autolockSettings){
     jwt = window.Twitch.ext.viewer.sessionToken;
 
     fetch(myServer + '/setAutolock', {
@@ -1098,7 +1107,7 @@ function autolock(type){
         body: JSON.stringify({
             jwt: jwt,
             accessToken: accessToken,
-            autoLock: type
+            autoLock: autolockSettings
         }),
     })
     .catch(error => {
@@ -1537,7 +1546,7 @@ function updateBlessing(blessing, total, force = false){
 
 function updateAutoLockSettings(autolock){
     Object.keys(autolock).forEach(key => {
-      $('#autolock-' + key).prop('checked', autolock[key]);
+        $('#autolock-' + key).prop('checked', autolock[key]);
     });
 }
 
@@ -1584,7 +1593,17 @@ function updateUI(user){
     let _totalBlessing = (user.blessings.damage + user.blessings.afkGain + user.blessings.armor + user.blessings.xpGain + user.blessings.goldGain + user.stats.freeBlessings);
     freeBlessings = user.stats.freeBlessings;
     nextBlessingCost = _totalBlessing ** 3 + 500;
-    document.getElementById("next-blessing-cost").innerText = abbreviateNumber(nextBlessingCost);
+    if (freeBlessings > 0){
+        $('.free-bless').show();
+        $('.next-bless').hide();
+        document.getElementById("free-blessings").innerText = freeBlessings;
+    }
+    else {
+        $('.free-bless').hide();
+        $('.next-bless').show();
+        document.getElementById("next-blessing-cost").innerText = abbreviateNumber(nextBlessingCost);
+    }
+    
     blessings = user.blessings;
     currentGold = user.stats.gold;
 
@@ -1596,8 +1615,8 @@ function updateUI(user){
 
     document.getElementById('playerName').innerText = `${user.username}`;
 
-    if (user.metaData.autolock !== undefined) {
-        updateAutoLockSettings(user.metaData.autolock);
+    if (user.metaData.autoLock !== undefined && !$('.settings').is(":visible")) {
+        updateAutoLockSettings(user.metaData.autoLock);
     }    
 
     if (meterRunning){
