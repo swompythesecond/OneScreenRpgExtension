@@ -536,7 +536,6 @@ function connectToExtension() {
                 fullInventoryDivs.forEach(function (div) {
                     div.style.display = "none";
                 });
-                document.getElementById('hideInventory').style.display = "none";
             }
             initExtension();
         } catch (error) {
@@ -555,7 +554,6 @@ function removeLoggedOutElement() {
     fullInventoryDivs.forEach(function (div) {
         div.style.display = "block";
     });
-    document.getElementById('hideInventory').style.display = "block";
 }
 
 function abbreviateNumber(value) {
@@ -705,6 +703,14 @@ function initTooltips(){
     });
 }
 
+function isTabActive() {
+    if (document.hidden) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
 function initExtension() {
     initTooltips();
     getInventory().then(() => {
@@ -829,34 +835,6 @@ document.querySelector("#craftButton").addEventListener("click", function () {
 
 });
 
-document.querySelector("#hideInventory").addEventListener("click", function () {
-    event.stopPropagation();
-    $('.context-menu-list').trigger('contextmenu:hide');
-    let fullInventoryDivs = document.querySelectorAll(".hud");
-
-    if (fullInventoryDivs[0].style.display === "none") {
-        fullInventoryDivs.forEach(function (div) {
-            div.style.display = "block";
-            let craftInventoryDivs = document.querySelectorAll(".crafting");
-            craftInventoryDivs.forEach(function (div) {
-                div.style.display = "none";
-            });
-            let stashInventoryDivs = document.querySelectorAll("#stashInventory");
-            stashInventoryDivs.forEach(function (div) {
-                div.style.display = "none";
-            }
-            );
-        });
-    } else {
-        fullInventoryDivs.forEach(function (div) {
-            div.style.display = "none";
-        });
-        document.getElementById(`statsBars`).style.display = "none";
-    }
-
-
-});
-
 // we need to do this because otherwise there are issues with html
 window.addEventListener("DOMContentLoaded", function () {
     let craftInventoryDivs = document.querySelectorAll(".crafting");
@@ -958,7 +936,8 @@ window.addEventListener("DOMContentLoaded", function () {
     });
 
     // Add click event for the close button
-    $('.action-button.close:not(.dry)').click(function () {
+    $('.action-button.close:not(.dry)').click(function (event) {
+        event.stopPropagation();
         var parentElement = $(this).closest('.expandable').parent();
         var collapsibleIndex = $('.collapsible').index(parentElement.find('.collapsible'));
 
@@ -968,12 +947,14 @@ window.addEventListener("DOMContentLoaded", function () {
         $('#chk-' + parentElement.attr('data-id')).prop('checked', false);
     });
 
-    $('.action-button.close.dry').click(function () {
+    $('.action-button.close.dry').click(function (event) {
+        event.stopPropagation();
         $(this).parent().parent().parent().hide();
     });
 
-    $('#stashInventory .action-button.close.dry,#craftInventory .action-button.close.dry').click(function () {
-       $('.side-tab').removeClass('active');
+    $('#stashInventory .action-button.close.dry,#craftInventory .action-button.close.dry').click(function (event) {
+        event.stopPropagation();
+        $('.side-tab').removeClass('active');
     });
 
     // Make .movable elements sortable
@@ -1171,55 +1152,47 @@ function resetBlessings(){
     });
 }
 
-$(document).on('click', '#settings-button', function (event) {
-    $('.hud-container.settings').toggle();
-});
-
 $(document).on('click', '#reset-blessings', function (event) {
     resetBlessings();
 });
 
 $(document).on('click', '.side-tab', function (event) {
     event.stopPropagation();
-    $(this).toggleClass('active');
+    if (!$(this).hasClass('quit')){
+        $(this).toggleClass('active');
+    }
     $('.side-tab').not(this).removeClass('active');
 });
 
 $(document).on('click', '.side-tab.craft', function (event) {
-    let craftInventoryDivs = document.querySelectorAll("#craftInventory");
-    let stashInventoryDivs = document.querySelectorAll("#stashInventory");
-    if (craftInventoryDivs[0].style.display === "none") {
-        craftInventoryDivs.forEach(function (div) {
-            div.style.display = "block";
-        });
-        stashInventoryDivs.forEach(function (div) {
-            div.style.display = "none";
-        });
-    } else {
-        craftInventoryDivs.forEach(function (div) {
-            div.style.display = "none";
-        });
-    }
+    event.stopPropagation();
+    $('.context-menu-list').trigger('contextmenu:hide');
+    $('#stashInventory').hide();
+    $('#craftInventory').toggle();
+    $('#settings-window').hide();
 });
 
 $(document).on('click', '.side-tab.stash', function (event) {
     event.stopPropagation();
     $('.context-menu-list').trigger('contextmenu:hide');
-    let stashInventoryDivs = document.querySelectorAll("#stashInventory");
-    let craftInventoryDivs = document.querySelectorAll("#craftInventory");
-    if (stashInventoryDivs[0].style.display === "none") {
-        stashInventoryDivs.forEach(function (div) {
-            div.style.display = "block";
-        });
-        craftInventoryDivs.forEach(function (div) {
-            div.style.display = "none";
-        });
+    $('#stashInventory').toggle();
+    $('#craftInventory').hide();
+    $('#settings-window').hide();
+});
 
-    } else {
-        stashInventoryDivs.forEach(function (div) {
-            div.style.display = "none";
-        });
-    }
+$(document).on('click', '.side-tab.settings', function (event) {
+    event.stopPropagation();
+    $('#stashInventory').hide();
+    $('#craftInventory').hide();
+    $('#settings-window').toggle();
+});
+
+$(document).on('click', '.side-tab.quit', function (event) {
+    event.stopPropagation();
+    $('#stashInventory').hide();
+    $('#craftInventory').hide();
+    $('#settings-window').hide();
+    quit();
 });
 
 $(document).on('click', '#hpBar, #manaBar', function (event) {
@@ -1243,8 +1216,7 @@ $(document).on('mouseout', '#hpBar, #manaBar', function (event) {
     $(event.target).children().find('.heal').hide();
 });
 
-document.querySelector("#quit").addEventListener("click", function () {
-    event.stopPropagation();
+function quit(){
     $('.context-menu-list').trigger('contextmenu:hide');
     jwt = window.Twitch.ext.viewer.sessionToken;
 
@@ -1258,19 +1230,19 @@ document.querySelector("#quit").addEventListener("click", function () {
             accessToken: accessToken
         }),
     })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error(response.statusText);
-            }
-        })
-        .then(data => {
-        })
-        .catch(error => {
-            console.error(error);
-        });
-});
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error(response.statusText);
+        }
+    })
+    .then(data => {
+    })
+    .catch(error => {
+        console.error(error);
+    });
+}
 
 function hideMarker() {
     let marker = document.getElementById('marker');
@@ -1374,7 +1346,7 @@ document.addEventListener('contextmenu', function (event) {
 document.addEventListener('click', function (event) {
     $('.ui-tooltip').remove();
     // Array of selectors to check
-    var selectors = ['#fullInventory', '#craftInventory', '#craftPreview', '#selectedInventory', '.context-menu-list', '#stashInventory', '#statsBars', '#stats', '#mission', '#blessings', '#blessBlessings', '.submenuSpan', '.stash-pagination', '.page-button', '.page-image', '#main-hud-container', '.settings', '#settings-button'];
+    var selectors = ['#fullInventory', '#craftInventory', '#craftPreview', '#selectedInventory', '.context-menu-list', '#stashInventory', '#statsBars', '#stats', '#mission', '#blessings', '#blessBlessings', '.submenuSpan', '.stash-pagination', '.page-button', '.page-image', '#main-hud-container', '#settings-window'];
 
     // Check if click is inside any specified and visible elements
     let isContextMenu = event.target.closest('.context-menu-list');
