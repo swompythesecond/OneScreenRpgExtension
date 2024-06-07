@@ -111,6 +111,7 @@ function preventAnimationWhenMoving(senderItemElement, receiverItemElement){
 
 
 // Sorting, dragging, dropping, etc
+var droppingOnPage = false;
 
 refreshSortableInventoryList();
 function refreshSortableInventoryList() {
@@ -148,7 +149,7 @@ function refreshSortableInventoryList() {
                 correctSlot.classList.remove('highlight-slot');
             }
         },
-        receive: function (event, ui) {            
+        receive: function (event, ui) {        
             var attrWhitelist = $(this).attr('data-item-filter-whitelist');
             var attrBlackList = $(this).attr('data-item-filter-blacklist');
             var itemFilterWhitelistArray = attrWhitelist ? attrWhitelist.split(/\s+/) : [];
@@ -159,11 +160,16 @@ function refreshSortableInventoryList() {
 
             var canMoveIntoSlot = verifyWithWhiteBlackLists(itemTypeListArray, itemFilterWhitelistArray, itemFilterBlacklistArray);
 
+            if (droppingOnPage){
+                droppingOnPage = false;
+                return;
+            }
+
             if (!canMoveIntoSlot) {
                 $(ui.item).parentToAnimate($(ui.sender), 200);
             } else {                
                 var senderItemElement = ui.item;
-                var receiverItemElement = $(this).children().not(ui.item);                
+                var receiverItemElement = $(this).children().not(ui.item);
                 var senderDataFullItem = senderItemElement.attr('data-fullitem');
                 var receiverDataFullItem = receiverItemElement.attr('data-fullitem');
                 var senderData = JSON.parse(senderDataFullItem);
@@ -311,6 +317,7 @@ function refreshSortableInventoryList() {
         accept: '.inventory-item',
         hoverClass: 'inventory-item-sortable-hover',
         drop: function(event, ui) {
+            droppingOnPage = true;
             const item = $(ui.helper);
             const page = $(this).data('page');
             
