@@ -47,7 +47,8 @@ body {
 }
 
 #craftInventory {
-  margin-left: 1vw;
+  margin-left: 2vw;
+  position: relative;
 }
 
 .side {
@@ -55,8 +56,102 @@ body {
 }
 
 #stashInventory {
-  margin-left: 1vw;
+  margin-left: 2vw;
+  position: relative;
 }
+
+#personal-inventory {
+  position: relative;
+}
+
+.side-tabs {
+  position: absolute;
+  right: -1.0vw;
+  top: 0vw;
+  display: flex;
+  flex-direction: column;
+  width: 1.5vw; /* Adjust width as needed */
+  z-index: -1;
+  margin-top: 0.05vw;
+}
+
+.side-tab {
+  position: relative;
+  padding: 10px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+  height: 2vw;
+  background-color: #474542 !important;
+  border-image-source: url(images/border-image.png);
+  border-image-repeat: repeat;
+  border-image-slice: 6 6 6 6;
+  border-top-style: solid;
+  border-top-image-width: 0.3vw;
+  border-top-width: 0.2vw;
+  border-bottom-style: solid;
+  border-bottom-image-width: 0.3vw;
+  border-bottom-width: 0.2vw;
+  border-right-style: solid;
+  border-right-image-width: 0.3vw;
+  border-right-width: 0.2vw;
+  border-left: none;
+  transition: margin-left 0.1s ease; /* Add transition for smooth glow effect */
+}
+
+.side-tab::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle, rgb(255 255 255 / 90%) 0%, rgba(255, 0, 0, 0) 90%);
+  z-index: 0; /* Ensure it sits behind the content but above the background */
+  opacity: 0; /* Start with no opacity */
+  pointer-events: none; /* Ensure it doesn't interfere with user interactions */
+  transition: opacity 0.1s ease; /* Smooth transition effect */
+}
+
+.side-tab:hover::before {
+  opacity: 1;
+}
+
+.side-tab:hover {  
+  margin-left: 0.5vw;
+}
+
+.side-tab.active::before {
+  opacity: 1;
+}
+
+.side-tab.active {
+  margin-left: 0.5vw;
+}
+
+.side-tab::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  z-index: 1; /* Ensure it sits above the shadow but below content */
+  pointer-events: none; /* Ensure it doesn't interfere with user interactions */
+}
+
+.side-tab.stash::after {
+  background-image: url('images/stash.png');
+}
+
+.side-tab.craft::after {
+  background-image: url('images/craft.png');
+}
+
 
 #craftPreview {
   width: 6.2vw;
@@ -781,7 +876,7 @@ div {
 #settings-button {
   position: absolute;
   top: 95%;
-  left: 20%;
+  left: 8.3%;
   width: 2vw;
   height: 2vw;
   background-image: url('images/inventory_background/settings.png');
