@@ -75,6 +75,10 @@ body {
   margin-top: 0.05vw;
 }
 
+.side-tabs.main {
+  margin-top: -0.2vw;
+}
+
 .side-tab {
   position: relative;
   padding: 0.1vw;
@@ -1113,7 +1117,7 @@ input[type="range"] {
 }
 
 .context-menu-item.osrsubmenu > span:after {
-  content: "ÃƒÂ¢Ã¢â‚¬â€œÃ‚Â¶";
+  content: "ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¶";
   float: right;
   margin-left: 0.52vw; 
   color: white;
