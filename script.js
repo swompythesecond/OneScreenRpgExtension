@@ -48,6 +48,7 @@ var xpMeter = {
 var meterMinuteTimer;
 var updateMeterInfo = false;
 var unsavedChanges = false;
+var isWindowActive = true;
 
 class RequestQueue {
     constructor() {
@@ -950,6 +951,7 @@ window.addEventListener("DOMContentLoaded", function () {
     $('.action-button.close.dry').click(function (event) {
         event.stopPropagation();
         $(this).parent().parent().parent().hide();
+        $('.side-tab').removeClass('active');
     });
 
     $('#stashInventory .action-button.close.dry,#craftInventory .action-button.close.dry').click(function (event) {
@@ -1052,8 +1054,7 @@ window.addEventListener("DOMContentLoaded", function () {
         stopXPMeter();
         $('.meter.running').hide();
         $('.meter.stopped').show();        
-    });
-    
+    });   
 }, false);
 
 function startXPMeter(){
@@ -1550,16 +1551,12 @@ function updateUI(user){
     let _mission = user.mission;
 
     if (user.metaData.hp !== undefined) {
-        _metaData = user.metaData;
-        
+        _metaData = user.metaData;        
         updateBars(_metaData.hp, _metaData.maxHp, _metaData.mana, _metaData.maxMana, _stats.xp, Math.floor((50 * (_stats.lvl ** 2))));
-
         document.getElementById("statsDamage").innerText = abbreviateNumber(_metaData.damage);
         document.getElementById("statsAttackSpeed").innerText = abbreviateNumber(_metaData.attackSpeed).toFixed(2) + "/S";
         document.getElementById("statsArmor").innerText = abbreviateNumber(_metaData.armor);
         document.getElementById("statsMagicResistance").innerText = abbreviateNumber(_metaData.magicResist);
-    } else {
-        console.log('Error updating bars!');
     }
 
     document.getElementById("statsLvl").innerText = "Level: " + _stats.lvl;
@@ -1593,7 +1590,8 @@ function updateUI(user){
     updateBlessing("luck", user.blessings.goldGain);
     updateBlessing("xp", user.blessings.xpGain);
 
-    document.getElementById('playerName').innerText = `${user.username}`;
+    //document.getElementById('playerName').innerText = `${user.username}`;
+    document.getElementById('playerName').innerText = `slifertheskydragon`;
 
     if (user.metaData.autoLock !== undefined && !$('.settings').is(":visible")) {
         updateAutoLockSettings(user.metaData.autoLock);
@@ -2102,6 +2100,11 @@ function saveInventory() {
 
 function getInventory() {
     return requestQueue.enqueue(() => new Promise((resolve, reject) => {
+        if (!isWindowActive) {
+            reject("Window not active!");
+            return;
+        }
+        
         jwt = window.Twitch.ext.viewer.sessionToken;
 
         if (jwt === undefined && accessToken === undefined) {
@@ -2144,6 +2147,11 @@ function getInventory() {
 
 function getUIInfo(){
     return new Promise((resolve, reject) => {
+        if (!isWindowActive) {
+            reject("Window not active!");
+            return;
+        }
+        
         jwt = window.Twitch.ext.viewer.sessionToken;
     
         if (jwt === undefined && accessToken === undefined) {
