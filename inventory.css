@@ -76,7 +76,8 @@ body {
 }
 
 .side-tabs.main {
-  margin-top: -0.2vw;
+  margin-top: -0.20vw;
+  right: -1.1vw;
 }
 
 .side-tab {
