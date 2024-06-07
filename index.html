@@ -275,6 +275,10 @@
                                     <div class="inventory-cell"></div>
                                     <div class="inventory-cell"></div>
                                 </div>
+                                <div class="side-tabs">
+                                    <div class="side-tab stash"></div>
+                                    <div class="side-tab craft"></div>
+                                </div>
                             </div>
                 
                             <div id="selectedInventory">
@@ -298,6 +302,12 @@
                         </div>
                     </div>
                     <div id="stashInventory" class="hud">
+                        <div class="hud-container header" style="position: absolute; top: -1.1vw; width: 100%; z-index: -1;">
+                            <p>Stash</p>
+                            <div class="action-buttons">
+                                <button class="action-button close dry">X</button>
+                            </div>
+                        </div>
                         <div class="inventory-background">
                             <div class="inventory-table" id="stash-inventory">
                                 <div class="inventory-row">
@@ -363,32 +373,36 @@
                             </div>
                         </div>
                     </div>
-                    <div class="hud">
-                        <div id="craftInventory" class="crafting">
-                            <div class="side">
-                                <div class="inventory-table" id="craft-inventory">
-                                    <div class="inventory-row">
-                                        <div class="inventory-cell"></div>
-                                        <div class="inventory-cell"></div>
-                                        <div class="inventory-cell"></div>
-                                    </div>
-                                    <div class="inventory-row">
-                                        <div class="inventory-cell"></div>
-                                        <div class="inventory-cell"></div>
-                                        <div class="inventory-cell"></div>
-                                    </div>
-                                    <div class="inventory-row">
-                                        <div class="inventory-cell"></div>
-                                        <div class="inventory-cell"></div>
-                                        <div class="inventory-cell"></div>
-                                    </div>
+                    <div id="craftInventory" class="crafting hud">
+                        <div class="hud-container header" style="position: absolute; width: 100%; margin-top: -1.1vw; z-index: -1;">
+                            <p>Crafting</p>
+                            <div class="action-buttons">
+                                <button class="action-button close dry">X</button>
+                            </div>
+                        </div>
+                        <div class="side crafting-container">
+                            <div class="inventory-table" id="craft-inventory">
+                                <div class="inventory-row">
+                                    <div class="inventory-cell"></div>
+                                    <div class="inventory-cell"></div>
+                                    <div class="inventory-cell"></div>
                                 </div>
-                                <div id="craftPreview">
-                                    <div id="craftImage" style="display: block;"></div>
-                                    <span id="craftButton" style="display: block;"></span>
+                                <div class="inventory-row">
+                                    <div class="inventory-cell"></div>
+                                    <div class="inventory-cell"></div>
+                                    <div class="inventory-cell"></div>
+                                </div>
+                                <div class="inventory-row">
+                                    <div class="inventory-cell"></div>
+                                    <div class="inventory-cell"></div>
+                                    <div class="inventory-cell"></div>
                                 </div>
                             </div>
-                        </div>                   
+                            <div id="craftPreview">
+                                <div id="craftImage" style="display: block;"></div>
+                                <span id="craftButton" style="display: block;"></span>
+                            </div>
+                        </div>                  
                     </div>
                 </div>
             </div>
@@ -398,12 +412,6 @@
     <div id="quit" class="hud"></div>
     
     <div id="hideInventory"></div>    
-    
-    <div id="heal" class="hud"></div>
-
-    <div id="craft" class="hud"></div>
-
-    <div id="stash" class="hud"></div>
 
     <div id="settings-button" class="hud"></div>
 
