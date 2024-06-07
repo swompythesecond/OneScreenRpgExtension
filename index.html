@@ -28,12 +28,11 @@
     <img src="images/marker.gif" alt="marker" id="marker">
 
     <div id="main-hud-container" class="hud">
-        <div class="hud-container movable" data-id="health">
+        <div class="hud-container movable" data-id="health" style="background-color: rgba(89, 86, 82, 1.0);">
             <div class="header expandable">
                 <p id="playerName">Player</p>
                 <div class="action-buttons">
                     <button class="action-button collapse">-</button>
-                    <button class="action-button close">X</button>
                 </div>
             </div>
             <div id="statsBars" class="collapsible">
@@ -57,6 +56,10 @@
                        <div class=" rpgui-progress-right-edge"></div>
                     </div>
                 </div>
+            </div>
+            <div class="side-tabs">
+                <div class="side-tab settings"></div>
+                <div class="side-tab quit"></div>
             </div>
         </div>
         <div class="hud-container movable" data-id="stats">
@@ -409,13 +412,7 @@
         </div>
     </div>   
 
-    <div id="quit" class="hud"></div>
-    
-    <div id="hideInventory"></div>    
-
-    <div id="settings-button" class="hud"></div>
-
-    <div class="hud-container settings" style="display: none;">
+    <div class="hud-container settings" id="settings-window" style="display: none;">
         <div class="header">
             <p>Settings</p>
             <div class="action-buttons">
@@ -445,7 +442,7 @@
                     <div class="rpgui-tab-content" id="tab2" style="display:none;">
                         <div class="checkbox-group hud-settings">
                             <p>Hud Windows</p>
-                            <div><input class="rpgui-checkbox" id="chk-health" type="checkbox" value="close_0" checked><label>Health/Mana</label></div>
+                            <!--<div><input class="rpgui-checkbox" id="chk-health" type="checkbox" value="close_0" checked><label>Health/Mana</label></div>-->
                             <div><input class="rpgui-checkbox" id="chk-stats" type="checkbox" value="close_1" checked><label>Stats</label></div>
                             <div><input class="rpgui-checkbox" id="chk-mission" type="checkbox" value="close_2" checked><label>Mission</label></div>
                             <div><input class="rpgui-checkbox" id="chk-blessings" type="checkbox" value="close_3" checked><label>Blessings</label></div>
