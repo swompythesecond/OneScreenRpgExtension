@@ -962,6 +962,12 @@ window.addEventListener("DOMContentLoaded", function () {
     // Make .movable elements sortable
     $("#main-hud-container").sortable({
         items: ".movable",
+        start: function(event, ui) {
+            $('.side-tabs.main').hide();
+        },
+        stop: function(event, ui) {
+            $('.side-tabs.main').show();
+        },
         update: function(event, ui) {
             saveOrder();
         }
