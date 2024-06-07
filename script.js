@@ -972,6 +972,10 @@ window.addEventListener("DOMContentLoaded", function () {
         $(this).parent().parent().parent().hide();
     });
 
+    $('#stashInventory .action-button.close.dry,#craftInventory .action-button.close.dry').click(function () {
+       $('.side-tab').removeClass('active');
+    });
+
     // Make .movable elements sortable
     $("#main-hud-container").sortable({
         items: ".movable",
@@ -1115,44 +1119,6 @@ function autolock(autolockSettings){
     });
 }
 
-document.querySelector("#craft").addEventListener("click", function () {
-    event.stopPropagation();
-    let craftInventoryDivs = document.querySelectorAll(".crafting");
-    let stashInventoryDivs = document.querySelectorAll("#stashInventory");
-    if (craftInventoryDivs[0].style.display === "none") {
-        craftInventoryDivs.forEach(function (div) {
-            div.style.display = "block";
-        });
-        stashInventoryDivs.forEach(function (div) {
-            div.style.display = "none";
-        });
-    } else {
-        craftInventoryDivs.forEach(function (div) {
-            div.style.display = "none";
-        });
-    }
-});
-
-document.querySelector("#stash").addEventListener("click", function () {
-    event.stopPropagation();
-    $('.context-menu-list').trigger('contextmenu:hide');
-    let stashInventoryDivs = document.querySelectorAll("#stashInventory");
-    let craftInventoryDivs = document.querySelectorAll(".crafting");
-    if (stashInventoryDivs[0].style.display === "none") {
-        stashInventoryDivs.forEach(function (div) {
-            div.style.display = "block";
-        });
-        craftInventoryDivs.forEach(function (div) {
-            div.style.display = "none";
-        });
-
-    } else {
-        stashInventoryDivs.forEach(function (div) {
-            div.style.display = "none";
-        });
-    }
-});
-
 function heal(element = false){
     jwt = window.Twitch.ext.viewer.sessionToken;
 
@@ -1210,8 +1176,50 @@ $(document).on('click', '#settings-button', function (event) {
 });
 
 $(document).on('click', '#reset-blessings', function (event) {
-    console.log('test');
     resetBlessings();
+});
+
+$(document).on('click', '.side-tab', function (event) {
+    event.stopPropagation();
+    $(this).toggleClass('active');
+    $('.side-tab').not(this).removeClass('active');
+});
+
+$(document).on('click', '.side-tab.craft', function (event) {
+    let craftInventoryDivs = document.querySelectorAll("#craftInventory");
+    let stashInventoryDivs = document.querySelectorAll("#stashInventory");
+    if (craftInventoryDivs[0].style.display === "none") {
+        craftInventoryDivs.forEach(function (div) {
+            div.style.display = "block";
+        });
+        stashInventoryDivs.forEach(function (div) {
+            div.style.display = "none";
+        });
+    } else {
+        craftInventoryDivs.forEach(function (div) {
+            div.style.display = "none";
+        });
+    }
+});
+
+$(document).on('click', '.side-tab.stash', function (event) {
+    event.stopPropagation();
+    $('.context-menu-list').trigger('contextmenu:hide');
+    let stashInventoryDivs = document.querySelectorAll("#stashInventory");
+    let craftInventoryDivs = document.querySelectorAll("#craftInventory");
+    if (stashInventoryDivs[0].style.display === "none") {
+        stashInventoryDivs.forEach(function (div) {
+            div.style.display = "block";
+        });
+        craftInventoryDivs.forEach(function (div) {
+            div.style.display = "none";
+        });
+
+    } else {
+        stashInventoryDivs.forEach(function (div) {
+            div.style.display = "none";
+        });
+    }
 });
 
 $(document).on('click', '#hpBar, #manaBar', function (event) {
@@ -1220,10 +1228,10 @@ $(document).on('click', '#hpBar, #manaBar', function (event) {
     heal($(event.target).attr('id'));
 });
 
-document.querySelector("#heal").addEventListener("click", function () {
+/*document.querySelector("#heal").addEventListener("click", function () {
     event.stopPropagation();
     heal();
-});
+});*/
 
 $(document).on('mouseover', '#hpBar, #manaBar', function (event) {
     $(event.target).children().find('.text').hide();
