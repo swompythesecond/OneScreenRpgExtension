@@ -961,6 +961,7 @@ window.addEventListener("DOMContentLoaded", function () {
 
     // Make .movable elements sortable
     $("#main-hud-container").sortable({
+        handle: ".header.draggable",
         items: ".movable",
         start: function(event, ui) {
             $('.side-tabs.main').hide();
