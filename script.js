@@ -1596,8 +1596,7 @@ function updateUI(user){
     updateBlessing("luck", user.blessings.goldGain);
     updateBlessing("xp", user.blessings.xpGain);
 
-    //document.getElementById('playerName').innerText = `${user.username}`;
-    document.getElementById('playerName').innerText = `slifertheskydragon`;
+    document.getElementById('playerName').innerText = `${user.username}`;
 
     if (user.metaData.autoLock !== undefined && !$('.settings').is(":visible")) {
         updateAutoLockSettings(user.metaData.autoLock);
