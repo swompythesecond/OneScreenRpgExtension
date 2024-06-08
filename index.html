@@ -28,42 +28,44 @@
     <img src="images/marker.gif" alt="marker" id="marker">
 
     <div id="main-hud-container" class="hud">
-        <div class="hud-container movable" data-id="health" style="background-color: rgba(89, 86, 82, 1.0); position: relative;">
-            <div class="header expandable">
-                <p id="playerName">Player</p>
-                <div class="action-buttons">
-                    <button class="action-button collapse">-</button>
-                </div>
-            </div>
-            <div id="statsBars" class="collapsible">
-                <div class="inner">
-                    <div id="hpBar" class="rpgui-progress red">
-                       <div class="rpgui-progress-track">
-                        <p class="text"></p>
-                        <p class="heal" style="display: none;">CLICK TO HEAL</p>
-                        <div class="rpgui-progress-fill red progress" style="left: 0px;"></div>
-                       </div>
-                       <div class=" rpgui-progress-left-edge"></div>
-                       <div class=" rpgui-progress-right-edge"></div>
-                    </div>
-                    <div id="manaBar" class="rpgui-progress blue">
-                       <div class="rpgui-progress-track">
-                          <p class="text"></p>
-                           <p class="heal" style="display: none;">CLICK TO HEAL</p>
-                          <div class="rpgui-progress-fill blue progress" style="left: 0px;"></div>
-                       </div>
-                       <div class=" rpgui-progress-left-edge"></div>
-                       <div class=" rpgui-progress-right-edge"></div>
+        <div class="hud-container movable no-borders" data-id="health" style="background-color: rgba(89, 86, 82, 1.0);display: flex;overflow: visible; position: relative;">
+            <div class="stats-wrapper">
+                <div class="header expandable draggable">
+                    <p id="playerName">Player</p>
+                    <div class="action-buttons">
+                        <button class="action-button collapse">-</button>
                     </div>
                 </div>
+                <div id="statsBars" class="collapsible">
+                    <div class="inner">
+                        <div id="hpBar" class="rpgui-progress red">
+                           <div class="rpgui-progress-track">
+                            <p class="text"></p>
+                            <p class="heal" style="display: none;">CLICK TO HEAL</p>
+                            <div class="rpgui-progress-fill red progress" style="left: 0px;"></div>
+                           </div>
+                           <div class=" rpgui-progress-left-edge"></div>
+                           <div class=" rpgui-progress-right-edge"></div>
+                        </div>
+                        <div id="manaBar" class="rpgui-progress blue">
+                           <div class="rpgui-progress-track">
+                              <p class="text"></p>
+                               <p class="heal" style="display: none;">CLICK TO HEAL</p>
+                              <div class="rpgui-progress-fill blue progress" style="left: 0px;"></div>
+                           </div>
+                           <div class=" rpgui-progress-left-edge"></div>
+                           <div class=" rpgui-progress-right-edge"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="side-tabs main">
+            <div class="main-tabs">
                 <div class="side-tab settings"></div>
                 <div class="side-tab quit"></div>
             </div>
         </div>
         <div class="hud-container movable" data-id="stats">
-            <div class="header expandable">
+            <div class="header expandable draggable">
                 <p id="statsLvl"></p>
                 <div class="action-buttons">
                     <button class="action-button expand">→</button>
@@ -142,7 +144,7 @@
             </div>
         </div>
         <div class="hud-container movable" data-id="mission">
-            <div class="header expandable">
+            <div class="header expandable draggable">
                 <p id="missionTitle">Mission</p>
                 <div class="action-buttons">
                     <button class="action-button collapse">-</button>
@@ -157,7 +159,7 @@
             </div>
         </div>
         <div class="hud-container movable" data-id="blessings">            
-            <div class="header expandable">
+            <div class="header expandable draggable">
                 <p>Blessings</p>
                 <div class="action-buttons">
                     <button class="action-button collapse">-</button>
@@ -213,199 +215,201 @@
                 <button id="reset-blessings">Reset Blessings</button>
             </div>
         </div>
-        <div class="movable" data-id="inventory">
-            <div class="hud-container header expandable">
-                <p>Inventory</p>
-                <div class="action-buttons">
-                    <button class="action-button collapse">-</button>
-                    <button class="action-button close">X</button>
+        <div class="movable inv-huds" data-id="inventory">
+            <div class="inv-hud" style="width: min-content;">
+                <div class="hud-container header expandable draggable">
+                    <p>Inventory</p>
+                    <div class="action-buttons">
+                        <button class="action-button collapse">-</button>
+                        <button class="action-button close">X</button>
+                    </div>
+                </div>
+                <div class="hud collapsible no-padding special">
+                    <div class="inventory-stash">
+                        <div id="fullInventory">
+                            <div class="inventory-background">
+                                <div class="inventory-table" id="personal-inventory">
+                                    <div class="inventory-row">
+                                        <div class="inventory-cell">
+                                        </div>
+                                        <div class="inventory-cell">
+                                        </div>
+                                        <div class="inventory-cell">
+                                        </div>
+                                        <div class="inventory-cell">
+                                        </div>
+                                        <div class="inventory-cell">
+                                        </div>
+                                    </div>
+                                    <div class="inventory-row">
+                                        <div class="inventory-cell">
+                                        </div>
+                                        <div class="inventory-cell">
+                                        </div>
+                                        <div class="inventory-cell">
+                                        </div>
+                                        <div class="inventory-cell"></div>
+                                        <div class="inventory-cell"></div>
+                                    </div>
+                                    <div class="inventory-row">
+                                        <div class="inventory-cell">
+                                        </div>
+                                        <div class="inventory-cell">
+                                        </div>
+                                        <div class="inventory-cell">
+                                        </div>
+                                        <div class="inventory-cell"></div>
+                                        <div class="inventory-cell"></div>
+                                    </div>
+                                    <div class="inventory-row">
+                                        <div class="inventory-cell">
+                                        </div>
+                                        <div class="inventory-cell">
+                                        </div>
+                                        <div class="inventory-cell">
+                                        </div>
+                                        <div class="inventory-cell"></div>
+                                        <div class="inventory-cell"></div>
+                                    </div>
+                                    <div class="inventory-row">
+                                        <div class="inventory-cell">
+                                        </div>
+                                        <div class="inventory-cell">
+                                        </div>
+                                        <div class="inventory-cell">
+                                        </div>
+                                        <div class="inventory-cell"></div>
+                                        <div class="inventory-cell"></div>
+                                    </div>
+                                    <div class="side-tabs">
+                                        <div class="side-tab stash"></div>
+                                        <div class="side-tab craft"></div>
+                                    </div>
+                                </div>
+                    
+                                <div id="selectedInventory">
+                                    <div class="inventory-table" id="select-inventory">
+                                        <div class="inventory-row">
+                                            <div class="inventory-cell" id="select-helmet" data-item-filter-whitelist="helmet gem"></div>
+                                            <div class="inventory-cell" id="select-plating" data-item-filter-whitelist="plating gem"></div>
+                                            <div class="inventory-cell" id="select-chest" data-item-filter-whitelist="chest gem"></div>
+                                            <div class="inventory-cell" id="select-fabric" data-item-filter-whitelist="fabric gem"></div>
+                                            <div class="inventory-cell" id="select-pants" data-item-filter-whitelist="pants gem"></div>
+                                        </div>
+                                        <div class="inventory-row">
+                                            <div class="inventory-cell" id="select-weapon" data-item-filter-whitelist="weapon gem"></div>
+                                            <div class="inventory-cell" id="select-fishingRod" data-item-filter-whitelist="fishingRod gem"></div>
+                                            <div class="inventory-cell" id="remove-gem"></div>
+                                            <div class="inventory-cell" id="select-pet" data-item-filter-whitelist="pet"></div>
+                                            <div class="inventory-cell" id="delete-item"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="hud collapsible no-padding special">
-                <div class="inventory-stash">
-                    <div id="fullInventory">
-                        <div class="inventory-background">
-                            <div class="inventory-table" id="personal-inventory">
-                                <div class="inventory-row">
-                                    <div class="inventory-cell">
-                                    </div>
-                                    <div class="inventory-cell">
-                                    </div>
-                                    <div class="inventory-cell">
-                                    </div>
-                                    <div class="inventory-cell">
-                                    </div>
-                                    <div class="inventory-cell">
-                                    </div>
-                                </div>
-                                <div class="inventory-row">
-                                    <div class="inventory-cell">
-                                    </div>
-                                    <div class="inventory-cell">
-                                    </div>
-                                    <div class="inventory-cell">
-                                    </div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                </div>
-                                <div class="inventory-row">
-                                    <div class="inventory-cell">
-                                    </div>
-                                    <div class="inventory-cell">
-                                    </div>
-                                    <div class="inventory-cell">
-                                    </div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                </div>
-                                <div class="inventory-row">
-                                    <div class="inventory-cell">
-                                    </div>
-                                    <div class="inventory-cell">
-                                    </div>
-                                    <div class="inventory-cell">
-                                    </div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                </div>
-                                <div class="inventory-row">
-                                    <div class="inventory-cell">
-                                    </div>
-                                    <div class="inventory-cell">
-                                    </div>
-                                    <div class="inventory-cell">
-                                    </div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                </div>
-                                <div class="side-tabs">
-                                    <div class="side-tab stash"></div>
-                                    <div class="side-tab craft"></div>
-                                </div>
-                            </div>
-                
-                            <div id="selectedInventory">
-                                <div class="inventory-table" id="select-inventory">
-                                    <div class="inventory-row">
-                                        <div class="inventory-cell" id="select-helmet" data-item-filter-whitelist="helmet gem"></div>
-                                        <div class="inventory-cell" id="select-plating" data-item-filter-whitelist="plating gem"></div>
-                                        <div class="inventory-cell" id="select-chest" data-item-filter-whitelist="chest gem"></div>
-                                        <div class="inventory-cell" id="select-fabric" data-item-filter-whitelist="fabric gem"></div>
-                                        <div class="inventory-cell" id="select-pants" data-item-filter-whitelist="pants gem"></div>
-                                    </div>
-                                    <div class="inventory-row">
-                                        <div class="inventory-cell" id="select-weapon" data-item-filter-whitelist="weapon gem"></div>
-                                        <div class="inventory-cell" id="select-fishingRod" data-item-filter-whitelist="fishingRod gem"></div>
-                                        <div class="inventory-cell" id="remove-gem"></div>
-                                        <div class="inventory-cell" id="select-pet" data-item-filter-whitelist="pet"></div>
-                                        <div class="inventory-cell" id="delete-item"></div>
-                                    </div>
-                                </div>
-                            </div>
+            <div class="inv-hud hud" id="stashInventory">
+                <div class="hud-container header" style="width: 100%;">
+                    <p>Stash</p>
+                    <div class="action-buttons">
+                        <button class="action-button close dry">X</button>
+                    </div>
+                </div>
+                <div class="inventory-background special">
+                    <div class="inventory-table" id="stash-inventory">
+                        <div class="inventory-row">
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                        </div>
+                        <div class="inventory-row">
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                        </div>
+                        <div class="inventory-row">
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                        </div>
+                        <div class="inventory-row">
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                        </div>
+                        <div class="inventory-row">
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
                         </div>
                     </div>
-                    <div id="stashInventory" class="hud">
-                        <div class="hud-container header" style="position: absolute; top: -1.1vw; width: 100%; z-index: -1;">
-                            <p>Stash</p>
-                            <div class="action-buttons">
-                                <button class="action-button close dry">X</button>
-                            </div>
+                </div>
+            </div>
+            <div class="inv-hud crafting hud" id="craftInventory" style="display: none;">
+                <div class="hud-container header" style="width: 100%;">
+                    <p>Crafting</p>
+                    <div class="action-buttons">
+                        <button class="action-button close dry">X</button>
+                    </div>
+                </div>
+                <div class="side crafting-container special">
+                    <div class="inventory-table" id="craft-inventory">
+                        <div class="inventory-row">
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
                         </div>
-                        <div class="inventory-background">
-                            <div class="inventory-table" id="stash-inventory">
-                                <div class="inventory-row">
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                </div>
-                                <div class="inventory-row">
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                </div>
-                                <div class="inventory-row">
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                </div>
-                                <div class="inventory-row">
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                </div>
-                                <div class="inventory-row">
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                </div>
-                            </div>
+                        <div class="inventory-row">
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                        </div>
+                        <div class="inventory-row">
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
+                            <div class="inventory-cell"></div>
                         </div>
                     </div>
-                    <div id="craftInventory" class="crafting hud">
-                        <div class="hud-container header" style="position: absolute; width: 100%; margin-top: -1.1vw; z-index: -1;">
-                            <p>Crafting</p>
-                            <div class="action-buttons">
-                                <button class="action-button close dry">X</button>
-                            </div>
-                        </div>
-                        <div class="side crafting-container">
-                            <div class="inventory-table" id="craft-inventory">
-                                <div class="inventory-row">
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                </div>
-                                <div class="inventory-row">
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                </div>
-                                <div class="inventory-row">
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                    <div class="inventory-cell"></div>
-                                </div>
-                            </div>
-                            <div id="craftPreview">
-                                <div id="craftImage" style="display: block;"></div>
-                                <span id="craftButton" style="display: block;"></span>
-                            </div>
-                        </div>                  
+                    <div id="craftPreview">
+                        <div id="craftImage" style="display: block;"></div>
+                        <span id="craftButton" style="display: block;"></span>
                     </div>
                 </div>
             </div>
