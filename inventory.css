@@ -56,7 +56,7 @@ body {
 }
 
 #stashInventory {
-  margin-left: 2vw;
+  margin-left: 2vw; 
   position: relative;
 }
 
@@ -71,13 +71,18 @@ body {
   display: flex;
   flex-direction: column;
   width: 1.5vw; /* Adjust width as needed */
-  z-index: -1;
+  z-index: 0;
   margin-top: 0.05vw;
+  pointer-events: all;
 }
 
-.side-tabs.main {
-  margin-top: -0.20vw;
-  right: -1.1vw;
+.main-tabs {
+  width: 1.5vw; /* Adjust width as needed */
+  z-index: 0;
+  left: 9.2vw;
+  top: 0;
+  pointer-events: all;
+  position: absolute;
 }
 
 .side-tab {
@@ -398,7 +403,27 @@ div {
   text-overflow: ellipsis;
 }
 
-.hud-container {
+.hud-container.no-borders {
+  width: 10vw;
+  pointer-events: all;
+  position: relative;
+  overflow: visible;
+}
+
+.stats-wrapper {
+  width: 100%;
+  position: relative;
+  z-index: 5;
+  background-color: rgba(89, 86, 82, 1.0);
+  border-style: solid;
+  border-image-source: url(images/border-image.png);
+  border-image-repeat: repeat;
+  border-image-slice: 6 6 6 6;
+  border-image-width: 0.3vw;
+  border-width: 0.2vw;
+}
+
+.hud-container:not(.no-borders) {
   border-style: solid;
   border-image-source: url(images/border-image.png);
   border-image-repeat: repeat;
@@ -406,6 +431,10 @@ div {
   border-image-width: 0.3vw;
   border-width: 0.2vw;
   background-color: rgba(89, 86, 82, 0.8);
+  width: 10vw;
+  pointer-events: all;
+  position: relative;
+  overflow: visible;
 }
 
 .hud-container.settings {
@@ -435,6 +464,7 @@ div {
   text-align: center;
   font-size: 0.5vw;
   position: relative;
+  z-index: 2;
 }
 
 #statsBars .inner {
@@ -445,6 +475,8 @@ div {
   flex-direction: column;
   gap: 0vw;
   justify-content: center;
+  z-index: 2;
+  position: relative;
 }
 
 
@@ -459,7 +491,6 @@ div {
   align-items: center;
   justify-content: center;
   color: #FFFFFF;
-  font-family: 'Press Start 2P';
   font-size: 1em;
   overflow: hidden;
   background-color: #808080;
@@ -526,6 +557,7 @@ div {
      1px -1px 0 #000,
     -1px  1px 0 #000,
      1px  1px 0 #000;
+  pointer-events : all;
 }
 
 #statsLvl {
@@ -536,8 +568,10 @@ div {
   position: absolute;
   top: 3%;
   left: 1%;
-  width: 10vw;
+  width: 32vw;
   user-select: none;
+  pointer-events: none;
+  z-index: 5;
 }
 
 #main-hud-container > div:not(:first-child) {
@@ -560,6 +594,8 @@ div {
   padding-bottom: 0.1vw;
   display: flex;
   align-items: center;
+  z-index: 2;
+  position: relative;
 }
 
 .header p {
@@ -598,7 +634,7 @@ div {
   padding: 0.3vw;
 }
 
-.inventory-stash, .stats-meter {
+.stats-meter {
   display: flex;
 }
 
@@ -639,6 +675,10 @@ div {
 
 .meter.running .side-info:first-child {
   margin-bottom: 0.2vw;
+}
+
+.inv-huds {
+  display: flex;
 }
 
 .meter > div:first-child {
@@ -956,6 +996,8 @@ input[type="range"] {
   justify-content: flex-start;
   align-items: flex-start;
   align-content: flex-start;
+  z-index: 1;
+  position: relative;
 }
 
 .inventory-cell {
@@ -1052,6 +1094,7 @@ input[type="range"] {
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center center, center center;
+  pointer-events: all;
 }
 
 .inventory-item-sortable-placeholder {
@@ -1356,6 +1399,7 @@ input[type="range"] {
     -0.05vw 0.05vw 0 #000,
     0.05vw 0.05vw 0 #000;
   cursor: url(images/cursor/point.png) 10 0, auto;
+  pointer-events: all;
 }
 
 .page-button.disabled {
