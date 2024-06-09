@@ -764,7 +764,7 @@ div {
 }
 
 .expanded {
-  width: 30vw;
+  width: 30vw !important;
 }
 
 #stats {
