@@ -889,6 +889,9 @@ window.addEventListener("DOMContentLoaded", function () {
             } else {
                 localStorage.setItem('collapsible_' + collapsibleIndex, 'visible');
             }
+            if ($(collapsibleElement).attr('id') == 'statsBars'){
+                $('.main-tabs').fadeToggle();
+            }
             collapsibleElement.slideToggle();
         } else {
             if (isCurrentlyVisible) {
