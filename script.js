@@ -860,11 +860,7 @@ window.addEventListener("DOMContentLoaded", function () {
 
         var closeState = localStorage.getItem('close_' + index);
         if (closeState === 'closed') {
-            if (index == 4){
-                collapsibleElement.parent().parent().hide();
-            } else {
-                collapsibleElement.parent().hide(); // Hide the entire section including expandable button
-            }
+            collapsibleElement.parent().hide(); // Hide the entire section including expandable button
         }
     });
 
@@ -1634,7 +1630,15 @@ function updateUI(user){
                 $('#xpHourAverage').text(formatMoney(xpHourAverage));
                 $('#levelsGained').text(levelsGainedMinute);
                 $('#totalLevelsGained').text(levelsGainedTotal);
-                $('#nextLevel').text(formatTime(timeToLevel));
+                if (isFinite(timeToLevel)){
+                    if (timeToLevel < 1){
+                        $('#nextLevel').text('Calculating...');
+                    } else {
+                        $('#nextLevel').text(formatTime(timeToLevel));
+                    }                    
+                } else {
+                    $('#nextLevel').text('NO XP GAINED...');
+                }
     
                 xpMeter.xp = parseFloat(user.stats.xp);
                 xpMeter.startingXpPerMinute = getTotalPlayerXP(user.stats.lvl, xpMeter.xp);
@@ -1908,7 +1912,6 @@ function loadInventory(user, force = false) {
     if (user.username == "mantegudo" || user.username == "hydranime" || user.username == "onestreamrpg") {
         updatePaginationControls();
     }
-    
     refreshSortableInventoryList();
 
     const selectedItemsContainer = document.getElementById("select-inventory");
