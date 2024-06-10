@@ -856,6 +856,9 @@ window.addEventListener("DOMContentLoaded", function () {
         if (state === 'hidden') {
             collapsibleElement.hide();
             buttonElement.text('+');
+            if ($(collapsibleElement).attr('id') == 'statsBars'){
+                $('.main-tabs').fadeOut();
+            }
         }
 
         var closeState = localStorage.getItem('close_' + index);
@@ -890,7 +893,10 @@ window.addEventListener("DOMContentLoaded", function () {
                 localStorage.setItem('collapsible_' + collapsibleIndex, 'visible');
             }
             if ($(collapsibleElement).attr('id') == 'statsBars'){
-                $('.main-tabs').fadeToggle();
+                if (isCurrentlyVisible)
+                    $('.main-tabs').fadeOut();
+                else
+                    $('.main-tabs').fadeIn();
             }
             collapsibleElement.slideToggle();
         } else {
