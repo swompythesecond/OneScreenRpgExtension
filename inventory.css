@@ -1093,6 +1093,7 @@ input[type="range"] {
   background-repeat: no-repeat;
   background-position: center center, center center;
   pointer-events: all;
+  position: relative;
 }
 
 .inventory-item-sortable-placeholder {
