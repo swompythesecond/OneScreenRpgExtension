@@ -860,7 +860,11 @@ window.addEventListener("DOMContentLoaded", function () {
 
         var closeState = localStorage.getItem('close_' + index);
         if (closeState === 'closed') {
-            collapsibleElement.parent().hide(); // Hide the entire section including expandable button
+            if (index == 4){
+                collapsibleElement.parent().parent().hide();
+            } else {
+                collapsibleElement.parent().hide(); // Hide the entire section including expandable button
+            }
         }
     });
 
@@ -1901,9 +1905,7 @@ function loadInventory(user, force = false) {
 
     oldTotalPages = totalPages;
 
-    if (user.username == "mantegudo" || user.username == "hydranime" || user.username == "onestreamrpg") {
-        updatePaginationControls();
-    }
+    updatePaginationControls();
     refreshSortableInventoryList();
 
     const selectedItemsContainer = document.getElementById("select-inventory");
