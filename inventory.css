@@ -71,7 +71,7 @@ body {
   display: flex;
   flex-direction: column;
   width: 1.5vw; /* Adjust width as needed */
-  z-index: 0;
+  z-index: -1;
   margin-top: 0.05vw;
   pointer-events: all;
 }
@@ -421,6 +421,7 @@ div {
   border-image-slice: 6 6 6 6;
   border-image-width: 0.3vw;
   border-width: 0.2vw;
+  z-index: 2;
 }
 
 .hud-container:not(.no-borders) {
@@ -996,8 +997,6 @@ input[type="range"] {
   justify-content: flex-start;
   align-items: flex-start;
   align-content: flex-start;
-  z-index: 1;
-  position: relative;
 }
 
 .inventory-cell {
@@ -1084,7 +1083,6 @@ input[type="range"] {
 }
 
 .inventory-item {
-  position: relative;
   width: 1.8vw !important;
   height: 1.8vw !important;
   background-repeat: no-repeat;
