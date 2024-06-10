@@ -42,38 +42,145 @@ body {
 }
 
 #selectedInventory {
-  margin-top: 1vw;
+  margin-top: 0.5vw;
   display: block;
 }
 
 #craftInventory {
-  margin-top: 1vw;
-  position: absolute;
-  left: 11%;
-  top: 51%;
-  display: block;
+  margin-left: 2vw;
+  position: relative;
 }
 
-#stashInventory {margin-left: 1vw;}
+.side {
+  display: flex;
+}
+
+#stashInventory {
+  margin-left: 2vw; 
+  position: relative;
+}
+
+#personal-inventory {
+  position: relative;
+}
+
+.side-tabs {
+  position: absolute;
+  right: -1.0vw;
+  top: 0vw;
+  display: flex;
+  flex-direction: column;
+  width: 1.5vw; /* Adjust width as needed */
+  z-index: -1;
+  margin-top: 0.05vw;
+  pointer-events: all;
+}
+
+.main-tabs {
+  width: 1.5vw; /* Adjust width as needed */
+  z-index: 0;
+  left: 9.2vw;
+  top: 0;
+  pointer-events: all;
+  position: absolute;
+}
+
+.side-tab {
+  position: relative;
+  padding: 0.1vw;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+  height: 2vw;
+  background-color: #474542 !important;
+  border-image-source: url(images/border-image.png);
+  border-image-repeat: repeat;
+  border-image-slice: 6 6 6 6;
+  border-top-style: solid;
+  border-top-image-width: 0.3vw;
+  border-top-width: 0.2vw;
+  border-bottom-style: solid;
+  border-bottom-image-width: 0.3vw;
+  border-bottom-width: 0.2vw;
+  border-right-style: solid;
+  border-right-image-width: 0.3vw;
+  border-right-width: 0.2vw;
+  border-left: none;
+  transition: margin-left 0.1s ease; /* Add transition for smooth glow effect */
+}
+
+.side-tab::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle, rgb(255 255 255 / 90%) 0%, rgba(255, 0, 0, 0) 90%);
+  z-index: 0; /* Ensure it sits behind the content but above the background */
+  opacity: 0; /* Start with no opacity */
+  pointer-events: none; /* Ensure it doesn't interfere with user interactions */
+  transition: opacity 0.1s ease; /* Smooth transition effect */
+}
+
+.side-tab:hover::before {
+  opacity: 1;
+}
+
+.side-tab:hover {  
+  margin-left: 0.5vw;
+}
+
+.side-tab.active::before {
+  opacity: 1;
+}
+
+.side-tab.active {
+  margin-left: 0.5vw;
+}
+
+.side-tab::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  z-index: 1; /* Ensure it sits above the shadow but below content */
+  pointer-events: none; /* Ensure it doesn't interfere with user interactions */
+}
+
+.side-tab.stash::after {
+  background-image: url('images/stash.png');
+}
+
+.side-tab.craft::after {
+  background-image: url('images/craft.png');
+}
+
+.side-tab.settings::after {
+  background-image: url('images/settings.png');
+}
+
+.side-tab.quit::after {
+  background-image: url('images/quit.png');
+}
 
 #craftPreview {
-  position: absolute;
-  left: 16.5%;
-  top: 53%;
-  width: 5.6vw;
-  height: 5.6vw;
+  width: 6.2vw;
   background-image: url('images/inventory_background/craftPreview.png');
   background-size: cover;
-  display: flex;
-  justify-content: center; 
-  align-items: center; 
   font-size: 0.5vw;
 }
 
 #craftImage {
-  position: absolute;
-  left: 18.3%;
-  top: 55%;
+  position: relative;
+  left: 34%;
+  top: 19%;
   width: 2vw;
   height: 2vw;
   background-image: url('');
@@ -85,9 +192,9 @@ body {
 }
 
 #craftButton {
-  position: absolute;
-  left: 17.3%;
-  top: 59.3%;
+  position: relative;
+  left: 17.4%;
+  top: 26%;
   width: 4.1vw;
   height: 2vw;
   background-image: url('images/inventory_background/craftButton.png');
@@ -117,12 +224,12 @@ div {
 
 .item-amount-changed-up {
   color: #42b425;
-  animation: colorChangeUp 0.5s forwards;
+  animation: colorChangeUp 1.8s forwards;
 }
 
 .item-amount-changed-down {
   color: #e02e2e;
-  animation: colorChangeDown 0.5s forwards;
+  animation: colorChangeDown 1.8s forwards;
 }
 
 .blessed-success {
@@ -164,11 +271,17 @@ div {
 /* Color change animations */
 @keyframes colorChangeUp {
   0% { color: #42b425; }
+  25% { color: #6ecb66; }
+  50% { color: #9ae487; }
+  75% { color: #c5fdaa; }
   100% { color: white; }
 }
 
 @keyframes colorChangeDown {
   0% { color: #e02e2e; }
+  25% { color: #ea5a5a; }
+  50% { color: #f38484; }
+  75% { color: #fcaeae; }
   100% { color: white; }
 }
 
@@ -268,123 +381,91 @@ div {
 }
 
 .add-bless-button {
-  background-color: #7E4C34;
+  background-color: transparent;
   color: #2af32a;
   font-family: arcade;
   font-size: 0.5vw;
   width: 1.0vw;
   cursor: url(images/cursor/point.png) 10 0, auto !important;
   padding: 0;
-  margin-right: 4px;
+  margin-right: 0.2vw;
 }
 
 .add-bless-button:hover {
-  color: #C0C146;
-}
-
-#namePlate {
-  position: absolute;
-  top: 4%;
-  left: 1%;
-  width: 10vw;
-  height: 2vw;
-  text-align: center;
-  overflow: hidden; /* Change this to hidden to prevent scroll */
-  background: url('images/namePlate.png') no-repeat;
-  background-size: 100% 100%;
-  background-position: center center;
-  font-size: 0.7vw;
-  padding-left: 1.75vw;
-  padding-right: 1.75vw;
-}
-
-#namePlate .inner {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%; /* Ensure .inner matches parent's height */
+  color: white;
+  background-color: #6f6f7f8c;
 }
 
 #playerName {
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.rpgui-button {
-    overflow: hidden;
-    background: url(images/button.png) center no-repeat no-repeat;
-    background-clip: padding-box;
-    background-origin: padding-box;
-    background-size: 100% 100%;
-    font-size: 1em;
+.hud-container.no-borders {
+  width: 10vw;
+  pointer-events: all;
+  position: relative;
+  overflow: visible;
 }
 
-.rpgui-button.hover,.rpgui-button:hover {
-    background-image: url(images/button-hover.png)
-}
-
-.rpgui-button.down,.rpgui-button:active {
-    background-image: url(images/button-down.png)
-}
-
-.rpgui-button.golden p {
-    display: inline-block
-}
-
-.rpgui-button.golden {
-    background: url(images/button-golden.png) center no-repeat no-repeat;
-    background-clip: padding-box;
-    background-origin: padding-box;
-    background-size: 100% 80%;
-    padding-top: 5px;
-    overflow: visible
-}
-
-.rpgui-button.golden:after,.rpgui-button.golden:before {
-    white-space: nowrap;
-    display: block;
-    content: "";
-    width: 34px;
-    height: 110%
-}
-
-.rpgui-button.golden.hover,.rpgui-button.golden:hover {
-    background-image: url(images/button-golden-hover.png)
-}
-
-.rpgui-button.golden.down,.rpgui-button.golden:active {
-    background-image: url(images/button-golden-down.png)
-}
-
-.rpgui-button.golden:before {
-    background: url(images/button-golden-left.png) right center no-repeat;
-    background-size: 100% 100%;
-    margin: -5% 0 0 -2px;
-    left: 0;
-    float: left
-}
-
-.rpgui-button.golden:after {
-    background: url(images/button-golden-right.png) left center no-repeat;
-    background-size: 100% 100%;
-    margin: -5% -2px 0 0;
-    right: 0;
-    float: right
-}
-
-.hud-container {
+.stats-wrapper {
+  width: 100%;
+  position: relative;
+  z-index: 5;
+  background-color: rgba(89, 86, 82, 1.0);
   border-style: solid;
   border-image-source: url(images/border-image.png);
   border-image-repeat: repeat;
   border-image-slice: 6 6 6 6;
   border-image-width: 0.3vw;
   border-width: 0.2vw;
-  background-color: #595652;
+  z-index: 2;
+}
+
+.hud-container:not(.no-borders) {
+  border-style: solid;
+  border-image-source: url(images/border-image.png);
+  border-image-repeat: repeat;
+  border-image-slice: 6 6 6 6;
+  border-image-width: 0.3vw;
+  border-width: 0.2vw;
+  background-color: rgba(89, 86, 82, 0.8);
+  width: 10vw;
+  pointer-events: all;
+  position: relative;
+  overflow: visible;
+}
+
+.hud-container.settings {
+  position: absolute;
+  top: calc(50% - 15vw);
+  left: calc(50% - 15vw);
+  width: 30vw;
+  height: 30vw;
+}
+
+#settings {
+  border-top-style: solid;
+  border-image-source: url(images/border-image.png);
+  border-image-repeat: repeat;
+  border-image-slice: 6 6 6 6;
+  border-top-image-width: 0.3vw;
+  border-top-width: 0.2vw;
+  /* padding: 0.3vw; */
+}
+
+.special {
+  margin-top: -0.2vw;
 }
 
 #statsBars {
   width: auto;
   text-align: center;
   font-size: 0.5vw;
+  position: relative;
+  z-index: 2;
 }
 
 #statsBars .inner {
@@ -395,6 +476,8 @@ div {
   flex-direction: column;
   gap: 0vw;
   justify-content: center;
+  z-index: 2;
+  position: relative;
 }
 
 
@@ -409,7 +492,6 @@ div {
   align-items: center;
   justify-content: center;
   color: #FFFFFF;
-  font-family: 'Press Start 2P';
   font-size: 1em;
   overflow: hidden;
   background-color: #808080;
@@ -423,11 +505,12 @@ div {
   width: 100%;
 }
 
-#hpBar , #manaBar {
+#hpBar , #manaBar, #xpBar {
   position: relative; /* Ensure that the text position is absolute relative to these bars */
+  cursor: url(images/cursor/point.png) 10 0, auto !important;
 }
 
-#hpBar .text, #manaBar .text, #xpBar .text {
+#hpBar .text, #hpBar .heal, #manaBar .text, #manaBar .heal, #xpBar .text {
   display: flex; /* Enable Flexbox */
   justify-content: center; /* Center horizontally */
   align-items: center; /* Center vertically */
@@ -437,13 +520,32 @@ div {
   transform: translate(-50%, -50%);
   z-index: 1;
   color: white; /* or another contrasting color */
-  pointer-events: none; /* if you want to make sure it's not interactive */
   font-size: 0.45vw;
   margin: 0;
   height: 100%;
   width: 100%; /* Ensure it covers the full width */
   text-align: center; /* Center text */
 }
+
+#hpBar div, #manaBar div, #hpBar p, #manaBar p {
+  pointer-events: none;
+}
+
+/*#hpBar:hover .text, #manaBar:hover .text {
+  display: none;
+  cursor: url(images/cursor/point.png) 10 0, auto !important;
+} 
+
+#hpBar:hover::after, #manaBar:hover::after {
+  content: "Click to Heal";
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  flex-wrap: wrap;
+  height: 100%;
+  cursor: url(images/cursor/point.png) 10 0, auto !important;
+}*/
 
 .statBar>span {
   position: relative;
@@ -456,6 +558,7 @@ div {
      1px -1px 0 #000,
     -1px  1px 0 #000,
      1px  1px 0 #000;
+  pointer-events : all;
 }
 
 #statsLvl {
@@ -464,16 +567,23 @@ div {
 
 #main-hud-container {
   position: absolute;
-  top: 8%;
+  top: 3%;
   left: 1%;
-  width: 11vw;
+  width: 32vw;
+  user-select: none;
+  pointer-events: none;
+  z-index: 5;
 }
 
-#main-hud-container > div {
+#main-hud-container > div:not(:first-child) {
+  margin-top: 0.5vw;
+}
+
+#main-hud-container > div > div::not(.no-padding) {
   padding: 0.3vw;
 }
 
-.expandable {
+.header {
   text-align: left;
   font-size: 0.5vw;
   overflow-wrap: break-word;
@@ -483,41 +593,179 @@ div {
   padding-right: 0.3vw;
   padding-top: 0.2vw;
   padding-bottom: 0.1vw;
-  cursor: url(images/cursor/point.png) 10 0, auto !important;
+  display: flex;
+  align-items: center;
+  z-index: 2;
+  position: relative;
 }
 
-.expandable.full {
+.header p {
+  margin: 0;
+}
+
+.action-buttons {
+  margin-left: auto;
+  margin-right: 0;
+  display: flex;
+  gap: 0;
+}
+
+.action-buttons .action-button {
+  background-color: transparent;
+  border: 0;
+  color: white;
+  font-family: arcade;
+  font-size: 0.6vw;
+  width: 1.0vw;
+  cursor: url(images/cursor/point.png) 10 0, auto !important;
+  padding: 0;
+}
+
+.action-buttons .action-button:hover {
+  color: #C0C146;
+}
+
+.collapsible:not(.no-padding) {
   border-top-style: solid;
-  border-bottom-style: solid;
   border-image-source: url(images/border-image.png);
   border-image-repeat: repeat;
   border-image-slice: 6 6 6 6;
   border-top-image-width: 0.3vw;
   border-top-width: 0.2vw;
-  border-bottom-image-width: 0.3vw;
-  border-bottom-width: 0.2vw;
+  padding: 0.3vw;
 }
 
-.inventory-stash {
+.stats-meter {
   display: flex;
 }
 
-.expandable.top {
-  border-bottom-style: solid;
-  border-image-source: url(images/border-image.png);
-  border-image-repeat: repeat;
-  border-image-slice: 6 6 6 6;
-  border-bottom-image-width: 0.3vw;
-  border-bottom-width: 0.2vw;
+.stats {
+  width: 10vw;
+  height: 5vw;
 }
 
-.expandable.bottom {
-  border-top-style: solid;
+.stats.full {
+  border-right-style: solid;
   border-image-source: url(images/border-image.png);
   border-image-repeat: repeat;
   border-image-slice: 6 6 6 6;
-  border-top-image-width: 0.3vw;
-  border-top-width: 0.2vw;
+  border-right-image-width: 0.3vw;
+  border-right-width: 0.2vw;
+  padding-right: 0.3vw;
+}
+
+.stats-meter .stats > div:not(:last-child) {
+  margin-bottom: 0.3vw;
+}
+
+.meter {
+  padding-left: 0.3vw;
+  width: 20vw;
+  text-align: center;
+  display: flex;
+}
+
+.meter > div {
+  width: 50%;
+  position: relative;
+}
+
+.meter.stopped > div {
+  width: 100%;
+}
+
+.meter.running .side-info:first-child {
+  margin-bottom: 0.2vw;
+}
+
+.inv-huds {
+  display: flex;
+}
+
+.meter > div:first-child {
+  border-right-style: solid;
+  border-image-source: url(images/border-image.png);
+  border-image-repeat: repeat;
+  border-image-slice: 6 6 6 6;
+  border-right-image-width: 0.3vw;
+  border-right-width: 0.2vw;
+  padding-right: 0.3vw;
+}
+
+.meter .side {
+  justify-content: center;
+}
+
+.meter-header {
+  margin-bottom: 0.2vw;
+}
+
+.meter-header:not(:first-child){
+  margin-top: 0.8vw;
+}
+
+.stop-session-button {
+  color: #f93636;
+  background-color: #4d4c4f;
+  width: 4vw;
+  /* margin: 0 auto; */
+  height: 1vw;
+  font-size: 0.5vw;
+  font-family: inherit;
+  cursor: url(images/cursor/point.png) 10 0, auto !important;
+  position: absolute;
+  bottom: 0;
+  left: 3vw;
+}
+
+.meter.stopped, .meter.running {
+  height: 5vw;
+  overflow: hidden;
+}
+
+.stop-session-button:hover {
+  font-weight: bold;
+  color: red;
+}
+
+.start-session-button {
+  color: #2af32a;
+  background-color: #4d4c4f;
+  width: 4vw;
+  margin: 0 auto;
+  margin-top: 0.35vw;
+  height: 1vw;
+  font-size: 0.5vw;
+  font-family: inherit;
+  cursor: url(images/cursor/point.png) 10 0, auto !important;
+  position: absolute;
+  bottom: 0;
+  left: 3vw;
+}
+
+.start-session-button:hover {
+  font-weight: bold;
+  color: white;
+}
+
+.nextLevels {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.2vw;
+}
+
+.side-info {
+  display: flex;
+}
+
+.side-info > div {
+  width: 50%; /* Set each child to take 50% width */
+  display: flex;
+  justify-content: center;
+}
+
+.expanded {
+  width: 30vw !important;
 }
 
 #stats {
@@ -531,7 +779,6 @@ div {
 }
 
 #next-blessing-cost {
-  margin-top: 5px;
   font-size: 0.45vw;
 }
 
@@ -582,6 +829,7 @@ div {
 #missionText {
   padding-top: 0.2vw;
   text-align: left;
+  user-select: text;
 }
 
 #missionProgress {
@@ -614,72 +862,56 @@ div {
 .small-image {
   width: 0.8vw;
   height: 0.8vw;
-  margin-right: 5px;
+  margin-right: 0.2vw;
 }
 
-#heal {
-  position: absolute;
-  top: 95%;
-  left: 8.3%;
-  width: 2vw;
-  height: 2vw;
-  background-image: url('images/inventory_background/heal.png');
-  background-size: cover;
-  display: block;
-  cursor: url(images/cursor/point.png) 10 0, auto !important;
-  font-size: 0.5vw;
-}
-
-#hideInventory {
-  position: absolute;
-  top: 95%;
-  left: 4.6%;
-  width: 2vw;
-  height: 2vw;
-  background-image: url('images/inventory_background/toggle_vision.png');
-  background-size: cover;
-  display: block;
-  cursor: url(images/cursor/point.png) 10 0, auto !important;
-  font-size: 0.5vw;
+.main-menu {
+  display: flex;
+  margin-top: 0.2vw;
 }
 
 #quit {
-  position: absolute;
-  top: 95%;
-  left: 1%;
-  width: 2vw;
-  height: 2vw;
-  background-image: url('images/inventory_background/quit.png');
-  background-size: cover;
+  width: 40%;
+  height: 1.5vw;
   display: block;
   cursor: url(images/cursor/point.png) 10 0, auto !important;
-  font-size: 0.5vw;
+  font-size: 0.45vw;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+  background-color: #53535f7a;
+  color: #d04648;
+  font-family: arcade;
 }
 
-#craft {
-  position: absolute;
-  top: 95%;
-  left: 12%;
-  width: 2vw;
-  height: 2vw;
-  background-image: url('images/inventory_background/craft.png');
-  background-size: cover;
+#settings-button {
+  width: 60%;
+  height: 1.5vw;
   display: block;
   cursor: url(images/cursor/point.png) 10 0, auto !important;
-  font-size: 0.5vw;
+  font-size: 0.45vw;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+  background-color: #53535f7a;
+  color: white;
+  font-family: arcade;
 }
 
-#stash {
-  position: absolute;
-  top: 95%;
-  left: 16%;
-  width: 2vw;
-  height: 2vw;
-  background-image: url('images/inventory_background/stash.png');
-  background-size: cover;
-  display: block;
-  cursor: url(images/cursor/point.png) 10 0, auto !important;
-  font-size: 0.5vw;
+#settings-button:hover {
+  color: #f2ff00;
+}
+
+#quit:hover{
+  color: #732525;
+}
+
+.button-icon {
+  width: 1vw; /* Adjust the size as needed */
+  height: auto;
+  margin-right: 0.2vw; /* Adjust the spacing between the icon and text */
 }
 
 #loggedOut {
@@ -851,9 +1083,8 @@ input[type="range"] {
 }
 
 .inventory-item {
-  position: relative;
-  width: 1.8vw;
-  height: 1.8vw;
+  width: 1.8vw !important;
+  height: 1.8vw !important;
   background-repeat: no-repeat;
   cursor: url(images/cursor/point.png) 10 0, auto !important;
   -webkit-transition: opacity 0.3s ease;
@@ -861,6 +1092,8 @@ input[type="range"] {
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center center, center center;
+  pointer-events: all;
+  position: relative;
 }
 
 .inventory-item-sortable-placeholder {
@@ -927,7 +1160,7 @@ input[type="range"] {
 }
 
 .context-menu-item.osrsubmenu > span:after {
-  content: "â–¶";
+  content: "ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¶";
   float: right;
   margin-left: 0.52vw; 
   color: white;
@@ -983,7 +1216,12 @@ input[type="range"] {
   width: 2.8vw; 
   height: 2.8vw; 
   background-size: cover;
-  border: 0.052vw solid #351100; 
+  border-image-source: url(images/border-image.png);
+  border-image-repeat: repeat;
+  border-image-slice: 6 6 6 6;
+  border-style: solid;
+  border-image-width: 0.3vw;
+  border-width: 0.2vw;
   background-color: linear-gradient(145deg, #7A7875, #595652);
   border-radius: 0.52vw; 
 }
@@ -1053,19 +1291,34 @@ input[type="range"] {
 }
 
 #reset-blessings {
-  background-color: #7E4C34;
+  background-color: #53535f7a;
   color: white;
   font-family: arcade;
   font-size: 0.5vw;
   cursor: url(images/cursor/point.png) 10 0, auto !important;
   width: 100%;
   height: 1.5vw;
-  margin-top: 2px;
+  margin-top: 0.2vw;
 }
 
 #reset-blessings:hover {
-  color: #C0C146;
-  text-shadow: -0.052vw 0 black, 0 0.052vw black, 0.052vw 0 black, 0 -0.052vw black; 
+  color: #f2ff00;
+}
+
+#save-settings {
+  background-color: #53535f7a;
+  color: white;
+  font-family: arcade;
+  cursor: url(images/cursor/point.png) 10 0, auto !important;
+  width: calc(100% - 0.4vw);
+  height: 1.8vw;
+  position: absolute;
+  bottom: 0.2vw;
+  left: 0.2vw;
+}
+
+#save-settings:hover {
+  color: #f2ff00;
 }
 
 #customAmountSell {
@@ -1087,38 +1340,17 @@ input[type="range"] {
 }
 
 .ui-tooltip {
-  background-color: #595652;
-  border: 0.42vw solid #ae6834; 
-  border-radius: 0.52vw; 
-  background-size: 100% 100% !important;
-  background-position: center center !important;
+  background-color: rgba(89, 86, 82, 0.9);
+  border-image-source: url(images/border-image.png);
+  border-image-repeat: repeat;
+  border-image-slice: 6 6 6 6;
+  border-style: solid;
+  border-image-width: 0.3vw;
+  border-width: 0.2vw; 
   color: white;
   width: 18.2vw; 
   padding: 0.26vw 3.33vw 0.26vw 0.52vw; 
   z-index: 101;
-}
-
-ui-tooltip::before,
-.ui-tooltip::after {
-  content: "";
-  position: absolute;
-  top: -0.1vw;
-  left: -0.1vw; 
-  right: -0.1vw; 
-  bottom: -0.1vw;
-  border-radius: 0.52vw;
-}
-
-.ui-tooltip::before {
-  border: 0.15vw solid black !important;
-  top: -0.42vw; 
-  left: -0.42vw; 
-  right: -0.42vw;
-  bottom: -0.42vw; 
-}
-
-.ui-tooltip::after {
-  border: 0.15vw solid black;
 }
 
 .ui-tooltip-content {
@@ -1166,6 +1398,7 @@ ui-tooltip::before,
     -0.05vw 0.05vw 0 #000,
     0.05vw 0.05vw 0 #000;
   cursor: url(images/cursor/point.png) 10 0, auto;
+  pointer-events: all;
 }
 
 .page-button.disabled {
@@ -1293,7 +1526,7 @@ ui-tooltip::before,
 
 .rpgui-progress-fill {
     top: 0.2vw;
-    bottom: 8px;
+    bottom: 0.3vw;
     left: 0;
     width: 100%;
     height: 0.7vw; /* 12px / 2 */
@@ -1313,6 +1546,101 @@ ui-tooltip::before,
 }
 
 .highlight-slot {
-    border: 2px solid #FFD700; /* Gold color for highlight */
-    background-color: rgba(255, 215, 0, 0.2); /* Light gold background */
+  border: 0.2vw solid #FFD700; /* Gold color for highlight */
+  background-color: rgba(255, 215, 0, 0.2); /* Light gold background */
+}
+
+.rpgui-container {
+  font-size: 0.5vw;
+  padding: 0.3vw;
+}
+
+/* Tab list styling */
+.rpgui-tabs-list {
+    display: flex;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.rpgui-tab {
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: #444;
+    /*border: 2px solid #777;
+    border-bottom: none;
+    border-radius: 5px 5px 0 0;*/
+    margin-right: 5px;
+    transition: background-color 0.3s, border-color 0.3s;
+    border-image-source: url(images/border-image.png);
+    border-image-repeat: repeat;
+    border-image-slice: 6 6 6 6;
+    border-top-style: solid;
+    border-top-image-width: 0.3vw;
+    border-top-width: 0.2vw;
+    border-left-style: solid;
+    border-left-image-width: 0.3vw;
+    border-left-width: 0.2vw;
+    border-right-style: solid;
+    border-right-image-width: 0.3vw;
+    border-right-width: 0.2vw;
+    border-bottom: none;
+}
+
+.rpgui-tab:hover {
+    background-color: #555;
+    border-color: #888;
+}
+
+.rpgui-tab.active {
+    background-color: #222;
+    color: yellow
+}
+
+/* Tab content styling */
+.rpgui-tab-content {
+    background-color: #333;
+    border-image-source: url(images/border-image.png);
+    border-image-repeat: repeat;
+    border-image-slice: 6 6 6 6;
+    border-style: solid;
+    border-image-width: 0.3vw;
+    border-width: 0.2vw;
+    height: 25.5vw;
+    padding: 0.2vw 0.5vw;
+    position: relative;
+}
+
+input[type=checkbox].rpgui-checkbox {
+    display: none;
+}
+
+.rpgui-tab-content p {
+  margin-left: 0.2vw;
+}
+
+.checkbox-group > div {
+    margin-bottom: 0.2vw; /* Adjust the value as needed */
+}
+
+.checkbox-group > div:last-child {
+    margin-bottom: 0;
+}
+
+input[type=checkbox].rpgui-checkbox+label {
+    background: url(images/checkbox-off.png) no-repeat;
+    line-height: 1.5vw;
+    display: inline-block;
+    background-size: auto 100%;
+    padding-left: 2vw;
+    height: 1.5vw;
+}
+
+input[type=checkbox].rpgui-checkbox:checked+label {
+    background: url(images/checkbox-on.png) no-repeat;
+    line-height: 1.5vw;
+    display: inline-block;
+    background-size: auto 100%;
+    padding-left: 2vw;
+    height: 1.5vw;
 }

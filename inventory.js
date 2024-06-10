@@ -82,10 +82,36 @@ $('#column-count').on('input propertychange change', function () {
     refreshSortableInventoryList();
 }).trigger('change');
 
+function preventAnimationWhenMoving(senderItemElement, receiverItemElement){
+    if ($(senderItemElement).hasClass('inventory-item')){
+        var inventoryPosition = senderItemElement.attr('data-inventory-position');
+        var stashPosition = senderItemElement.attr('data-stashposition');
 
+        if (inventoryPosition !== undefined && inventoryPosition > -1) {
+            if (previousInventoryState[inventoryPosition] && previousInventoryState[inventoryPosition].fullItem !== undefined)
+                previousInventoryState[inventoryPosition].fullItem.swapped = true;
+        } else {
+            if (previousStashState[stashPosition] && previousStashState[stashPosition].fullItem !== undefined)
+                previousStashState[stashPosition].fullItem.swapped = true;
+        }                        
+    }
+    if ($(receiverItemElement).hasClass('inventory-item')){
+        var inventoryPosition = receiverItemElement.attr('data-inventory-position');
+        var stashPosition = receiverItemElement.attr('data-stashposition');
+        
+        if (inventoryPosition !== undefined && inventoryPosition > -1) {
+            if (previousInventoryState[inventoryPosition] && previousInventoryState[inventoryPosition].fullItem !== undefined)
+                previousInventoryState[inventoryPosition].fullItem.swapped = true;
+        } else {
+            if (previousStashState[stashPosition] && previousStashState[stashPosition].fullItem !== undefined)
+                previousStashState[stashPosition].fullItem.swapped = true;
+        }
+    }
+}
 
 
 // Sorting, dragging, dropping, etc
+var droppingOnPage = false;
 
 refreshSortableInventoryList();
 function refreshSortableInventoryList() {
@@ -97,7 +123,8 @@ function refreshSortableInventoryList() {
         },
         start: function(event, ui) {
             $(this).attr('moving', 'true');
-            $('.ui-tooltip').remove();
+            //$('.ui-tooltip').remove();
+            $(document).tooltip("disable");
 
             var senderItemElement = ui.item;
             var senderDataFullItem = senderItemElement.attr('data-fullitem');
@@ -111,6 +138,8 @@ function refreshSortableInventoryList() {
         stop: function(event, ui) {
             $(this).removeAttr('moving');
             $(ui.sender).removeAttr('moving');
+            $(document).tooltip("enable");
+            initTooltips();
             var senderItemElement = ui.item;
             var senderDataFullItem = senderItemElement.attr('data-fullitem');
             var senderIsEquipped = senderItemElement.attr('data-equipped');
@@ -120,7 +149,7 @@ function refreshSortableInventoryList() {
                 correctSlot.classList.remove('highlight-slot');
             }
         },
-        receive: function (event, ui) {            
+        receive: function (event, ui) {        
             var attrWhitelist = $(this).attr('data-item-filter-whitelist');
             var attrBlackList = $(this).attr('data-item-filter-blacklist');
             var itemFilterWhitelistArray = attrWhitelist ? attrWhitelist.split(/\s+/) : [];
@@ -131,11 +160,16 @@ function refreshSortableInventoryList() {
 
             var canMoveIntoSlot = verifyWithWhiteBlackLists(itemTypeListArray, itemFilterWhitelistArray, itemFilterBlacklistArray);
 
+            if (droppingOnPage){
+                droppingOnPage = false;
+                return;
+            }
+
             if (!canMoveIntoSlot) {
                 $(ui.item).parentToAnimate($(ui.sender), 200);
             } else {                
                 var senderItemElement = ui.item;
-                var receiverItemElement = $(this).children().not(ui.item);                
+                var receiverItemElement = $(this).children().not(ui.item);
                 var senderDataFullItem = senderItemElement.attr('data-fullitem');
                 var receiverDataFullItem = receiverItemElement.attr('data-fullitem');
                 var senderData = JSON.parse(senderDataFullItem);
@@ -229,7 +263,7 @@ function refreshSortableInventoryList() {
                             } else {
                                 receiverData.gem = senderData;
                                 receiverItemElement.hide();
-                                styleItem(receiverData, senderItemElement[0]);
+                                styleItem(receiverData, senderItemElement[0], false, true);
                                 delete receiverData.gem;
                                 hiddenSwap = true;
                                 $(senderItemElement).addClass('equipped-gem');
@@ -249,8 +283,8 @@ function refreshSortableInventoryList() {
                             delete senderData.gem;    
                             senderItemElement.attr('data-fullitem', JSON.stringify(senderData));
                             receiverItemElement.attr('data-fullitem', JSON.stringify(receiverData));
-                            styleItem(senderData, senderItemElement[0]);
-                            styleItem(receiverData, receiverItemElement[0]);
+                            styleItem(senderData, senderItemElement[0], false, true);
+                            styleItem(receiverData, receiverItemElement[0], false, true);
                         }
 
                         if (!senderHasGem && receiverHasGem) {
@@ -258,12 +292,13 @@ function refreshSortableInventoryList() {
                             delete receiverData.gem;    
                             senderItemElement.attr('data-fullitem', JSON.stringify(senderData));
                             receiverItemElement.attr('data-fullitem', JSON.stringify(receiverData));
-                            styleItem(senderData, senderItemElement[0]);
-                            styleItem(receiverData, receiverItemElement[0]);
+                            styleItem(senderData, senderItemElement[0], false, true);
+                            styleItem(receiverData, receiverItemElement[0], false, true);
                         }
                     }
-                }       
+                }
 
+                preventAnimationWhenMoving(senderItemElement, receiverItemElement);
                 clearTimeout(saveInventoryTimer);
                 saveInventoryTimer = setTimeout(saveInventory, 200);   
                 if (!preventSwap){
@@ -282,6 +317,7 @@ function refreshSortableInventoryList() {
         accept: '.inventory-item',
         hoverClass: 'inventory-item-sortable-hover',
         drop: function(event, ui) {
+            droppingOnPage = true;
             const item = $(ui.helper);
             const page = $(this).data('page');
             

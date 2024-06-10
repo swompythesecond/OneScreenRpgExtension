@@ -34,6 +34,21 @@ const itemsPerPage = 50;
 let previousInventoryState = {};
 let previousStashState = {};
 let previousSelectedItemsState = {};
+let meterRunning = false;
+var xpMeter = {
+    cumulativeXpCache: 0,
+    lastLevelChecked: 0,
+    xp: 0,
+    startingXp: 0,
+    startingXpPerMinute: 0,
+    minuteCount: 0,
+    startingLevelsMinute: 0,
+    startingLevelsTotal: 0
+}
+var meterMinuteTimer;
+var updateMeterInfo = false;
+var unsavedChanges = false;
+var isWindowActive = true;
 
 class RequestQueue {
     constructor() {
@@ -188,6 +203,23 @@ function formatMoney(number) {
     return String(new Intl.NumberFormat('en-US', { maximumFractionDigits: 1, notation: "compact", compactDisplay: "short" }).format(number));
 }
 
+function formatTime(minutes) {
+    // If the input is less than an hour, just return the minutes
+    if (minutes < 60) {
+        return `${Math.floor(minutes)} minutes`;
+    }
+
+    // Calculate hours and remaining minutes
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+
+    // Format hours and remaining minutes
+    const formattedMinutes = remainingMinutes < 10 ? `0${remainingMinutes}` : remainingMinutes;
+    
+    // Return the formatted time
+    return `${hours}:${formattedMinutes} hours`;
+}
+
 function formatNumber(number) {
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
@@ -311,7 +343,9 @@ function generateBlessingTooltip(blessing, total) {
         `${description}<br>` +
         `Current Blessings: ${total}<br>` +
         `Next Blessing Cost: ${abbreviateNumber(nextBlessingCost)}<br><br>` +
-        `Click to buy 1 ${blessingName} blessing.`;
+        `Click to buy/assign 1 ${blessingName} blessing.<br>` +
+        `<span style="color: green;">CTRL</span> + <span style="color: lightblue;">Click</span> to buy/assign 100 ${blessingName} blessing.<br>` +
+        `<span style="color: purple;">SHIFT</span> + <span style="color: lightblue;">Click</span> to assign all free blessings to ${blessingName} blessing.<br><span style="color: red;">WARNING</span> If you don't have free blessings all your money will be used.`;
 
     return blessingTooltip;
 }
@@ -402,7 +436,30 @@ function getImageName(item) {
     }
 }
 
-function styleItem(item, itemElement, isDefault = false) {
+function animateAmount(element, oldValue, newValue, duration = 1800) {
+    const start = oldValue;
+    const range = newValue - start;
+    let current = start;
+    const stepTime = 10; // Interval in milliseconds
+    const steps = duration / stepTime;
+    const increment = range / steps;
+
+    if (element.animationTimer) {
+        clearInterval(element.animationTimer);
+    }
+
+    element.animationTimer = setInterval(() => {
+        current += increment;
+        element.innerHTML = formatItemAmount(Math.floor(current));
+        if ((increment > 0 && current >= newValue) || (increment < 0 && current <= newValue)) {
+            element.innerHTML = formatItemAmount(newValue);
+            clearInterval(element.animationTimer);
+            element.animationTimer = null;
+        }
+    }, stepTime);
+}
+
+function styleItem(item, itemElement, isDefault = false, swapped = false) {
     // Check if itemElement already has a .item-amount element
     let amountDisplay = itemElement.querySelector('.item-amount');
     if (item.amount > 0) {
@@ -411,16 +468,34 @@ function styleItem(item, itemElement, isDefault = false) {
             amountDisplay.classList.add('item-amount');
             itemElement.appendChild(amountDisplay);
         }
-        amountDisplay.classList.remove('item-amount-changed-up');
-        amountDisplay.classList.remove('item-amount-changed-down');        
-        void amountDisplay.offsetWidth;  
-        if (item.changedAmount === 1) {
-            amountDisplay.classList.add('item-amount-changed-up');
-        } else if (item.changedAmount === -1) {
-            amountDisplay.classList.add('item-amount-changed-down');
+
+        // Stop any ongoing animation
+        clearInterval(amountDisplay.animationTimer);
+        amountDisplay.animationTimer = null;
+
+        if (!swapped) {                 
+            amountDisplay.classList.remove('item-amount-changed-up');
+            amountDisplay.classList.remove('item-amount-changed-down');
+            void amountDisplay.offsetWidth;
+            if (item.amount !== item.previousAmount && item.amount > item.previousAmount && item.previousAmount !== undefined) {
+                amountDisplay.classList.add('item-amount-changed-up');
+                setTimeout(() => {
+                    amountDisplay.classList.remove('item-amount-changed-up');
+                }, 2000);
+                animateAmount(amountDisplay, item.previousAmount, item.amount, 1800);
+            } else if (item.amount !== item.previousAmount && item.amount < item.previousAmount && item.previousAmount !== undefined) {
+                amountDisplay.classList.add('item-amount-changed-down');
+                setTimeout(() => {
+                    amountDisplay.classList.remove('item-amount-changed-down');
+                }, 2000);
+                animateAmount(amountDisplay, item.previousAmount, item.amount, 1800);
+            } else {
+                amountDisplay.innerHTML = formatItemAmount(item.amount);
+            }
+        } else {
+            amountDisplay.innerHTML = formatItemAmount(item.amount);
         }
 
-        amountDisplay.innerHTML = formatItemAmount(item.amount);
     } else {
         if (amountDisplay) {
             itemElement.removeChild(amountDisplay);
@@ -462,7 +537,6 @@ function connectToExtension() {
                 fullInventoryDivs.forEach(function (div) {
                     div.style.display = "none";
                 });
-                document.getElementById('hideInventory').style.display = "none";
             }
             initExtension();
         } catch (error) {
@@ -481,7 +555,6 @@ function removeLoggedOutElement() {
     fullInventoryDivs.forEach(function (div) {
         div.style.display = "block";
     });
-    document.getElementById('hideInventory').style.display = "block";
 }
 
 function abbreviateNumber(value) {
@@ -497,73 +570,85 @@ function abbreviateNumber(value) {
     return newValue;
 }
 
-function appendPaginationControls() {
+function updatePaginationControls() {
     const stashInventoryContainer = document.getElementById('stashInventory');
     
-    // Remove existing pagination controls if they exist
-    const existingPaginationControls = document.querySelector('.stash-pagination');
-    if (existingPaginationControls) {
-        existingPaginationControls.remove();
+    // Check if pagination controls already exist
+    let paginationControls = document.querySelector('.stash-pagination');
+    if (!paginationControls) {
+        // Create a div for pagination controls if it doesn't exist
+        paginationControls = document.createElement('div');
+        paginationControls.classList.add('stash-pagination');
+        stashInventoryContainer.appendChild(paginationControls);
     }
 
-    // Create a div for pagination controls
-    const paginationControls = document.createElement('div');
-    paginationControls.classList.add('stash-pagination');
-
-    // Create numbered buttons
+    // Loop through 10 pages
     for (let page = 1; page <= 10; page++) {
-        const pageButton = document.createElement('div');
-        pageButton.classList.add('page-button');
-        pageButton.innerText = page;
-        pageButton.dataset.page = page;
+        let pageButton = document.querySelector(`.page-button[data-page='${page}']`);
+        if (!pageButton) {
+            // Create page button if it doesn't exist
+            pageButton = document.createElement('div');
+            pageButton.classList.add('page-button');
+            pageButton.dataset.page = page;
+            pageButton.innerText = page;  // Set the initial text when creating the button
+            paginationControls.appendChild(pageButton);
+        }
 
+        // Update button properties
         if (page <= totalPages) {
             if (page === currentPage) {
                 pageButton.disabled = true;
                 pageButton.classList.add('active');
             } else {
+                pageButton.disabled = false;
+                pageButton.classList.remove('active');
                 pageButton.onclick = () => changePage(page);
+            }
+
+            // Update or create pageImage
+            let pageImage = pageButton.querySelector('.page-image');            
+            var firstCell = $('#stash-inventory-' + page + ' .inventory-row:first .inventory-cell:first');
+            var firstInventoryItem = firstCell.find('.inventory-item:first');
+
+            if (firstInventoryItem.length > 0) {
+                var backgroundImage = firstInventoryItem.css('background-image');
+                const urls = backgroundImage.match(/url\(["']?([^"']*)["']?\)/g);
+                if (urls && urls.length > 0) {
+                    const lastUrl = urls[urls.length - 1].replace(/url\(["']?([^"']*)["']?\)/, '$1');
+                    if (!pageImage) {
+                        pageImage = document.createElement('div');
+                        pageImage.classList.add('page-image');
+                        pageButton.innerText = "";  // Clear the text when adding an image
+                        pageButton.appendChild(pageImage);
+                    }
+                    pageImage.style.backgroundImage = `url(${lastUrl})`;
+                } else if (pageImage) {
+                    pageImage.remove();
+                    pageButton.innerText = page;  // Restore the text if no image
+                }
+            } else if (pageImage) {
+                pageImage.remove();
+                pageButton.innerText = page;  // Restore the text if no image
             }
         } else {
             pageButton.classList.add('disabled');
             pageButton.disabled = true;
             pageButton.onclick = null;
             pageButton.title = "Buy more stash pages on the shop.";
-        }
-
-        paginationControls.appendChild(pageButton);
-    }
-
-    // Append pagination controls to the stash inventory container
-    stashInventoryContainer.appendChild(paginationControls);
-
-    // Now loop again to set the background image
-    $('.stash-pagination .page-button').each(function(index) {
-        var page = $(this).attr('data-page');
-
-        if (page <= totalPages) {
-            var firstCell = $('#stash-inventory-' + page + ' .inventory-row:first .inventory-cell:first');
-            var firstInventoryItem = firstCell.find('.inventory-item:first');
-
-            if (firstInventoryItem.length > 0) {
-                var backgroundImage = firstInventoryItem.css('background-image');
-                var urls = backgroundImage.match(/url\(["']?([^"']*)["']?\)/g);
-                if (urls && urls.length > 0) {
-                    var lastUrl = urls[urls.length - 1];
-                    lastUrl = lastUrl.replace(/url\(["']?([^"']*)["']?\)/, '$1');
-                    const pageImage = document.createElement('div');
-                    pageImage.classList.add('page-image');
-                    pageImage.style.backgroundImage = "url(" + lastUrl + ")";
-                    this.innerText = "";
-                    this.appendChild(pageImage);
-                }
+            
+            // Remove the pageImage if it exists for pages that exceed totalPages
+            let pageImage = pageButton.querySelector('.page-image');
+            if (pageImage) {
+                pageImage.remove();
+                pageButton.innerText = page;  // Restore the text if no image
             }
         }
-    });
+    }
 }
 
-function initExtension() {
+function initTooltips(){
     $(document).tooltip({
+        items: ".inventory-item, .bless-button",
         track: true,
         content: function () {
             if ($(this).hasClass('bless-button')) { //Bless tooltip
@@ -582,7 +667,7 @@ function initExtension() {
             }
             else {
                 type = 'selectedItems';
-                position = $(this).attr('data-itemType');
+                position = $(this).attr('data-item-type');
             }
             // Fetch the tooltip content from the global tooltips object
             return tooltips[type][position] || '';
@@ -617,6 +702,18 @@ function initExtension() {
             currentTooltipText = "";
         }
     });
+}
+
+function isTabActive() {
+    if (document.hidden) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+function initExtension() {
+    initTooltips();
     getInventory().then(() => {
         loadLoop = setInterval(() => {
             getInventory().catch(err => console.error('Failed to get inventory:', err));
@@ -625,8 +722,9 @@ function initExtension() {
             if (settingInventory){
                 getUIInfo().catch(err => console.error('Failed to get UI Info:', err));
             }
-        }, 1000);
+        }, 2000);
         initializeContextMenu();
+        $('#settings-tabs').tabs();
     }).catch(error => {
         console.error('Initial inventory retrieval failed:', error);
         // Optionally start the interval even if the initial call fails
@@ -686,6 +784,16 @@ document.addEventListener('mouseup', function (event) {
     }
 });
 
+document.querySelectorAll('.rpgui-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        document.querySelectorAll('.rpgui-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.rpgui-tab-content').forEach(content => content.style.display = 'none');
+        
+        this.classList.add('active');
+        document.getElementById(this.getAttribute('data-tab')).style.display = 'block';
+    });
+});
+
 function setIsLeftMouseButtonPressedToFalse() {
     isLeftMouseButtonPressed = false;
 }
@@ -728,34 +836,6 @@ document.querySelector("#craftButton").addEventListener("click", function () {
 
 });
 
-document.querySelector("#hideInventory").addEventListener("click", function () {
-    event.stopPropagation();
-    $('.context-menu-list').trigger('contextmenu:hide');
-    let fullInventoryDivs = document.querySelectorAll(".hud");
-
-    if (fullInventoryDivs[0].style.display === "none") {
-        fullInventoryDivs.forEach(function (div) {
-            div.style.display = "block";
-            let craftInventoryDivs = document.querySelectorAll(".crafting");
-            craftInventoryDivs.forEach(function (div) {
-                div.style.display = "none";
-            });
-            let stashInventoryDivs = document.querySelectorAll("#stashInventory");
-            stashInventoryDivs.forEach(function (div) {
-                div.style.display = "none";
-            }
-            );
-        });
-    } else {
-        fullInventoryDivs.forEach(function (div) {
-            div.style.display = "none";
-        });
-        document.getElementById(`statsBars`).style.display = "none";
-    }
-
-
-});
-
 // we need to do this because otherwise there are issues with html
 window.addEventListener("DOMContentLoaded", function () {
     let craftInventoryDivs = document.querySelectorAll(".crafting");
@@ -765,76 +845,273 @@ window.addEventListener("DOMContentLoaded", function () {
     let stashInventoryDivs = document.querySelectorAll("#stashInventory");
     stashInventoryDivs.forEach(function (div) {
         div.style.display = "none";
-    }
-    );
-    $('.expandable').click(function() {
-        var collapsibleElement = $(this).next('.collapsible');
-        var isCurrentlyVisible = collapsibleElement.is(":visible");
+    });
 
-        // Log the action based on current visibility
-        if (isCurrentlyVisible) {
-            if ($(this).is(':first-of-type')) {
-                $(this).removeClass('top');
-            } else {
-                $(this).removeClass('full');
-                $(this).addClass('bottom');
-            }            
-        } else {
-            $(this).removeClass('bottom');
-            if ($(this).is(':first-of-type')) {
-                $(this).addClass('top');
-            } else {
-                $(this).addClass('full');
-            }
+    // Restore the state from localStorage or default to visible
+    $('.collapsible').each(function (index) {
+        var collapsibleElement = $(this);
+        var state = localStorage.getItem('collapsible_' + index);
+        var buttonElement = $(this).prev('.expandable').children().find('.action-button.collapse');
+
+        if (state === 'hidden') {
+            collapsibleElement.hide();
+            buttonElement.text('+');
         }
 
-        // Toggle the visibility
-        collapsibleElement.slideToggle();
+        var closeState = localStorage.getItem('close_' + index);
+        if (closeState === 'closed') {
+            collapsibleElement.parent().hide(); // Hide the entire section including expandable button
+        }
     });
+
+    $('.action-button.collapse').click(function () {
+        var collapsibleElement = $(this).parent().parent().next('.collapsible');
+        var isCurrentlyVisible = collapsibleElement.is(":visible");
+        var buttonElement = $(this);
+    
+        // Log the action based on current visibility
+        if (isCurrentlyVisible) {
+            buttonElement.text('+');
+            // Check if the container is expanded, if so, trigger the expand button
+            var parentContainer = $(this).closest('.hud-container');
+            if (parentContainer.hasClass('expanded')) {
+                buttonElement.prev('.expand').trigger('click');
+            }
+        } else {
+            buttonElement.text('-');
+        }
+    
+        // Toggle the visibility
+        var collapsibleIndex = $('.collapsible').index(collapsibleElement);
+        if (!$(collapsibleElement).hasClass('special')) {
+            if (isCurrentlyVisible) {
+                localStorage.setItem('collapsible_' + collapsibleIndex, 'hidden');               
+            } else {
+                localStorage.setItem('collapsible_' + collapsibleIndex, 'visible');
+            }
+            if ($(collapsibleElement).attr('id') == 'statsBars'){
+                $('.main-tabs').fadeToggle();
+            }
+            collapsibleElement.slideToggle();
+        } else {
+            if (isCurrentlyVisible) {
+                localStorage.setItem('collapsible_' + collapsibleIndex, 'hidden');
+                // If the element is visible, slide up
+                collapsibleElement.animate({
+                    height: 'toggle'
+                }, 400, function () {
+                    // Ensure the margin-top is reapplied after animation
+                    collapsibleElement.css('margin-top', '-0.2vw');
+                });
+            } else {
+                localStorage.setItem('collapsible_' + collapsibleIndex, 'visible');
+                // If the element is hidden, slide down
+                collapsibleElement.css('margin-top', '-0.2vw'); // Set the margin before animation
+                collapsibleElement.animate({
+                    height: 'toggle'
+                }, 400);
+            }
+        }
+    
+    });
+    
+    $('.action-button.expand').click(function () {
+        var buttonElement = $(this);
+        var collapsibleElement = $(this).parent().parent().next('.collapsible');
+        var isCurrentlyVisible = collapsibleElement.is(":visible");
+    
+        if ($(this).parent().parent().parent().hasClass('expanded')) {
+            $('.stats-meter .meter.stopped').hide();
+            $('.stats-meter .meter.running').hide();
+            $('.stats').removeClass('full');
+            $(this).parent().parent().parent().removeClass('expanded');
+            buttonElement.text('→');
+        } else {
+            $('.stats-meter .meter' + (meterRunning ? '.running' : '.stopped')).show();
+            $('.stats').addClass('full');
+            $(this).parent().parent().parent().addClass('expanded');
+            buttonElement.text('←');
+    
+            // Check if the container is not showing, if so, trigger the collapse button
+            if (!isCurrentlyVisible) {
+                buttonElement.next('.collapse').trigger('click');
+            }
+        }
+    });
+
+    // Add click event for the close button
+    $('.action-button.close:not(.dry)').click(function (event) {
+        event.stopPropagation();
+        var parentElement = $(this).closest('.expandable').parent();
+        var collapsibleIndex = $('.collapsible').index(parentElement.find('.collapsible'));
+
+        // Hide the element and save the state
+        parentElement.hide();
+        localStorage.setItem('close_' + collapsibleIndex, 'closed');
+        $('#chk-' + parentElement.attr('data-id')).prop('checked', false);
+    });
+
+    $('.action-button.close.dry').click(function (event) {
+        event.stopPropagation();
+        $(this).parent().parent().parent().hide();
+        $('.side-tab').removeClass('active');
+    });
+
+    $('#stashInventory .action-button.close.dry,#craftInventory .action-button.close.dry').click(function (event) {
+        event.stopPropagation();
+        $('.side-tab').removeClass('active');
+    });
+
+    // Make .movable elements sortable
+    $("#main-hud-container").sortable({
+        handle: ".header.draggable",
+        items: ".movable",
+        start: function(event, ui) {
+            $('.side-tabs.main').hide();
+        },
+        stop: function(event, ui) {
+            $('.side-tabs.main').show();
+        },
+        update: function(event, ui) {
+            saveOrder();
+        }
+    });
+
+    // Restore the saved order
+    restoreOrder();
+
+    function saveOrder() {
+        var order = $(".movable").map(function() {
+            return $(this).data("id");
+        }).get();
+        localStorage.setItem('sortableOrder', JSON.stringify(order));
+    }
+
+    function restoreOrder() {
+        var order = JSON.parse(localStorage.getItem('sortableOrder'));
+        var defaultOrder = ["health", "stats", "mission", "blessings", "inventory"];
+        
+        if (!order || order.length === 0 || order == defaultOrder) {
+            order = defaultOrder;
+        }
+
+        if (order != defaultOrder){        
+            var container = $("#main-hud-container");
+            $.each(order, function(index, value) {
+                var item = $('[data-id="' + value + '"]');
+                container.append(item);
+            });
+        }
+    }
+
+    // Restore the checkbox states
+    function restoreCheckboxStates() {
+        $('.hud-settings .rpgui-checkbox').each(function () {
+            var containerId = $(this).attr('id');
+            var value = $(this).val();
+            var state = localStorage.getItem(value);
+
+            if (state === 'closed') {
+                $(this).prop('checked', false);
+            } else {
+                $(this).prop('checked', true);
+            }
+        });
+    }
+
+    restoreCheckboxStates();
+
+    // Add event listeners to hud checkboxes
+    $('.hud-settings .rpgui-checkbox').change(function () {
+        var containerId = $(this).attr('id');
+        containerId = containerId.replace('chk-', '');
+        var value = $(this).val();
+        var isChecked = $(this).is(':checked');
+
+        const hudContainer = $(`.movable[data-id='${containerId}']`);
+
+        if (isChecked) {
+            hudContainer.show();
+            localStorage.removeItem(value);
+        } else {
+            hudContainer.hide()
+            localStorage.setItem(value, 'closed');
+        }
+    });
+
+    // Add event listeners to autolock checkboxes
+    $('.autolock-settings .rpgui-checkbox').change(function () {
+        unsavedChanges = true;
+    });
+
+    $('#save-settings').click(function () {
+        var autolockArray = {};
+        $('.autolock-settings .rpgui-checkbox').each(function() {
+            var isChecked = $(this).prop('checked');
+            var value = $(this).attr('value');
+            autolockArray[String(value)] = isChecked;
+        });
+        autolock(autolockArray);
+    });
+
+    $('.start-session-button').click(function () {
+        startXPMeter();
+        $('.meter.stopped').hide();
+        $('.meter.running').show();        
+    });
+
+    $('.stop-session-button').click(function () {
+        stopXPMeter();
+        $('.meter.running').hide();
+        $('.meter.stopped').show();        
+    });   
 }, false);
 
-document.querySelector("#craft").addEventListener("click", function () {
-    event.stopPropagation();
-    let craftInventoryDivs = document.querySelectorAll(".crafting");
-    let stashInventoryDivs = document.querySelectorAll("#stashInventory");
-    if (craftInventoryDivs[0].style.display === "none") {
-        craftInventoryDivs.forEach(function (div) {
-            div.style.display = "block";
-        });
-        stashInventoryDivs.forEach(function (div) {
-            div.style.display = "none";
-        });
-    } else {
-        craftInventoryDivs.forEach(function (div) {
-            div.style.display = "none";
-        });
-    }
-});
+function startXPMeter(){
+    meterRunning = true;
+    xpMeter = {
+        cumulativeXpCache: 0,
+        lastLevelChecked: xpMeter.lastLevelChecked,
+        xp: 0,
+        startingXp: 0,
+        startingXpPerMinute: 0,
+        minuteCount: 0,
+        startingLevelsMinute: 0,
+        startingLevelsTotal: 0
+    };
+    meterMinuteTimer = setInterval(function(){
+        xpMeter.minuteCount++;
+        if (xpMeter.minuteCount > 0){
+            updateMeterInfo = true;
+        }
+    }, 60000);
+}
 
-document.querySelector("#stash").addEventListener("click", function () {
-    event.stopPropagation();
-    $('.context-menu-list').trigger('contextmenu:hide');
-    let stashInventoryDivs = document.querySelectorAll("#stashInventory");
-    let craftInventoryDivs = document.querySelectorAll(".crafting");
-    if (stashInventoryDivs[0].style.display === "none") {
-        stashInventoryDivs.forEach(function (div) {
-            div.style.display = "block";
-        });
-        craftInventoryDivs.forEach(function (div) {
-            div.style.display = "none";
-        });
+function stopXPMeter(){
+    meterRunning = false;
+    clearInterval(meterMinuteTimer);
+}
 
-    } else {
-        stashInventoryDivs.forEach(function (div) {
-            div.style.display = "none";
-        });
-    }
-});
+function autolock(autolockSettings){
+    jwt = window.Twitch.ext.viewer.sessionToken;
 
+    fetch(myServer + '/setAutolock', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            jwt: jwt,
+            accessToken: accessToken,
+            autoLock: autolockSettings
+        }),
+    })
+    .catch(error => {
+        console.error(error);
+    });
+}
 
-document.querySelector("#heal").addEventListener("click", function () {
-    event.stopPropagation();
-    $('.context-menu-list').trigger('contextmenu:hide');
+function heal(element = false){
     jwt = window.Twitch.ext.viewer.sessionToken;
 
     fetch(myServer + '/heal', {
@@ -846,23 +1123,111 @@ document.querySelector("#heal").addEventListener("click", function () {
             jwt: jwt,
             accessToken: accessToken
         }),
-    })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error(response.statusText);
+    }).then(response => {
+        if (response.ok) {
+            if (element){
+                $('#' + element + ' .heal').text('Healed');
+                setTimeout(() => {
+                    $('#' + element + ' .heal').text('Click to Heal');
+                }, 1000);
             }
-        })
-        .then(data => {
-        })
-        .catch(error => {
-            console.error(error);
-        });
+        } else {
+            if (element){
+                $('#' + element + ' .heal').text('Fail to Heal');
+                setTimeout(() => {
+                    $('#' + element + ' .heal').text('Click to Heal');
+                }, 1000);
+            }
+        }
+    })
+    .catch(error => {
+        console.error(error);
+    });
+}
+
+function resetBlessings(){
+    jwt = window.Twitch.ext.viewer.sessionToken;
+
+    fetch(myServer + '/resetBlessings', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            jwt: jwt,
+            accessToken: accessToken
+        }),
+    })
+    .catch(error => {
+        console.error(error);
+    });
+}
+
+$(document).on('click', '#reset-blessings', function (event) {
+    resetBlessings();
 });
 
-document.querySelector("#quit").addEventListener("click", function () {
+$(document).on('click', '.side-tab', function (event) {
     event.stopPropagation();
+    if (!$(this).hasClass('quit')){
+        $(this).toggleClass('active');
+    }
+    $('.side-tab').not(this).removeClass('active');
+});
+
+$(document).on('click', '.side-tab.craft', function (event) {
+    event.stopPropagation();
+    $('.context-menu-list').trigger('contextmenu:hide');
+    $('#stashInventory').hide();
+    $('#craftInventory').toggle();
+    $('#settings-window').hide();
+});
+
+$(document).on('click', '.side-tab.stash', function (event) {
+    event.stopPropagation();
+    $('.context-menu-list').trigger('contextmenu:hide');
+    $('#stashInventory').toggle();
+    $('#craftInventory').hide();
+    $('#settings-window').hide();
+});
+
+$(document).on('click', '.side-tab.settings', function (event) {
+    event.stopPropagation();
+    $('#stashInventory').hide();
+    $('#craftInventory').hide();
+    $('#settings-window').toggle();
+});
+
+$(document).on('click', '.side-tab.quit', function (event) {
+    event.stopPropagation();
+    $('#stashInventory').hide();
+    $('#craftInventory').hide();
+    $('#settings-window').hide();
+    quit();
+});
+
+$(document).on('click', '#hpBar, #manaBar', function (event) {
+    event.stopPropagation();
+    $('.context-menu-list').trigger('contextmenu:hide');
+    heal($(event.target).attr('id'));
+});
+
+/*document.querySelector("#heal").addEventListener("click", function () {
+    event.stopPropagation();
+    heal();
+});*/
+
+$(document).on('mouseover', '#hpBar, #manaBar', function (event) {
+    $(event.target).children().find('.text').hide();
+    $(event.target).children().find('.heal').css('display', 'flex');
+});
+
+$(document).on('mouseout', '#hpBar, #manaBar', function (event) {
+    $(event.target).children().find('.text').css('display', 'flex');
+    $(event.target).children().find('.heal').hide();
+});
+
+function quit(){
     $('.context-menu-list').trigger('contextmenu:hide');
     jwt = window.Twitch.ext.viewer.sessionToken;
 
@@ -876,23 +1241,51 @@ document.querySelector("#quit").addEventListener("click", function () {
             accessToken: accessToken
         }),
     })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error(response.statusText);
-            }
-        })
-        .then(data => {
-        })
-        .catch(error => {
-            console.error(error);
-        });
-});
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error(response.statusText);
+        }
+    })
+    .then(data => {
+    })
+    .catch(error => {
+        console.error(error);
+    });
+}
 
 function hideMarker() {
     let marker = document.getElementById('marker');
     marker.style.display = "none";
+}
+
+function getBlessingsCost(amount){
+    totalBlessingsCost = 0;
+
+    for (var i = 0; i < amount; i++) {
+        nextBlessCost = 500 + Math.pow(totalBlessings, 3);
+        totalBlessingsCost = totalBlessingsCost + nextBlessCost;
+        totalBlessings++;
+    }
+
+    return totalBlessingsCost;
+}
+
+function getMaxBlessings(currentGold) {
+    var totalBlessings = 0;
+    var totalBlessingsCost = 0;
+
+    while (true) {
+        var nextBlessCost = 500 + Math.pow(totalBlessings, 3);
+        if (totalBlessingsCost + nextBlessCost > currentGold) {
+            break;
+        }
+        totalBlessingsCost += nextBlessCost;
+        totalBlessings++;
+    }
+
+    return totalBlessings;
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -905,12 +1298,42 @@ document.addEventListener('DOMContentLoaded', function () {
             event.currentTarget.classList.remove('blessed-success');
             event.currentTarget.classList.remove('blessed-fail');
 
+            var isCtrlHeld = event.ctrlKey;
+            var isShiftHeld = event.shiftKey;
+
             void event.currentTarget.offsetWidth; // Trigger reflow to restart the animation
             if (freeBlessings > 0 || nextBlessingCost <= currentGold){
-                //updateBlessing(type, blessings[blessingType], true);
-                //blessings[blessingType]++;
                 event.currentTarget.classList.add('blessed-success');
-                blessBlessing(blessingType);
+                if (isCtrlHeld){
+                    var amountToBless = 100;
+                    if (freeBlessings < 100){
+                        amountToBless = freeBlessings;
+                    }
+                    if(amountToBless <= 0){
+                        totalBlessingsCost = getBlessingsCost(100);
+                        if (totalBlessingsCost <= currentGold){
+                            amountToBless = 100;
+                        }
+                    }
+                    if (amountToBless > 0){
+                        blessBlessing(blessingType, amountToBless);
+                    } else {
+                        event.currentTarget.classList.add('blessed-fail');
+                    }
+                } else if (isShiftHeld){
+                    if (freeBlessings > 0){
+                        blessBlessing(blessingType, freeBlessings);
+                    } else {
+                        maxBlessings = getMaxBlessings(currentGold);
+                        if (maxBlessings > 0){
+                            blessBlessing(blessingType, maxBlessings);
+                        } else {
+                            event.currentTarget.classList.add('blessed-fail');
+                        }
+                    }
+                } else {
+                    blessBlessing(blessingType);
+                }                
             } else {
                 event.currentTarget.classList.add('blessed-fail');
             }
@@ -934,7 +1357,7 @@ document.addEventListener('contextmenu', function (event) {
 document.addEventListener('click', function (event) {
     $('.ui-tooltip').remove();
     // Array of selectors to check
-    var selectors = ['#fullInventory', '#craftInventory', '#craftPreview', '#selectedInventory', '.context-menu-list', '#stashInventory', '#statsBars', '#stats', '#mission', '#blessings', '#blessBlessings', '.submenuSpan', '.stash-pagination', '.page-button', '.page-image', '#main-hud-container'];
+    var selectors = ['#fullInventory', '#craftInventory', '#craftPreview', '#selectedInventory', '.context-menu-list', '#stashInventory', '#statsBars', '#stats', '#mission', '#blessings', '#blessBlessings', '.submenuSpan', '.stash-pagination', '.page-button', '.page-image', '#main-hud-container', '#settings-window'];
 
     // Check if click is inside any specified and visible elements
     let isContextMenu = event.target.closest('.context-menu-list');
@@ -1038,20 +1461,6 @@ function findFirstCraftableItem(craftingTable) {
     return null;
 }
 
-function adjustPlayerFontSize() {
-  const namePlate = document.getElementById('namePlate');
-  const playerName = document.getElementById('playerName');
-
-  let fontSize = parseFloat(window.getComputedStyle(playerName).fontSize);
-  const namePlateWidth = namePlate.clientWidth - parseFloat(window.getComputedStyle(namePlate).paddingLeft) - parseFloat(window.getComputedStyle(namePlate).paddingRight);
-
-  // Adjust the font size until the text fits within the namePlate
-  while (playerName.scrollWidth > namePlateWidth && fontSize > 0) {
-    fontSize -= 0.1;
-    playerName.style.fontSize = fontSize + 'px';
-  }
-}
-
 function updateBars(hp, maxHp, mana, maxMana, xp, maxXp) {
     const hpPercentage = (hp / maxHp) * 100;
     const manaPercentage = (mana / maxMana) * 100;
@@ -1063,9 +1472,24 @@ function updateBars(hp, maxHp, mana, maxMana, xp, maxXp) {
     document.querySelector('#xpBar .progress').style.width = `${xpPercentage}%`;
 
     // Update the text content for hp and mana
-    document.querySelector('#hpBar .text').innerText = `${hp}/${maxHp}`;
-    document.querySelector('#manaBar .text').innerText = `${mana}/${maxMana}`;
-    document.querySelector('#xpBar .text').innerText = `${abbreviateNumber(xp)}/${abbreviateNumber(maxXp)}`;
+    const hpTextElement = document.querySelector('#hpBar .text');
+    const hpTextElementVisible = window.getComputedStyle(hpTextElement, null).display !== 'none';
+    
+    if (hpTextElementVisible){
+        hpTextElement.innerText = `${hp}/${maxHp}`;
+    }
+
+    const mpTextElement = document.querySelector('#manaBar .text');
+    const mpTextElementVisible = window.getComputedStyle(mpTextElement, null).display !== 'none';
+
+    if (mpTextElementVisible)
+        mpTextElement.innerText = `${mana}/${maxMana}`;
+
+    const xpTextElement = document.querySelector('#xpBar .text');
+    const xpTextElementVisible = window.getComputedStyle(xpTextElement, null).display !== 'none';
+    
+    if (xpTextElementVisible)
+        xpTextElement.innerText = `${abbreviateNumber(xp)}/${abbreviateNumber(maxXp)}`;
 }
 
 function changePage(newPage) {
@@ -1111,6 +1535,23 @@ function updateBlessing(blessing, total, force = false){
     document.getElementById("blessing" + capitalizeFirstLetter(blessing)).innerHTML = total;
 }
 
+function updateAutoLockSettings(autolock){
+    Object.keys(autolock).forEach(key => {
+        $('#autolock-' + key).prop('checked', autolock[key]);
+    });
+}
+
+function getTotalPlayerXP(level, currentXp) {
+    if (level !== xpMeter.lastLevelChecked) {
+        xpMeter.cumulativeXpCache = 0.0;
+        for (var i = 1; i <= level; i++) {
+            xpMeter.cumulativeXpCache += parseFloat(50 * Math.pow(i, 2));
+        }
+        xpMeter.lastLevelChecked = level;
+    }
+    return xpMeter.cumulativeXpCache + parseFloat(currentXp);
+}
+
 function updateUI(user){
     if (user === undefined){
         console.error('Error updating the UI');
@@ -1120,17 +1561,17 @@ function updateUI(user){
     let _mission = user.mission;
 
     if (user.metaData.hp !== undefined) {
-        console.log('bars!!!');
-        updateBars(user.metaData.hp, user.metaData.maxHp, user.metaData.mana, user.metaData.maxMana, _stats.xp, Math.floor((50 * (_stats.lvl ** 2))));
+        _metaData = user.metaData;        
+        updateBars(_metaData.hp, _metaData.maxHp, _metaData.mana, _metaData.maxMana, _stats.xp, Math.floor((50 * (_stats.lvl ** 2))));
+        document.getElementById("statsDamage").innerText = abbreviateNumber(_metaData.damage);
+        document.getElementById("statsAttackSpeed").innerText = abbreviateNumber(_metaData.attackSpeed).toFixed(2) + "/S";
+        document.getElementById("statsArmor").innerText = abbreviateNumber(_metaData.armor);
+        document.getElementById("statsMagicResistance").innerText = abbreviateNumber(_metaData.magicResist);
     }
 
     document.getElementById("statsLvl").innerText = "Level: " + _stats.lvl;
     document.getElementById("statsGold").innerText = abbreviateNumber(_stats.gold);
     document.getElementById("statsPremiumCurrency").innerText = _stats.premiumCurrency ?? 0;
-    document.getElementById("statsDamage").innerText = abbreviateNumber(_stats.damage);
-    document.getElementById("statsAttackSpeed").innerText = (_stats.attackSpeed ? _stats.attackSpeed + "/SEC" : 0);
-    document.getElementById("statsArmor").innerText = abbreviateNumber(_stats.armor);
-    document.getElementById("statsMagicResistance").innerText = abbreviateNumber(_stats.magicResistance ?? 0);
 
     document.getElementById("missionTitle").style.display = "block";
     document.getElementById("missionText").innerText = _mission.text;
@@ -1139,7 +1580,17 @@ function updateUI(user){
     let _totalBlessing = (user.blessings.damage + user.blessings.afkGain + user.blessings.armor + user.blessings.xpGain + user.blessings.goldGain + user.stats.freeBlessings);
     freeBlessings = user.stats.freeBlessings;
     nextBlessingCost = _totalBlessing ** 3 + 500;
-    document.getElementById("next-blessing-cost").innerText = "Next bless: " + abbreviateNumber(nextBlessingCost);
+    if (freeBlessings > 0){
+        $('.free-bless').show();
+        $('.next-bless').hide();
+        document.getElementById("free-blessings").innerText = freeBlessings;
+    }
+    else {
+        $('.free-bless').hide();
+        $('.next-bless').show();
+        document.getElementById("next-blessing-cost").innerText = abbreviateNumber(nextBlessingCost);
+    }
+    
     blessings = user.blessings;
     currentGold = user.stats.gold;
 
@@ -1150,7 +1601,56 @@ function updateUI(user){
     updateBlessing("xp", user.blessings.xpGain);
 
     document.getElementById('playerName').innerText = `${user.username}`;
-    adjustPlayerFontSize();
+
+    if (user.metaData.autoLock !== undefined && !$('.settings').is(":visible")) {
+        updateAutoLockSettings(user.metaData.autoLock);
+    }    
+
+    if (meterRunning){
+        if (xpMeter.xp != 0){
+            if (updateMeterInfo){
+                updateMeterInfo = false;
+                var currentXP = parseFloat(user.stats.xp);
+                var nextLevelXp = (50 * Math.pow(user.stats.lvl, 2));
+                var remainingXp = nextLevelXp - currentXP;
+                var currentTotalXP = getTotalPlayerXP(user.stats.lvl, currentXP);
+                var xpMinute = currentTotalXP - xpMeter.startingXpPerMinute;
+                var averageXpMinute = ((currentTotalXP - xpMeter.startingXp) / xpMeter.minuteCount);
+                var xpHour = xpMinute * 60;
+                var xpHourAverage = averageXpMinute * 60;
+    
+                var timeToLevel = (remainingXp / xpMinute);
+    
+                var levelsGainedMinute = (user.stats.lvl - xpMeter.startingLevelsMinute);
+                var levelsGainedTotal = (user.stats.lvl - xpMeter.startingLevelsTotal);
+                
+                $('#xpMinute').text(formatMoney(xpMinute));
+                $('#xpMinuteAverage').text(formatMoney(averageXpMinute));
+                $('#xpHour').text(formatMoney(xpHour));
+                $('#xpHourAverage').text(formatMoney(xpHourAverage));
+                $('#levelsGained').text(levelsGainedMinute);
+                $('#totalLevelsGained').text(levelsGainedTotal);
+                $('#nextLevel').text(formatTime(timeToLevel));
+    
+                xpMeter.xp = parseFloat(user.stats.xp);
+                xpMeter.startingXpPerMinute = getTotalPlayerXP(user.stats.lvl, xpMeter.xp);
+                xpMeter.startingLevelsMinute = user.stats.lvl;
+            }
+        } else {
+            xpMeter.xp = parseFloat(user.stats.xp);
+            xpMeter.startingXp = getTotalPlayerXP(user.stats.lvl, xpMeter.xp);
+            xpMeter.startingXpPerMinute = getTotalPlayerXP(user.stats.lvl, xpMeter.xp);
+            xpMeter.startingLevelsMinute = user.stats.lvl;
+            xpMeter.startingLevelsTotal = user.stats.lvl;
+            $('#xpMinute').text('...');
+            $('#xpMinuteAverage').text('...');
+            $('#xpHour').text('...');
+            $('#xpHourAverage').text('...');
+            $('#levelsGained').text('0');
+            $('#totalLevelsGained').text('0');
+            $('#nextLevel').text('Calculating...');
+        }
+    }
 }
 
 function createItemElement(itemObj, type) {
@@ -1190,12 +1690,12 @@ function createItemElement(itemObj, type) {
         });
     }
 
-    newItemElement.setAttribute('title', '');
+    //newItemElement.setAttribute('title', 'test');
 
     return newItemElement;
 }
 
-function updateItemElement(itemElement, itemObj, type) {
+function updateItemElement(itemElement, itemObj, type, swapped) {
     const item = itemObj.fullItem;
     const position = itemObj.position;
     itemElement.className = `inventory-item ${item.name.replace(/\s+/g, '')}`;
@@ -1215,8 +1715,8 @@ function updateItemElement(itemElement, itemObj, type) {
         itemElement.removeAttribute('data-stashposition');
     }
 
-    item.changedAmount = itemObj.changedAmount;
-    styleItem(item, itemElement);
+    item.previousAmount = itemObj.previousAmount;
+    styleItem(item, itemElement, false, swapped);
     tooltips[type][type === 'selectedItems' ? item.kind : position] = generateItemTooltip(item, itemElement.style.backgroundImage);
 
     const imageName = getImageName(item);
@@ -1232,7 +1732,7 @@ function updateItemElement(itemElement, itemObj, type) {
         });
     }
 
-    itemElement.setAttribute('title', '');
+    //itemElement.setAttribute('title', '');
 }
 
 function removeItemElement(itemElement) {
@@ -1316,8 +1816,8 @@ function loadInventory(user, force = false) {
         if (Object.keys(currentItem).length !== 0) {
             if (existingItemElement) {
                 if (!compareItems(currentItem.fullItem, prevItem)) {
-                    currentItem.changedAmount = currentItem.fullItem.amount > prevItem.amount ? 1 : currentItem.fullItem.amount < prevItem.amount ? -1 : 0;
-                    updateItemElement(existingItemElement, currentItem, 'inventory');
+                    currentItem.previousAmount = prevItem.amount;
+                    updateItemElement(existingItemElement, currentItem, 'inventory', prevItem.swapped === true);
                 }
             } else {
                 const newInventoryItem = createItemElement(currentItem, 'inventory');
@@ -1383,8 +1883,8 @@ function loadInventory(user, force = false) {
             if (Object.keys(currentItem).length !== 0) {
                 if (existingItemElement) {
                     if (!compareItems(currentItem.fullItem, prevItem)) {
-                        currentItem.changedAmount = currentItem.fullItem.amount > prevItem.amount ? 1 : currentItem.fullItem.amount < prevItem.amount ? -1 : 0;
-                        updateItemElement(existingItemElement, currentItem, 'stash');
+                        currentItem.previousAmount = prevItem.amount;
+                        updateItemElement(existingItemElement, currentItem, 'stash', prevItem.swapped === true);
                     }
                 } else {
                     const newStashItem = createItemElement(currentItem, 'stash');
@@ -1393,7 +1893,7 @@ function loadInventory(user, force = false) {
             } else if (existingItemElement) {
                 existingItemElement.remove();
             }
-
+                
             // Update the previous state for this item
             previousStashState[i] = {...currentItem};
         }
@@ -1402,7 +1902,7 @@ function loadInventory(user, force = false) {
     oldTotalPages = totalPages;
 
     if (user.username == "mantegudo" || user.username == "hydranime" || user.username == "onestreamrpg") {
-        appendPaginationControls();
+        updatePaginationControls();
     }
     refreshSortableInventoryList();
 
@@ -1410,7 +1910,7 @@ function loadInventory(user, force = false) {
 
     for (let item in _selectedItems) {
         if (_selectedItems.hasOwnProperty(item)) {
-            if (item === "pet"){
+            if (item === "pet" || item === "color"){
                 continue;
             }
             
@@ -1429,8 +1929,8 @@ function loadInventory(user, force = false) {
             if (currentItem.fullItem.name !== "empty") {
                 if (existingItemElement) {
                     if (!compareItems(currentItem.fullItem, prevItem)) {
-                        currentItem.changedAmount = currentItem.fullItem.amount > prevItem.amount ? 1 : currentItem.fullItem.amount < prevItem.amount ? -1 : 0;
-                        updateItemElement(existingItemElement, currentItem, 'selectedItems');
+                        currentItem.previousAmount = prevItem.amount;
+                        updateItemElement(existingItemElement, currentItem, 'selectedItems', prevItem.swapped === true);
                     }
                 } else {
                     const newSelectedItem = createItemElement(currentItem, 'selectedItems');
@@ -1439,7 +1939,7 @@ function loadInventory(user, force = false) {
             } else if (existingItemElement) {
                 existingItemElement.remove();
             }
-
+                
             // Update the previous state for this item
             previousSelectedItemsState[item] = {...currentItem};
         }
@@ -1609,6 +2109,11 @@ function saveInventory() {
 
 function getInventory() {
     return requestQueue.enqueue(() => new Promise((resolve, reject) => {
+        if (!isWindowActive) {
+            reject("Window not active!");
+            return;
+        }
+        
         jwt = window.Twitch.ext.viewer.sessionToken;
 
         if (jwt === undefined && accessToken === undefined) {
@@ -1651,6 +2156,11 @@ function getInventory() {
 
 function getUIInfo(){
     return new Promise((resolve, reject) => {
+        if (!isWindowActive) {
+            reject("Window not active!");
+            return;
+        }
+        
         jwt = window.Twitch.ext.viewer.sessionToken;
     
         if (jwt === undefined && accessToken === undefined) {
@@ -1886,7 +2396,7 @@ function equipEmpty(_kind, _slot, _fromStash = false) {
 }
 
 
-function blessBlessing(kind) {
+function blessBlessing(kind, amount = 1) {
     event.stopPropagation();
     jwt = window.Twitch.ext.viewer.sessionToken;
     fetch(myServer + '/blessBlessings', {
@@ -1897,7 +2407,8 @@ function blessBlessing(kind) {
         body: JSON.stringify({
             jwt: jwt,
             kind: kind,
-            accessToken: accessToken
+            accessToken: accessToken,
+            amount: amount
         }),
     })
         .then(response => {
@@ -2029,7 +2540,7 @@ function sellItem(slotNumber, isStash, item, amount = -1, callback = false) {
         })
         .then(data => {
             if (data.user.stats !== undefined){
-                loadInventory(data.user, true);
+                loadInventory(data.user);
                 $('#delete-item').addClass('sold-item');
                 setTimeout(() => {
                     $('#delete-item').removeClass('sold-item');
@@ -2040,7 +2551,9 @@ function sellItem(slotNumber, isStash, item, amount = -1, callback = false) {
                     $('#delete-item').removeClass('cannot-sell');
                 }, 1500);
             }
-            callback(data.user.stats !== undefined);
+            if (typeof callback === 'function') {
+                callback(data.user.stats !== undefined);
+            }
         })
         .catch(error => {
             console.error(error);
