@@ -353,7 +353,7 @@ function generateBlessingTooltip(blessing, total) {
 function generateItemTooltip(item, image) {
     itemTooltip =
         `<div class="item-image" style='background-image: ${image};'></div>` +
-        `<span style="font-size: 0.47vw;">${item.name}</span><br>` +
+        `<span style="font-size: 0.52vw;">${item.name}</span><br>` +
         `<div style="margin-top:0.26vw;"/>`;
 
     if (item.damage > 0) {
