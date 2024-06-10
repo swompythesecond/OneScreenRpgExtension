@@ -1606,7 +1606,7 @@ function updateUI(user){
 
     document.getElementById('playerName').innerText = `${user.username}`;
 
-    if (user.metaData.autoLock !== undefined && !$('.settings').is(":visible")) {
+    if (user.metaData.autoLock !== undefined && !$('#settings-window').is(":visible")) {
         updateAutoLockSettings(user.metaData.autoLock);
     }    
 
