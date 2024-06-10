@@ -1069,9 +1069,18 @@ window.addEventListener("DOMContentLoaded", function () {
 
 function startXPMeter(){
     meterRunning = true;
+    meterMinuteTimer = setInterval(function(){
+        xpMeter.minuteCount++;
+        updateMeterInfo = true;
+    }, 60000);
+}
+
+function stopXPMeter(){
+    meterRunning = false;
+    clearInterval(meterMinuteTimer);
     xpMeter = {
         cumulativeXpCache: 0,
-        lastLevelChecked: xpMeter.lastLevelChecked,
+        lastLevelChecked: 0,
         xp: 0,
         startingXp: 0,
         startingXpPerMinute: 0,
@@ -1079,17 +1088,6 @@ function startXPMeter(){
         startingLevelsMinute: 0,
         startingLevelsTotal: 0
     };
-    meterMinuteTimer = setInterval(function(){
-        xpMeter.minuteCount++;
-        if (xpMeter.minuteCount > 0){
-            updateMeterInfo = true;
-        }
-    }, 60000);
-}
-
-function stopXPMeter(){
-    meterRunning = false;
-    clearInterval(meterMinuteTimer);
 }
 
 function autolock(autolockSettings){
