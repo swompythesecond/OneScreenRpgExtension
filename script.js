@@ -19,6 +19,7 @@ let currentTooltipText = "";
 var freeBlessings = 0;
 var nextBlessingCost = 1;
 var blessings = {};
+let totalBlessings = 0;
 var currentGold = 0;
 var tooltips = {
     inventory: {},
@@ -1259,31 +1260,32 @@ function hideMarker() {
 }
 
 function getBlessingsCost(amount){
-    totalBlessingsCost = 0;
+    var maxBlessings = totalBlessings;
+    var totalBlessingsCost = 0;
 
     for (var i = 0; i < amount; i++) {
-        nextBlessCost = 500 + Math.pow(totalBlessings, 3);
-        totalBlessingsCost = totalBlessingsCost + nextBlessCost;
-        totalBlessings++;
+        var nextBlessCost = 500 + Math.pow(maxBlessings, 3);
+        totalBlessingsCost += nextBlessCost;
+        maxBlessings++;
     }
 
     return totalBlessingsCost;
 }
 
 function getMaxBlessings(currentGold) {
-    var totalBlessings = 0;
+    var maxBlessings = totalBlessings;
     var totalBlessingsCost = 0;
 
     while (true) {
-        var nextBlessCost = 500 + Math.pow(totalBlessings, 3);
+        var nextBlessCost = 500 + Math.pow(maxBlessings, 3);
         if (totalBlessingsCost + nextBlessCost > currentGold) {
             break;
         }
         totalBlessingsCost += nextBlessCost;
-        totalBlessings++;
+        maxBlessings++;
     }
 
-    return totalBlessings;
+    return maxBlessings - totalBlessings;
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -1890,6 +1892,10 @@ function loadInventory(user, force = false) {
             // Update the previous state for this item
             previousStashState[i] = {...currentItem};
         }
+
+        // Update total blessings
+        const values = Object.values(blessings);
+        totalBlessings = values.reduce((acc, currentValue) => acc + currentValue, 0);
     }
 
     oldTotalPages = totalPages;
