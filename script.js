@@ -1396,22 +1396,9 @@ document.addEventListener('click', function (event) {
     })
         .then(response => {
             if (response.ok) {
-                return response.json();
+                return response.body;
             } else {
                 throw new Error(response.statusText);
-            }
-        })
-        .then(data => {
-            if (data.event == "player not ingame") {
-                clearTimeout(hideMarkerTimer)
-                hideMarker();
-                if (!window.Twitch.ext.viewer.isLinked && connected == false) {
-                    spawnTextAtPosition("You need to share your id", data.width / 100, data.height / 100);
-                }
-                else {
-                    spawnTextAtPosition("Player not ingame", data.width / 100, data.height / 100);
-                }
-
             }
         })
         .catch(error => {
