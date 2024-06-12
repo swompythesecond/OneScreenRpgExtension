@@ -353,7 +353,7 @@ function generateBlessingTooltip(blessing, total) {
 function generateItemTooltip(item, image) {
     itemTooltip =
         `<div class="item-image" style='background-image: ${image};'></div>` +
-        `<span style="font-size: 0.47vw;">${item.name}</span><br>` +
+        `<span style="font-size: 0.52vw;">${item.name}</span><br>` +
         `<div style="margin-top:0.26vw;"/>`;
 
     if (item.damage > 0) {
@@ -856,6 +856,9 @@ window.addEventListener("DOMContentLoaded", function () {
         if (state === 'hidden') {
             collapsibleElement.hide();
             buttonElement.text('+');
+            if ($(collapsibleElement).attr('id') == 'statsBars'){
+                $('.main-tabs').fadeOut();
+            }
         }
 
         var closeState = localStorage.getItem('close_' + index);
@@ -890,7 +893,10 @@ window.addEventListener("DOMContentLoaded", function () {
                 localStorage.setItem('collapsible_' + collapsibleIndex, 'visible');
             }
             if ($(collapsibleElement).attr('id') == 'statsBars'){
-                $('.main-tabs').fadeToggle();
+                if (isCurrentlyVisible)
+                    $('.main-tabs').fadeOut();
+                else
+                    $('.main-tabs').fadeIn();
             }
             collapsibleElement.slideToggle();
         } else {
@@ -1600,7 +1606,7 @@ function updateUI(user){
 
     document.getElementById('playerName').innerText = `${user.username}`;
 
-    if (user.metaData.autoLock !== undefined && !$('.settings').is(":visible")) {
+    if (user.metaData.autoLock !== undefined && !$('#settings-window').is(":visible")) {
         updateAutoLockSettings(user.metaData.autoLock);
     }    
 
