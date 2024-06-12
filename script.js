@@ -1909,7 +1909,7 @@ function loadInventory(user, force = false) {
 
     for (let item in _selectedItems) {
         if (_selectedItems.hasOwnProperty(item)) {
-            if (item === "pet" || item === "color"){
+            if (item === "pet" || item === "color" || item === "oldReward") {
                 continue;
             }
             
