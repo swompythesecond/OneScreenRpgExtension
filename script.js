@@ -353,7 +353,7 @@ function generateBlessingTooltip(blessing, total) {
 function generateItemTooltip(item, image) {
     itemTooltip =
         `<div class="item-image" style='background-image: ${image};'></div>` +
-        `<span style="font-size: 0.52vw;">${item.name}</span><br>` +
+        `<span style="font-size: 0.47vw;">${item.name}</span><br>` +
         `<div style="margin-top:0.26vw;"/>`;
 
     if (item.damage > 0) {
@@ -856,14 +856,14 @@ window.addEventListener("DOMContentLoaded", function () {
         if (state === 'hidden') {
             collapsibleElement.hide();
             buttonElement.text('+');
-            if ($(collapsibleElement).attr('id') == 'statsBars'){
-                $('.main-tabs').fadeOut();
-            }
         }
 
         var closeState = localStorage.getItem('close_' + index);
         if (closeState === 'closed') {
-            collapsibleElement.parent().hide(); // Hide the entire section including expandable button
+            if (index == 4)
+                collapsibleElement.parent().parent().hide(); // Hide the entire section including expandable button
+            else
+                collapsibleElement.parent().hide(); // Hide the entire section including expandable button
         }
     });
 
@@ -893,10 +893,7 @@ window.addEventListener("DOMContentLoaded", function () {
                 localStorage.setItem('collapsible_' + collapsibleIndex, 'visible');
             }
             if ($(collapsibleElement).attr('id') == 'statsBars'){
-                if (isCurrentlyVisible)
-                    $('.main-tabs').fadeOut();
-                else
-                    $('.main-tabs').fadeIn();
+                $('.main-tabs').fadeToggle();
             }
             collapsibleElement.slideToggle();
         } else {
@@ -1606,7 +1603,7 @@ function updateUI(user){
 
     document.getElementById('playerName').innerText = `${user.username}`;
 
-    if (user.metaData.autoLock !== undefined && !$('#settings-window').is(":visible")) {
+    if (user.metaData.autoLock !== undefined && !$('.settings').is(":visible")) {
         updateAutoLockSettings(user.metaData.autoLock);
     }    
 
