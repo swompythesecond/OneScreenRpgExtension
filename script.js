@@ -1910,9 +1910,7 @@ function loadInventory(user, force = false) {
 
     oldTotalPages = totalPages;
 
-    if (user.username == "mantegudo" || user.username == "hydranime" || user.username == "onestreamrpg") {
-        updatePaginationControls();
-    }
+    updatePaginationControls();
     refreshSortableInventoryList();
 
     const selectedItemsContainer = document.getElementById("select-inventory");
