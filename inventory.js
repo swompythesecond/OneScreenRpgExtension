@@ -256,10 +256,23 @@ function refreshSortableInventoryList() {
                         var senderHasGem = senderData.gem !== undefined && senderData.gem !== null;
                         var receiverHasGem = receiverData.gem !== undefined && receiverData.gem !== null;
 
+                        var upgradingGem = false;
                         if (senderData.kind == 'gem'){
-                            if (receiverHasGem){      
-                                $(ui.item).parentToAnimate($(ui.sender), 200);
-                                return;
+                            if (receiverHasGem){
+                                if (receiverData.gem.name == senderData.name && senderData.name.toLowerCase() != "red heart gem"){
+                                    upgradingGem = true;
+                                    receiverItemElement.hide();
+                                    receiverData.gem = senderData;
+                                    styleItem(receiverData, senderItemElement[0], false, true);
+                                    hiddenSwap = true;
+                                    $(senderItemElement).addClass('upgraded-gem');
+                                    setTimeout(() => {
+                                        $(senderItemElement).removeClass('upgraded-gem');
+                                    }, 2000);
+                                } else {                                
+                                    $(ui.item).parentToAnimate($(ui.sender), 200);
+                                    return;
+                                }
                             } else {
                                 receiverData.gem = senderData;
                                 receiverItemElement.hide();
@@ -287,7 +300,7 @@ function refreshSortableInventoryList() {
                             styleItem(receiverData, receiverItemElement[0], false, true);
                         }
 
-                        if (!senderHasGem && receiverHasGem) {
+                        if (!senderHasGem && receiverHasGem && !upgradingGem) {
                             senderData.gem = receiverData.gem;
                             delete receiverData.gem;    
                             senderItemElement.attr('data-fullitem', JSON.stringify(senderData));
