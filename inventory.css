@@ -1017,6 +1017,7 @@ input[type="range"] {
     0.05vw -0.05vw 0 #000,
     -0.05vw 0.05vw 0 #000,
     0.05vw 0.05vw 0 #000;
+  pointer-events: auto;
 }
 
 .inventory-cell:first-child {
