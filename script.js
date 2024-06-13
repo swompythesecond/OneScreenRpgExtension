@@ -1358,7 +1358,7 @@ document.addEventListener('contextmenu', function (event) {
 document.addEventListener('click', function (event) {
     $('.ui-tooltip').remove();
     // Array of selectors to check
-    var selectors = ['#fullInventory', '#craftInventory', '#craftPreview', '#selectedInventory', '.context-menu-list', '#stashInventory', '#statsBars', '#stats', '#mission', '#blessings', '#blessBlessings', '.submenuSpan', '.stash-pagination', '.page-button', '.page-image', '#main-hud-container', '#settings-window'];
+    var selectors = ['#fullInventory', '#craftInventory', '#craftPreview', '#selectedInventory', '.context-menu-list', '#stashInventory', '#statsBars', '#stats', '#mission', '#blessings', '#blessBlessings', '.submenuSpan', '.stash-pagination', '.page-button', '.page-image', '#main-hud-container', '#settings-window', '.inventory-background', '.inventory-row', '.inventory-cell', '.inventory-item'];
 
     // Check if click is inside any specified and visible elements
     let isContextMenu = event.target.closest('.context-menu-list');
