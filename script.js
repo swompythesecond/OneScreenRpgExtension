@@ -799,43 +799,7 @@ function setIsLeftMouseButtonPressedToFalse() {
     isLeftMouseButtonPressed = false;
 }
 
-document.querySelector("#craftButton").addEventListener("click", function () {
-    event.stopPropagation();
-    $('.context-menu-list').trigger('contextmenu:hide');
-    jwt = window.Twitch.ext.viewer.sessionToken;
-    const _item = findFirstCraftableItem(getCraftInventoryArray()).name;
-    fetch(myServer + '/craftItem', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            jwt: jwt,
-            accessToken: accessToken,
-            item: _item,
-        }),
-    })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error(response.statusText);
-            }
-        })
-        .then(data => {
-            if (data.success == true) {
-                const items = document.querySelectorAll('.inventory-item');
-                items.forEach(item => {
-                    item.parentNode.removeChild(item);
-                });
-                loadInventory(data.user, true)
-            }
-        })
-        .catch(error => {
-            console.error(error);
-        });
 
-});
 
 // we need to do this because otherwise there are issues with html
 window.addEventListener("DOMContentLoaded", function () {
@@ -1056,6 +1020,11 @@ window.addEventListener("DOMContentLoaded", function () {
             autolockArray[String(value)] = isChecked;
         });
         autolock(autolockArray);
+    });
+
+    $('#reset-settings').click(function () {
+        localStorage.clear();
+        localStorage.setItem('accessToken', accessToken);
     });
 
     $('.start-session-button').click(function () {
@@ -1357,10 +1326,48 @@ document.addEventListener('contextmenu', function (event) {
     }
 });
 
+document.querySelector("#craftButton").addEventListener("click", function () {
+    event.stopPropagation();
+    $('.context-menu-list').trigger('contextmenu:hide');
+    jwt = window.Twitch.ext.viewer.sessionToken;
+    const _item = findFirstCraftableItem(getCraftInventoryArray()).name;
+    fetch(myServer + '/craftItem', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            jwt: jwt,
+            accessToken: accessToken,
+            item: _item,
+        }),
+    })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error(response.statusText);
+            }
+        })
+        .then(data => {
+            if (data.success == true) {
+                const items = document.querySelectorAll('.inventory-item');
+                items.forEach(item => {
+                    item.parentNode.removeChild(item);
+                });
+                loadInventory(data.user, true)
+            }
+        })
+        .catch(error => {
+            console.error(error);
+        });
+
+});
+
 document.addEventListener('click', function (event) {
     $('.ui-tooltip').remove();
     // Array of selectors to check
-    var selectors = ['#fullInventory', '#craftInventory', '#craftPreview', '#selectedInventory', '.context-menu-list', '#stashInventory', '#statsBars', '#stats', '#mission', '#blessings', '#blessBlessings', '.submenuSpan', '.stash-pagination', '.page-button', '.page-image', '#main-hud-container', '#settings-window', '.inventory-background', '.inventory-row', '.inventory-cell', '.inventory-item'];
+    var selectors = ['#fullInventory', '#craftInventory', '#craftPreview', '#selectedInventory', '.context-menu-list', '#stashInventory', '#statsBars', '#stats', '#mission', '#blessings', '#blessBlessings', '.submenuSpan', '.stash-pagination', '.page-button', '.page-image', '#main-hud-container', '#settings-window', '.inventory-background', '.inventory-row', '.inventory-cell', '.inventory-item', '#craftButton'];
 
     // Check if click is inside any specified and visible elements
     let isContextMenu = event.target.closest('.context-menu-list');
@@ -2013,7 +2020,6 @@ function getInventoryArray() {
                         if (stashPutTracker.from instanceof String || stashPutTracker.from === null) {
                             stashPut(fromPos, toPos);
                             stashPutTracker = { from: fromPos, to: toPos };
-                            console.log('stashPut From Stash');
                         }
                         allowSetInventory = false;
                         return { inventoryArray, allowSetInventory };
@@ -2074,7 +2080,6 @@ function getStashInventoryArray() {
                         if (stashPutTracker.to instanceof String || stashPutTracker.to === null) {
                             stashPut(fromPos, toPos);
                             stashPutTracker = { from: fromPos, to: toPos };
-                            console.log('stashPut From Inventory');
                         }
                         allowSetStash = false;
                         return { stashInventoryArray, allowSetStash };

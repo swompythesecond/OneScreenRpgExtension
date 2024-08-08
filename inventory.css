@@ -172,10 +172,13 @@ body {
 }
 
 #craftPreview {
+  position: relative;
   width: 6.2vw;
+  height: auto;
   background-image: url('images/inventory_background/craftPreview.png');
   background-size: cover;
   font-size: 0.5vw;
+  display: block;
 }
 
 #craftImage {
@@ -186,10 +189,8 @@ body {
   height: 2vw;
   background-image: url('');
   background-size: cover;
-  display: block;
   cursor: url(images/cursor/point.png) 10 0, auto !important;
   font-size: 0.5vw;
-  z-index: 100;
 }
 
 #craftButton {
@@ -200,10 +201,8 @@ body {
   height: 2vw;
   background-image: url('images/inventory_background/craftButton.png');
   background-size: cover;
-  display: block;
   cursor: url(images/cursor/point.png) 10 0, auto !important;
   font-size: 0.5vw;
-  z-index: 100;
 }
 
 div {
@@ -1373,6 +1372,22 @@ input[type="range"] {
 }
 
 #save-settings:hover {
+  color: #f2ff00;
+}
+
+#reset-settings {
+  background-color: #53535f7a;
+  color: white;
+  font-family: arcade;
+  cursor: url(images/cursor/point.png) 10 0, auto !important;
+  width: calc(100% - 0.4vw);
+  height: 1.8vw;
+  position: absolute;
+  bottom: 0.2vw;
+  left: 0.2vw;
+}
+
+#reset-settings:hover {
   color: #f2ff00;
 }
 
